@@ -1,4 +1,4 @@
-classdef oppKron2Lo < opKron & opSweep
+classdef oppKron2Lo < opKron
     
     %oppKron2Lo extends opKron. Indeed, it stores 2 transform operators
     %which will be applied to the rows and the columns of a right-hand
