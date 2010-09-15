@@ -1,11 +1,25 @@
 classdef oppKron2Lo < opKron
-    
-    %oppKron2Lo extends opKron. Indeed, it stores 2 transform operators
-    %which will be applied to the rows and the columns of a right-hand
-    %matrix X according to the equivalent operation (A kron B)X(:). Thus the
-    %number of columns of A must be equal to the numer of rows of X and
-    %the number of columns of B must be equal to the number of columns of X.
-    %X must be distributed. The calculation is done in parallel.
+%oppKron2Lo  kronecker tensor product to act on a distributed vector. 
+%
+%   oppKron2Lo(A,B, gather)A and B are Spot operators or numeric matrices.
+%   Optional param gather specifies whether the output vector should be
+%   gathered to local lab.   
+%
+%   ex.
+%       M = oppKron2Lo(opDFT(15),rand(20,30));
+%       x = distributed.rand(30,15);
+%       y = M*x(:);
+%
+%   note that the second operator is applied to x and then the first
+%   operator to the transpose of the result, and so x should be of
+%   dimemsions [cols(op2),cols(op1)], and vectorized after distribution so
+%   it is distributed along the columns evenly.
+%
+%   *Now oppKron2Lo also supports local x vectors and distributes them
+%   before calculation( this distribution will be faster than using matlabs
+%   (:) function).
+%
+
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
@@ -13,6 +27,7 @@ classdef oppKron2Lo < opKron
     
     properties
         tflag = 0;
+        gather = 0;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,7 +40,10 @@ classdef oppKron2Lo < opKron
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppKron2Lo(varargin)
-            op= op@opKron(varargin);
+            op= op@opKron(varargin(1:2));
+            if nargin > 2
+                op.gather = varargin{end};
+            end
         end % Constructor
         
         
@@ -40,9 +58,6 @@ classdef oppKron2Lo < opKron
                 str=strcat(str,[', ',char(op.children{i})]);
             end
             str=strcat(str,')');
-            if op.tflag
-                str = strcat(str, '''');
-            end
         end % Char
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,12 +69,9 @@ classdef oppKron2Lo < opKron
         % For the moment mtimes is only implemented for right
         % multiplication
         function y=mtimes(op,x)
-            assert( isa(x,'distributed') && size(x,2) == 1, ...
-                'Please, use a vected distributed matrix')
+            assert( size(x,2) == 1, 'Please use vectorized matrix')
             if ~isa(op,'oppKron2Lo')
                 error('Left multiplication not taken in account')
-            elseif ~isa(x,'distributed')
-                error('Please, multiply with a distributed matrix')
             else
                 y=op.multiply(x, op.tflag + 1 );
             end
@@ -72,17 +84,45 @@ classdef oppKron2Lo < opKron
         % opTranspose.
         function y = transpose(op)
             [m,n] = size(op);
-            op.m = n;
-            op.n = m;
-            op.tflag =  ~op.tflag;
-            op.permutation = op.permutation(end:-1:1);
             y = op;
+            y.m = n;
+            y.n = m;
+            y.children{1} = op.children{1}';
+            y.children{2} = op.children{2}';
+            y.tflag =  ~op.tflag;
+            y.permutation = op.permutation(end:-1:1);
         end
         function y = ctranspose(op)
             y = transpose(op);
         end
     
-    end % Methods
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % double
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % double is overloaded to use a vectorized identity matrix
+        function y = double(op, enable)
+            if nargin < 2 || ~enable
+                error(['oppKron2Lo is intended for large applications.' ...
+                    ' The explicit representation will likely be very large,'...
+                    ' use     double(x,1)  to proceed anyway']);
+            end
+            y = double(kron(op.children{1},op.children{2}));
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % drandn/rrandn
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % drandn is overloaded to create a distributed random vector
+        function y = drandn(op)
+            dims = [op.children{2}.n, op.children{1}.n];
+            y = distrandnvec( dims );            
+        end
+        function y = rrandn(op)
+            dims = [op.children{2}.m, op.children{1}.m];
+            y = distrandnvec( dims );
+        end
+        
+    end% Methods
     
     
     
@@ -95,7 +135,7 @@ classdef oppKron2Lo < opKron
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function y = multiply(op,x,mode)
+        function y = multiply(op,x,~)
             
             %The Kronecker product (KP) is applied to the right-hand matrix
             %taking in account the best order to apply the operators A and
@@ -104,12 +144,7 @@ classdef oppKron2Lo < opKron
             %Operators
             A=op.children{1};
             B=op.children{2};
-            
-            if mode == 2
-                A = A';
-                B = B';
-            end
-            
+                       
             %Size of the operators
             [rA,cA]=size(A);
             [rB,cB]=size(B);
@@ -120,59 +155,110 @@ classdef oppKron2Lo < opKron
             
             if perm(1)==2 %Classic multiplication order
                 spmd
-                    x=getLocalPart(x);
-                    local_width=length(x)/cB;
-                    assert( mod(local_width,1) == 0, ...
-                        ' x must be distributed along columns before vec')
-                    x = reshape(x,cB,local_width);
+                    if iscodistributed(x)
+                        y=getLocalPart(x);
+                        local_width=length(y)/cB;
+                        assert( mod(local_width,1) == 0, ...
+                            ' x must be distributed along columns before vec')
+                        y = reshape(y,cB,local_width);%reshape to local matrices
+                    else
+                        y = reshape(x,cB,cA);
+                        y = codistributed(y);
+                        y = getLocalPart(y);
+                        local_width = size(x,2);
+                    end
+                    
                     partition = codistributed.build(local_width, ...
                         codistributor1d(2,codistributor1d.unsetPartition,...
-                        [1,numlabs]));
+                        [1,numlabs]));%partition of columns
                     
-                    x=B*x;
-                    x=x.';
+                    y=B*y;%apply B to local matrices, then transpose
+                    y=y.';
                     
-                    x = codistributed.build(x, codistributor1d...
+                    y = codistributed.build(y, codistributor1d...
                         (1,partition,[cA,rB]));
-                    x = redistribute(x,codistributor1d(2));
+                    y = redistribute(y,codistributor1d(2));%distributed along cols
                     
-                    x = getLocalPart(x);
-                    x=A*x;
-                    x=x.';
-                    x=codistributed.build(x,codistributor1d(1,...
+                    y = getLocalPart(y);
+                    y=A*y;%apply A to local matrices, then transpose
+                    y=y.';
+                    y=codistributed.build(y,codistributor1d(1,...
                         codistributor1d.unsetPartition,[rB,rA]));
-                    x=redistribute(x,codistributor1d(2));
-                    y = x(:);
+                    y=redistribute(y,codistributor1d(2));
+                    
+                    %now vectorize y
+                    y = getLocalPart(y);
+                    local_size = numel(y);
+                    partition = codistributed.build(local_size, ...
+                        codistributor1d(2,codistributor1d.unsetPartition,...
+                        [1,numlabs]));
+                    y = y(:);
+                    y = codistributed.build(y, codistributor1d(1,...
+                        partition, [rA*rB,1]));
                 end
             else  %Inverted multiplication order 
                 spmd
-                    x=getLocalPart(x);
-                    local_width=length(x)/cB;
-                    assert( mod(local_width,1) == 0, ...
-                        ' x must be distributed along columns before vec')
-                    x = reshape(x,cB,local_width);
-                    partition = codistributed.build(local_width, ...
+                    if iscodistributed(x)
+                        y=getLocalPart(x);
+                        local_width=length(y)/cB;
+                        assert( mod(local_width,1) == 0, ...
+                            'x must be distributed along columns before vec')
+                        y = reshape(y,cB,local_width);%reshape to local matrices
+                        partition = codistributed.build(local_width, ...
+                            codistributor1d(2,codistributor1d.unsetPartition,...
+                            [1,numlabs]));%partition of columns
+
+                        y=y.'; %transpose since we're gonna apply A first
+                        y = codistributed.build(y, codistributor1d...
+                            (1,partition,[cA,cB]));
+                        y = redistribute(y,codistributor1d(2));
+                    else
+                        y = reshape(x,cB,cA);
+                        y = y.';
+                        y = codistributed(y);
+                    end
+                    
+                    y = getLocalPart(y);
+                    y = A*y;%apply A to local matrices, then transpose
+                    y = y.';
+                    
+                    y = codistributed.build(y,codistributor1d(1,...
+                        codistributor1d.unsetPartition,[cB,rA]));
+                    y=redistribute(y,codistributor1d(2));
+                    y = getLocalPart(y);
+                    y = B*y;%apply B to local matrices, no need to transpose
+                    
+                    %now vectorize y
+                    local_size = numel(y);
+                    partition = codistributed.build(local_size, ...
                         codistributor1d(2,codistributor1d.unsetPartition,...
                         [1,numlabs]));
-                    
-                    x=x.';                    
-                    x = codistributed.build(x, codistributor1d...
-                        (1,partition,[cA,cB]));
-                    x = redistribute(x,codistributor1d(2));
-                    x = getLocalPart(x);
-                    x = A*x;
-                    x = x.';
-                    
-                    x = codistributed.build(x,codistributor1d(1,...
-                        codistributor1d.unsetPartition,[cB,rA]));
-                    x=redistribute(x,codistributor1d(2));
-                    x = getLocalPart(x);
-                    x = B*x;
-                    x = codistributed.build(x,codistributor1d(2,...
-                        codistributor1d.unsetPartition,[rB,rA]));
-                    y = x(:);
+                    y = y(:);
+                    y = codistributed.build(y, codistributor1d(1,...
+                        partition, [rA*rB,1]));
                 end
             end
+            if op.gather, y = gather(y); end %#ok<PROP,CPROP>
         end % Multiply
     end %Protected methods
 end % Classdef
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Helper Functions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% distrandnvec helper funtion to create a vectorized distributed
+% normal random matrix
+function y = distrandnvec( sz )
+    spmd
+        y = codistributed.randn(sz);
+        codist = getCodistributor(y);
+        part = codist.Partition;
+        part = part.*sz(1);
+        y = getLocalPart(y);
+        y = y(:);
+        y = codistributed.build(y, codistributor1d(1,part,...
+            [sz(1)*sz(2),1]));
+    end
+end

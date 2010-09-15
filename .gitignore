@@ -1,0 +1,4 @@
+doc/*.html
+doc/html
+.DS_Store
+*~

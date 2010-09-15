@@ -1,4 +1,4 @@
-function testDistPermute
+function test_DistPermute
 
 x = matlabpool('size');
 if ~x

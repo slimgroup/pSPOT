@@ -48,10 +48,10 @@ spmd
     
     %do the permute locally on each lab and then build the codistributed
     %array again
-    d = permute(getLocalPart(Data), perm);
+    Data = permute(getLocalPart(Data), perm);
     codistr = codistributor1d( dimdist, ...
         codistributor1d.unsetPartition, dims);
-    Data = codistributed.build(d, codistr);
+    Data = codistributed.build(Data, codistr);
     
     %if the dimension of distribution changed
     if dimdist ~= dist
