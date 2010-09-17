@@ -44,6 +44,7 @@ classdef oppKron2Lo < opKron
             if nargin > 2
                 op.gather = varargin{end};
             end
+            op.sweepflag = true;
         end % Constructor
         
         
@@ -58,6 +59,9 @@ classdef oppKron2Lo < opKron
                 str=strcat(str,[', ',char(op.children{i})]);
             end
             str=strcat(str,')');
+            if op.tflag	 	
+                str = strcat(str, '''');
+            end
         end % Char
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,11 +73,16 @@ classdef oppKron2Lo < opKron
         % For the moment mtimes is only implemented for right
         % multiplication
         function y=mtimes(op,x)
-            assert( size(x,2) == 1, 'Please use vectorized matrix')
             if ~isa(op,'oppKron2Lo')
                 error('Left multiplication not taken in account')
+            elseif isnumeric(x) || isdistributed(x)
+                assert( isvector(x) , 'Please use vectorized matrix')
+                op.counter.plus1(op.tflag + 1 );
+                y=op.multiply(x, 1 ); %use tflag to determine mode within multiply
+            elseif isa(x,'opSpot')
+                y = opFoG(op,x);
             else
-                y=op.multiply(x, op.tflag + 1 );
+                error(['unsupported data type: ' class(x)]);
             end
         end
         
@@ -87,8 +96,6 @@ classdef oppKron2Lo < opKron
             y = op;
             y.m = n;
             y.n = m;
-            y.children{1} = op.children{1}';
-            y.children{2} = op.children{2}';
             y.tflag =  ~op.tflag;
             y.permutation = op.permutation(end:-1:1);
         end
@@ -114,11 +121,19 @@ classdef oppKron2Lo < opKron
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % drandn is overloaded to create a distributed random vector
         function y = drandn(op)
-            dims = [op.children{2}.n, op.children{1}.n];
-            y = distrandnvec( dims );            
+            if ~op.tflag
+                dims = [op.children{2}.n, op.children{1}.n];
+            else
+                dims = [op.children{2}.m, op.children{1}.m];
+            end
+            y = distrandnvec( dims );
         end
         function y = rrandn(op)
-            dims = [op.children{2}.m, op.children{1}.m];
+            if ~op.tflag
+                dims = [op.children{2}.m, op.children{1}.m];
+            else
+                dims = [op.children{2}.n, op.children{1}.n];
+            end
             y = distrandnvec( dims );
         end
         
@@ -135,7 +150,7 @@ classdef oppKron2Lo < opKron
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function y = multiply(op,x,~)
+        function y = multiply(op,x,mode)
             
             %The Kronecker product (KP) is applied to the right-hand matrix
             %taking in account the best order to apply the operators A and
@@ -144,6 +159,13 @@ classdef oppKron2Lo < opKron
             %Operators
             A=op.children{1};
             B=op.children{2};
+            
+            %we could have been called through opSpot.applyMultiply, then
+            %we need to pay attention to mode.
+            if mode == 2 && ~op.tflag || mode ==1 && op.tflag
+                A = A';
+                B = B';
+            end
                        
             %Size of the operators
             [rA,cA]=size(A);
