@@ -187,7 +187,7 @@ classdef oppKron2Lo < opKron
                         y = reshape(x,cB,cA);
                         y = codistributed(y);
                         y = getLocalPart(y);
-                        local_width = size(x,2);
+                        local_width = size(y,2);
                     end
                     
                     partition = codistributed.build(local_width, ...
