@@ -1,4 +1,4 @@
-function OUT = DistPermute(Data, perm, dist, varargin)
+function Data = DistPermute(Data, perm, dist, varargin)
 %DistPermute - to permute distributed nd-arrays. Data is a distributed
 %array, perm is the desired arrangement of dimensions, and the optional
 %dist specifies the dimension from the original array for the output to be
@@ -59,5 +59,4 @@ spmd
         Data = redistribute( Data, codistr);
     end
 end
-OUT = Data;
 end
