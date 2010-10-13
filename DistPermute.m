@@ -1,23 +1,23 @@
 function Data = DistPermute(Data, perm, dist, varargin)
-%DistPermute - to permute distributed nd-arrays. Data is a distributed
-%array, perm is the desired arrangement of dimensions, and the optional
-%dist specifies the dimension from the original array for the output to be
-%distributed along. If dist isn't provided, the output is distributed along
-%its last dimension.
+%DISTPERMUTE(Data, perm, dist) - to permute distributed nd-arrays. Data is
+%a distributed array, perm is the desired arrangement of dimensions, and
+%the optional dist specifies the dimension from the original array for the
+%output to be distributed along. If dist isn't provided, the output is
+%distributed along its last dimension.
 
 numdims = ndims(Data);
 if ~(nargin == 5 && ischar( varargin{1} ) && ...
         strcmp( varargin{1}, 'internalcall' ))
     %no need to check inputs for internal calls
     error(nargchk(2,3, nargin))
-    if nargin == 2,     dist = -1;  end
+    if nargin == 2,     dist = perm(numdims);  end
     if numlabs ~= 1
         error('This function is not meant to be called from an spmd block')
     end
     if ~isa(Data, 'distributed')
         error('Input must be distributed')
     end
-    if ~isnumeric(dist) || length(dist) ~= 1 || dist > ndims(Data)
+    if ~isnumeric(dist) || length(dist) ~= 1 || dist > numdims
         error('Distribution dimension must be an individual dimension of Data')
     end
     temp = perms(1:numdims);
@@ -42,9 +42,7 @@ spmd
     
     %incase the distributed dimension is involved in the permute
     dimdist = find(perm == dimdist);
-    if dist > 0,    dist = find(perm == dist);
-        %incase dist wasn't specified
-    else            dist = numdims;   end
+    dist = find(perm == dist);
     
     %do the permute locally on each lab and then build the codistributed
     %array again
