@@ -10,7 +10,7 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
    % Properties
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    properties
-      
+      gather = 0;
    end %properties
    
    
@@ -33,13 +33,13 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    methods( Access = protected )
       
-      function x = applyMultiply(op,x,mode)
-         op.counter.plus1(mode);
-         x = op.multiply(x,mode);
-         
-         
-         
-      end
+%       function x = applyMultiply(op,x,mode)
+%          op.counter.plus1(mode);
+%          x = op.multiply(x,mode);
+%          
+%          
+%          
+%       end
       
       function x = applyDivide(op,x,mode)
          x = op.divide(op,x,mode);
