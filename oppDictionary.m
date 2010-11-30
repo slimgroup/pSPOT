@@ -120,13 +120,13 @@ classdef oppDictionary < oppSpot
               local_ops = codist.globalIndices(2);
               
               % Get sizes of the ops to go on the lab
-              [m,n] = cellfun(@size, op.children(local_ops));
-              N  = gcat(n);
+              [M,N]  = cellfun(@size, op.children);
+              n = N(local_ops);
               sN = cumsum(N);
 
               if mode == 1
                   
-                 y = zeros(m(1),1);
+                 y = zeros(M(1),1);
                  for ops = local_ops
                     ind = [ -N(ops)+1, 0] + sN(ops);
                     y = y + applyMultiply( op.children{ops},...

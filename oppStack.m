@@ -46,6 +46,15 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppStack(varargin)
         
+            % Check for gather parameter
+            if isscalar( varargin{end} ) && any(varargin{end} == [0 1])
+                gather = varargin{end};   
+                varargin = varargin(1:end-1);
+            else
+                gather = 0;
+            end
+            nargin = length(varargin) ;
+            
             % Checks weights parameter
             if ~isnumeric(varargin{1})
                 weights = ones(nargin,1);
@@ -63,14 +72,6 @@ classdef oppStack < oppSpot
                 end
             end
                         
-            % Check for gather parameter
-            if isscalar( varargin{end} ) && any(varargin{end} == [0 1])
-                gather = varargin{end};   
-                varargin = varargin(1:end-1);
-            else
-                gather = 0;
-            end
-            
             % Check for empty operators and remove them
             ops = ~cellfun(@isempty,varargin);
             assert(any(ops),'At least one operator must be specified.');
@@ -150,8 +151,8 @@ classdef oppStack < oppSpot
               local_ops = codist.globalIndices(2);
               
               % Get sizes of the ops to go on the lab
-              [m,n] = cellfun(@size, op.children(local_ops));
-              M = gcat(m);
+              [M,N] = cellfun(@size, op.children);
+              m = M(local_ops);
               sM = cumsum(M);
 
               if mode == 1
@@ -174,7 +175,7 @@ classdef oppStack < oppSpot
                  
               else  % mode 2
                   
-                 y = zeros(n(1),1);
+                 y = zeros(N(1),1);
                  for ops = local_ops
                     ind = [ -M(ops)+1, 0] + sM(ops);
                     xd = op.weights(ops) * x( ind(1):ind(2) );
