@@ -52,7 +52,7 @@ classdef oppKron2Lo < opKron
         % Display
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
-            str=['Kron(',char(op.children{1})];
+            str=['pKron(',char(op.children{1})];
             
             % Get operators
             for i=2:length(op.children)
