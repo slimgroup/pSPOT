@@ -42,7 +42,7 @@ classdef oppFoG < oppSpot
           if isa(B,'numeric'), B = opMatrix(B); end
           
           % Check that the input operators are valid.
-          if ~( isa(A,'oppSpot') && isa(B,'oppSpot') )
+          if ~( isa(A,'opSpot') && isa(B,'opSpot') )
              error('One of the operators is not a valid input.')
           end
           
