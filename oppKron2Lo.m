@@ -3,7 +3,12 @@ classdef oppKron2Lo < opKron
 %
 %   oppKron2Lo(A,B, gather)A and B are Spot operators or numeric matrices.
 %   Optional param gather specifies whether the output vector should be
-%   gathered to local lab.   
+%   gathered to local lab.  
+%   GATHER = 0 will not gather
+%   GATHER = 1 will gather the results of forwards or adjoint
+%   multiplication.
+%   GATHER = 2 will gather only in forward mode.
+%   GATHER = 3 will gather only in backwards (adjoint) mode.
 %
 %   ex.
 %       M = oppKron2Lo(opDFT(15),rand(20,30));
@@ -117,7 +122,7 @@ classdef oppKron2Lo < opKron
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % drandn/rrandn
+        % drandn/rrandn/zeros
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % drandn is overloaded to create a distributed random vector
         function y = drandn(op)
@@ -135,6 +140,14 @@ classdef oppKron2Lo < opKron
                 dims = [op.children{2}.n, op.children{1}.n];
             end
             y = distrandnvec( dims );
+        end
+        function y = zeros(op)
+            if ~op.tflag
+                dims = [op.children{2}.m, op.children{1}.m];
+            else
+                dims = [op.children{2}.n, op.children{1}.n];
+            end
+            y = distzeros( dims );
         end
         
     end% Methods
@@ -260,7 +273,16 @@ classdef oppKron2Lo < opKron
                         partition, [rA*rB,1]));
                 end
             end
-            if op.gather, y = gather(y); end %#ok<PROP,CPROP>
+            % if op.gather, y = gather(y); end %#ok<PROP,CPROP>
+            if perm(1) == 2
+                if op.gather == 1 || op.gather == 3
+                    y = gather(y);
+                end
+            else % mode == 2
+                if op.gather == 1 || op.gather == 2
+                    y = gather(y);
+                end
+            end % gather
         end % Multiply
     end %Protected methods
 end % Classdef
@@ -275,6 +297,21 @@ end % Classdef
 function y = distrandnvec( sz )
     spmd
         y = codistributed.randn(sz);
+        codist = getCodistributor(y);
+        part = codist.Partition;
+        part = part.*sz(1);
+        y = getLocalPart(y);
+        y = y(:);
+        y = codistributed.build(y, codistributor1d(1,part,...
+            [sz(1)*sz(2),1]));
+    end
+end
+
+% distzeros helper funtion to create a vectorized distributed
+% zeros matrix
+function y = distzeros( sz )
+    spmd
+        y = codistributed.zeros(sz);
         codist = getCodistributor(y);
         part = codist.Partition;
         part = part.*sz(1);
