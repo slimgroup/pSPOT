@@ -95,8 +95,12 @@ classdef oppNumBlockDiag < oppSpot
             if ~isnumeric(varargin{1}) || ndims(varargin{1})==3   % No weights
                 weights = ones(nargs,1);
             else
-                if isscalar(varargin{1}) % N for repeating ops
-                    Nrep = varargin{1};
+                if isscalar(varargin{1}) 
+                    if ndims(varargin{2}) ==3
+                        weights = varargin{1};
+                    else% N for repeating ops
+                        Nrep = varargin{1};
+                    end
                 else                       % weights
                     weights = varargin{1};
                     if isempty(weights), weights = 1; end;
@@ -110,8 +114,8 @@ classdef oppNumBlockDiag < oppSpot
                     nSlices = size(varargin{1},3);
                     Cube = varargin{1};
                     isBlockMatrix = true;
-                    if weights == 1
-                        weights = ones(size(varargin{1},3),1); % default
+                    if isscalar(weights)
+                        weights = weights.*ones(size(varargin{1},3),1); % default
                     else
                         if length(weights(:)) == nSlices
                             weights = ones(nSlices,1).*weights(:);
@@ -247,7 +251,7 @@ classdef oppNumBlockDiag < oppSpot
             if isa(linear,'Composite'), linear = linear{1}; end
             
             % Construct operator
-            op = op@oppSpot('pBlockDiag', m, n);
+            op = op@oppSpot('pnumBlockDiag', m, n);
             op.locm = localm;
             op.locn = localn;
             op.cflag    = cflag;
