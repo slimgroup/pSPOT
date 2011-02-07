@@ -1,4 +1,4 @@
-function y = mtimes(A,B,invert)
+function y = mtimes(A,B,swap)
 %*   Product of two operators.
 %
 %   A*B  returns an operator that is the product of two operators.
@@ -23,7 +23,7 @@ function y = mtimes(A,B,invert)
 % 4) C*s
 % 5) C*C, either of which can be a foreign class (including opSpot)
 
-if nargin == 3 && strcmp(invert,'invert')
+if nargin == 3 && strcmp(swap,'swap')
     tmp = A;    A = B;      B = tmp;    clear tmp;
 end
 

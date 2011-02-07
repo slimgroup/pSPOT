@@ -1,4 +1,4 @@
-classdef (InferiorClasses = {?opSpot}) oppDirac < oppOrthogonal   
+classdef oppDirac < oppOrthogonal   
 %OPPDIRAC  parallel Dirac basis.
 %
 %   oppDirac(N) creates the square N-by-N identity operator. Without

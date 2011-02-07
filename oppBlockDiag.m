@@ -205,7 +205,7 @@ classdef oppBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             % Initialize
-            str = 'BlockDiag(';
+            str = 'pBlockDiag(';
             
             if ~isnumeric( op.children{1} )
                 for child = op.children
