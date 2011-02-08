@@ -141,7 +141,15 @@ classdef oppKron2Lo < opKron
             end
             y = distrandnvec( dims );
         end
-        function y = zeros(op)
+        function y = dzeros(op)
+            if ~op.tflag
+                dims = [op.children{2}.n, op.children{1}.n];
+            else
+                dims = [op.children{2}.m, op.children{1}.m];
+            end
+            y = distzeros( dims );
+        end
+        function y = rzeros(op)
             if ~op.tflag
                 dims = [op.children{2}.m, op.children{1}.m];
             else
