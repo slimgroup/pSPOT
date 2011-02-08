@@ -282,11 +282,11 @@ classdef oppKron2Lo < opKron
                 end
             end
             % if op.gather, y = gather(y); end %#ok<PROP,CPROP>
-            if perm(1) == 2
+            if mode == 2 && ~op.tflag || mode ==1 && op.tflag % this is the correct adjoint case
                 if op.gather == 1 || op.gather == 3
                     y = gather(y);
                 end
-            else % mode == 2
+            else % this is the forward case
                 if op.gather == 1 || op.gather == 2
                     y = gather(y);
                 end
