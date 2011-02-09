@@ -70,7 +70,7 @@ classdef oppDictionary < oppSpot
             op = op@oppSpot('pDictionary', m(1), n);
             op.cflag    = cflag;
             op.linear   = linear;
-            op.children = opList;
+            op.children = distributed(opList);
             op.sweepflag= true;
             op.gather   = gather;
             op.precedence= 1;
@@ -82,26 +82,54 @@ classdef oppDictionary < oppSpot
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function str = char(op)
           % Initialize
-          str = ['[',char(op.children{1})];
-       
-          for ops=op.children(2:end)
-             str = [str, ', ', char(ops{1})];         
-          end
-          
-          str = [str, ']'];
+          opchildren = gather(op.children);
+            str = ['[',char(opchildren{1})];
+            
+            for ops=opchildren(2:end)
+                str = [str, ', ', char(ops{1})];
+            end
+            
+            str = [str, ']'];
+            
+            clear opchildren;
        end % Display
        
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Double
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function A = double(op)
-          A = zeros(op.m,op.n);
-          k = 0;
-          for child=op.children
-             n = child.n;
-             A(:,k+1:k+n) = double(child);
-             k = k + n;
-          end
+       %OPPDICTIONARY.DOUBLE Distributed doubling of oppDictionary
+       %    A = double(op) will apply double to each child operator
+       %    in oppDictionary, and return a distributed dictionary
+       %    of explicit operators.
+           opchildren = op.children;
+            childm = op.m;
+            opn = op.n;
+            spmd
+                opchildren = getLocalPart(opchildren);
+                childn = 0;
+                partition = codistributed.zeros(1,numlabs);
+                globalsize = [childm opn];
+                A = zeros(childm,childn);
+                if ~isempty(opchildren)
+                    for i = 1:length(opchildren)
+                        child = opchildren{i};
+                        childn = childn + child.n;
+                    end
+                    A = zeros(childm,childn);
+                    partition(labindex) = childn;
+                    k = 0;
+                    for i = 1:length(opchildren)
+                        child = opchildren{i};
+                        n = child.n;
+                        A(:,k+1:k+n) = double(child);
+                        k = k+n;
+                    end
+                end
+                partition = gather(partition);
+                codist = codistributor1d(2,partition,globalsize);
+                A = codistributed.build(A,codist,'noCommunication');
+            end % spmd
        end % double
 
     end % Methods
@@ -115,9 +143,12 @@ classdef oppDictionary < oppSpot
           % Setting up class variables
           opchildren = op.children;
           opgather = op.gather;
+          if ~isdistributed(x)
+              error('X is not distributed');
+          end
+          % Preallocate y
+          y = zeros(op.m,size(x,2));
           spmd
-              % create a codist, and get global indices to see how many ops
-              % on each lab
               codist = codistributor1d(2,[],[1,length(opchildren)]);
               local_ops = codist.globalIndices(2);
               
@@ -125,17 +156,22 @@ classdef oppDictionary < oppSpot
               [M,N]  = cellfun(@size, opchildren);
               n = N(local_ops);
               sN = cumsum(N);
-
+              
+              % Multiplication
+              opchildren = getLocalPart(opchildren);
+              x = getLocalPart(x);
+              if ~isempty(opchildren)
+                  B = opDictionary(opchildren{:});
+                  if mode == 1
+                      y = B*x;
+                  else
+                      y = B'*x;
+                  end
+              end
+              
+              % Summing the results
               if mode == 1
-                  
-                 y = zeros(M(1),1);
-                 for ops = local_ops
-                    ind = [ -N(ops)+1, 0] + sN(ops);
-                    y = y + applyMultiply( opchildren{ops},...
-                         x( ind(1):ind(2) ), 1 );
-                 end
-                 
-                 if labindex == 1   %sum all results on lab 1
+                  if labindex == 1   %sum all results on lab 1
                      y = global_sum(y);
                  else
                      labSend(y,1);
@@ -144,17 +180,8 @@ classdef oppDictionary < oppSpot
                  if ~opgather
                      y = codistributed(y,1,codistributor1d());
                  end
-                 
-              else  % mode 2
-                  
-                 y = zeros( sum(n), 1);     % preallocate local results
-                 for ops = local_ops
-                    ind = [ -N(ops)+1, 0] + sN(ops)-sN(local_ops(1))+n(1);
-                    y( ind(1):ind(2) ) = applyMultiply( opchildren{ops},...
-                         x, 2 );
-                 end
-                 
-                 if opgather
+              else % mode 2
+                  if opgather
                      y = gcat(y,1);   %concatenate results
                  else
                      part = codistributed.build( sum(n), ...
@@ -162,9 +189,7 @@ classdef oppDictionary < oppSpot
                      codist = codistributor1d( 1, part, [sN(end) 1]);
                      y = codistributed.build( y, codist );
                  end
-                 
-              end
-              
+              end % summing
           end %spmd
           if op.gather, y = y{1}; end    %if we gathered, the data is on lab1
           

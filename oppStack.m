@@ -129,10 +129,10 @@ classdef oppStack < oppSpot
         % Double
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function A = double(op)
-            %DOUBLE Distributed doubling of oppStack
-            %    A = double(op) will apply double to each child operator
-            %    in oppStack, and return a distributed stack of explicit
-            %    operators.
+        %OPPSTACK.DOUBLE Distributed doubling of oppStack
+        %    A = double(op) will apply double to each child operator
+        %    in oppStack, and return a distributed stack of explicit
+        %    operators.
             opchildren = op.children;
             childn = op.n;
             opm = op.m;
