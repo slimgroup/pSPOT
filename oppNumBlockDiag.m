@@ -2,7 +2,7 @@ classdef oppNumBlockDiag < oppSpot
     %OPPBLOCKDIAG   Operator-diagonal operator in parallel sans overlap
     %   Supports distributed x and distributed 3D Matrices
     %
-    %   B = oppBlockDiag(OP1, OP2,...,OPN,GATHER) creates a compound
+    %   B = oppNumBlockDiag(OP1, OP2,...,OPN,GATHER) creates a compound
     %   block operator with the input operators OP1, OP2,... on the diagonal of
     %   B, e.g., B = DIAG([OP1 OP2 ... OPN]). When multiplying the operators
     %   are distributed among the labs and multiplied locally on each.
@@ -11,22 +11,23 @@ classdef oppNumBlockDiag < oppSpot
     %   GATHER = 1 will gather the results of forwards or adjoint
     %   multiplication.
     %   GATHER = 2 will gather only in forward mode.
-    %   GATHER = 3 will gather only in backwards (adjoint) mode.
+    %   GATHER = 3 will gather only in backward (adjoint) mode.
     %
-    %   B = opBlockDiag(WEIGHT,OP1,...,OPN,GATHER) additionally
+    %   B = oppNumBlockDiag(WEIGHT,OP1,...,OPN,GATHER) additionally
     %   weights each block by the elements of the vector WEIGHT. If
     %   only a single operator is given it is replicated as many times
     %   as there are weights.
     %
-    %   B = opBlockDiag(N,OP,GATHER) similar as above with WEIGHT
+    %   B = oppNumBlockDiag(N,OP,GATHER) similar as above with WEIGHT
     %   equal to ones(N,1), where N is a positive integer. This will cause
     %   operator OP to be repeated N times.
     %
-    %   B = opBlockDiag([WEIGHT],A,GATHER) where A is a 3D numerical
+    %   B = oppNumBlockDiag([WEIGHT],A,GATHER) where A is a 3D numerical
     %   matrix. This will slice A along the 3rd dimension and use the 2D
     %   slices as the blocks for the block-diagonal operator B.
+    %   Note: 2D x vector not supported for numeric 3D
     %
-    %   B = opBlockDiag([WEIGHT],A,NUMCOLS_X,GATHER) where A is a 3D numerical
+    %   B = oppNumBlockDiag([WEIGHT],A,NUMCOLS_X,GATHER) where A is a 3D numerical
     %   matrix. This will slice A along the 3rd dimension and use the 2D
     %   slices Ak to build Kronecker operator kron(opDirac(NUMCOLS_X), opMatrix(Ak)).
     %   These will then be used as the blocks for the block-diagonal operator B.
@@ -34,7 +35,7 @@ classdef oppNumBlockDiag < oppSpot
     %   previous case.
     %
     %
-    %   See also opFoG, opKron, opDictionary.
+    %   See also oppFoG, oppKron2Lo, oppDictionary.
     
     %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
     %   See the file COPYING.txt for full copyright information.
@@ -66,7 +67,7 @@ classdef oppNumBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppNumBlockDiag(varargin)
             
-            %% Setting up the variables
+            % Setting up the variables
             localm = 0;
             localn = 0;
             Nrep = [];
@@ -74,12 +75,7 @@ classdef oppNumBlockDiag < oppSpot
             gather = 0;
             isBlockMatrix = false;
             
-            %% Arguments Extraction
-            % Check matlabpool
-            if matlabpool('size') == 0
-                error('Now:LookieHere','Matlabpool is not open');
-            end
-            
+            % Arguments Extraction
             % Extract gather & numcols
             if isscalar(varargin{end}) % Gather
                 if isscalar(varargin{end-1}) % numcols
@@ -138,32 +134,35 @@ classdef oppNumBlockDiag < oppSpot
                 end
             end
             
-            %% Operators Extraction and Processing
+            % Operators Extraction and Processing
             % Extracting and distributing the operators (in distributed cell
             % arrays)
             if ~isBlockMatrix % Normal or repeating ops
                 % Check for empty operators and remove them
                 ops = cellfun(@isempty,varargin);
                 assert(any(~ops),'At least one operator must be specified.');
-                arrayfun(@(ind) warning('input "%d" is empty',ind), find(ops));
+                arrayfun(@(ind) warning('No:Input','input "%d" is empty',ind), find(ops));
                 varargin(ops) = [];
                 opList = distributed(varargin); % There is no way varargin is distributed
                 
             else % 3D matrix case
                 if isdistributed(Cube) % Distributed 3D Matrix
+                    warn3D = {0};
                     spmd
                         numcodist = getCodistributor(Cube);
                         if numcodist.Dimension ~= 3
-                            if labindex == 1
-                                warning('WarnDistribution:IncorrectDistribution',...
-                                    '3D Matrix is not distributed correctly!\nCommencing automatic redistribution...');
-                            end
+                            warn3D = 1;
                             Cube = redistribute(Cube, codistributor1d(3));
                         end
                     end
+                    if warn3D{1}
+                        warning('WarnDist:Wrongdistribution',...
+                                    '3D Matrix is not distributed correctly!\nCommencing automatic redistribution...');
+                    end
+                    clear warn3D;
                     opList = Cube;
                 else % Undistributed 3D Matrix
-                    warning('WarnDistribution:NoDistribution',...
+                    warning('WarnDist:Nodistribution',...
                         '3D Matrix is not distributed!\nCommencing automatic redistribution...');
                     opList = distributed(Cube);
                 end
@@ -223,7 +222,7 @@ classdef oppNumBlockDiag < oppSpot
                 
             end
             
-            %% Post-processing and Construction of Operator
+            % Post-processing and Construction of Operator
             % Convert distributed attributes to non-distributed scalars
             spmd
                 % Extract local m and n for future use
@@ -255,6 +254,7 @@ classdef oppNumBlockDiag < oppSpot
             op.locm = localm;
             op.locn = localn;
             op.cflag    = cflag;
+            op.sweepflag = false;
             op.linear   = linear;
             op.children = opList;
             op.weights  = weights;
@@ -322,16 +322,7 @@ classdef oppNumBlockDiag < oppSpot
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
-            
-            % Multidimensional x preprocessing
-            if size(x,2) > 1, error('Please vectorize your x!'); end
-            
-            % Get the number of labs running
-            if matlabpool('size') == 0
-                error('Now:LookieHere','Matlabpool is not open');
-            end
-            nlabs = matlabpool('size');
-            
+                                 
             % Setting up partition variables
             partition = [];
             finpartition = []; % partition for the final answer
@@ -343,11 +334,31 @@ classdef oppNumBlockDiag < oppSpot
             isBlockMatrix = op.isBlockMatrix;
             numcols = op.numcols;
             
+            % Matrix x preprocessing
+            if isBlockMatrix
+                if size(x,2) ~= 1
+                    error('Please vectorize your x');
+                else
+                    multicols = 1;
+                end
+            else
+                multicols = size(x,2); % for matrix multiplications
+            end
+            
+            
+            % Get the number of labs running
+            if matlabpool('size') == 0
+                warning('Now:LookieHere','Matlabpool is not open');
+                nlabs = 1;
+            else
+                nlabs = matlabpool('size');
+            end
+            
             % Forward mode (mode = 1)
             if mode == 1
                 % Distributing x into the correct chunks
-                glosize = [op.n 1]; % Setting up the global sizes
-                finsize = [op.m 1];
+                glosize = [op.n multicols]; % Setting up the global sizes
+                finsize = [op.m multicols];
                 for i = 1:nlabs % summing local n for partition
                     if i <= size(op.locn,2)
                         partition = [partition sum(op.locn{i})];
@@ -360,8 +371,8 @@ classdef oppNumBlockDiag < oppSpot
                 end
                 
             else % mode == 2
-                glosize = [op.m 1];
-                finsize = [op.n 1];
+                glosize = [op.m multicols];
+                finsize = [op.n multicols];
                 for i = 1:nlabs
                     if i <= size(op.locm,2)
                         partition = [partition sum(op.locm{i})];
@@ -379,19 +390,22 @@ classdef oppNumBlockDiag < oppSpot
             
             % Check for distribution of x and redistribute if necessary
             if isdistributed(x)
+                warnx = {0};
                 spmd
                     defcodist = getCodistributor(x);
                     codist = codistributor1d(1,partition,glosize);
                     if defcodist.Partition ~= codist.Partition
-                        if labindex == 1
-                            warning('WarnDistribution:IncorrectDistribution',...
-                                'x is not distributed correctly!\nCommencing automatic redistribution...');
-                        end
+                        warnx = 1;
                         x = redistribute(x,codist);
                     end
                 end
+                if warnx{1}
+                    warning('WarnDist:Wrongdistribution',...
+                                'x is not distributed correctly!\nCommencing automatic redistribution...');
+                end
+                clear warnx;
             else    % Distribute x
-                warning('WarnDistribution:NoDistribution',...
+                warning('WarnDist:Nodistribution',...
                     'x is not distributed!\nCommencing automatic redistribution...');
                 spmd
                     codist = codistributor1d(1,partition,glosize);
@@ -400,7 +414,6 @@ classdef oppNumBlockDiag < oppSpot
             end
             clear codist; % codistributor for x cleared
             clear partition; % partition for x cleared
-            
             
             % Multiplication starts
             spmd
@@ -443,8 +456,11 @@ classdef oppNumBlockDiag < oppSpot
                         tmpy = tmpy(:);
                         
                     else
-                        
-                        B = opBlockDiag(opweights(ind),opchilds{:});
+                        opw = opweights(ind);
+                        for i=length(opchilds)
+                            opchilds{i} = opw(i)*opchilds{i};
+                        end
+                        B = opBlockDiag(opchilds{:});
                         if mode == 1
                             tmpy = B*local_x;
                         else
@@ -455,7 +471,7 @@ classdef oppNumBlockDiag < oppSpot
                     
                 else
                     % local part of distributed vector for nodes that do not contain data is of size (0,1) for some reason
-                    tmpy = zeros(0,1);
+                    tmpy = zeros(0,multicols);
                 end
                 
                 fincodist = codistributor1d(1,finpartition,finsize);

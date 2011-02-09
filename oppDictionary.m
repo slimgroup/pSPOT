@@ -112,15 +112,17 @@ classdef oppDictionary < oppSpot
        % Multiply
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function y = multiply(op,x,mode)
-          
+          % Setting up class variables
+          opchildren = op.children;
+          opgather = op.gather;
           spmd
               % create a codist, and get global indices to see how many ops
               % on each lab
-              codist = codistributor1d(2,[],[1,length(op.children)]);
+              codist = codistributor1d(2,[],[1,length(opchildren)]);
               local_ops = codist.globalIndices(2);
               
               % Get sizes of the ops to go on the lab
-              [M,N]  = cellfun(@size, op.children);
+              [M,N]  = cellfun(@size, opchildren);
               n = N(local_ops);
               sN = cumsum(N);
 
@@ -129,7 +131,7 @@ classdef oppDictionary < oppSpot
                  y = zeros(M(1),1);
                  for ops = local_ops
                     ind = [ -N(ops)+1, 0] + sN(ops);
-                    y = y + applyMultiply( op.children{ops},...
+                    y = y + applyMultiply( opchildren{ops},...
                          x( ind(1):ind(2) ), 1 );
                  end
                  
@@ -139,7 +141,7 @@ classdef oppDictionary < oppSpot
                      labSend(y,1);
                  end
                  
-                 if ~op.gather
+                 if ~opgather
                      y = codistributed(y,1,codistributor1d());
                  end
                  
@@ -148,11 +150,11 @@ classdef oppDictionary < oppSpot
                  y = zeros( sum(n), 1);     % preallocate local results
                  for ops = local_ops
                     ind = [ -N(ops)+1, 0] + sN(ops)-sN(local_ops(1))+n(1);
-                    y( ind(1):ind(2) ) = applyMultiply( op.children{ops},...
+                    y( ind(1):ind(2) ) = applyMultiply( opchildren{ops},...
                          x, 2 );
                  end
                  
-                 if op.gather
+                 if opgather
                      y = gcat(y,1);   %concatenate results
                  else
                      part = codistributed.build( sum(n), ...

@@ -1,5 +1,5 @@
-function out = spottests(varargin)
-%SPOTTESTS Run unit tests in Spot tests directory.
+function out = pspottests(varargin)
+%PSPOTTESTS Run unit tests in pSpot tests directory.
 %   spottests runs all the test cases that can be found in the current directory
 %   and summarizes the results in the Command Window.
 %
@@ -60,19 +60,24 @@ function out = spottests(varargin)
 %   Steven L. Eddins
 %   Copyright 2009 The MathWorks, Inc.
 
+% Make sure matlabpool is open
+if matlabpool('size') == 0
+    error('Matlab pool is not on!');
+end
+
 % Make sure that xUnit is on the path.
 if exist('TestSuite','file')
    % Relax. Found it.
 else
    try
-      addpath(fullfile(spot.path,'tests','xunit'))
+      addpath(fullfile(pSPOT.path,'tests','xunit'))
    catch ME
       error('Can''t find xunit toolbox.')
    end
 end
       
 if nargin < 1
-    suite = TestSuite.fromName(fullfile(spot.path,'tests'));
+    suite = TestSuite.fromName(fullfile(pSPOT.path,'tests'));
 else
     name_list = getInputNames(varargin{:});
     if numel(name_list) == 1
