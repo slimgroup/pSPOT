@@ -1,5 +1,5 @@
 classdef oppStack < oppSpot
-    %OPPSTACK  Stack of vertically concatenated operators.
+    %OPPSTACK  Stack of vertically concatenated operators in parallel
     %
     %   oppStack(WEIGHTS, OP1, OP2, ...OPn,GATHER) creates a stacked operator
     %   consisting of the vertical concatenation of all operators. When applied
@@ -24,9 +24,20 @@ classdef oppStack < oppSpot
     %   *Note - only spot operators can be used in an oppStack, pSpot
     %   operators act in parallel already, and cannot be used with
     %   oppDictionary.
+    %
+    %   **Note - As of now the operators will be distributed according to 
+    %   the Matlab default codistribution scheme. 
+    %   You could check the distribution scheme of your oppDictionary
+    %   object by using this code:
+    %
+    %       child = A.children;
+    %       spmd, child, end;
+    %
+    %   for more info, type 'help codistributor1d' 
+    %   
+    %   See also oppBlockDiag, oppNumBlockDiag, oppDictionary
     
     %   Nameet Kumar - Oct 2010
-    
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
@@ -129,10 +140,10 @@ classdef oppStack < oppSpot
         % Double
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function A = double(op)
-        %OPPSTACK.DOUBLE Distributed doubling of oppStack
-        %    A = double(op) will apply double to each child operator
-        %    in oppStack, and return a distributed stack of explicit
-        %    operators.
+            %OPPSTACK.DOUBLE Distributed doubling of oppStack
+            %    A = double(op) will apply double to each child operator
+            %    in oppStack, and return a distributed stack of explicit
+            %    operators.
             opchildren = op.children;
             childn = op.n;
             opm = op.m;

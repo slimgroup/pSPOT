@@ -8,8 +8,8 @@ classdef oppNumBlockDiag < oppSpot
     %   are distributed among the labs and multiplied locally on each.
     %   GATHER specifies whether to gather the results to a local array
     %   or leave them distributed, default is 0.
-    %   GATHER = 1 will gather the results of forwards or adjoint
-    %   multiplication.
+    %   GATHER = 0 will leave them distributed.
+    %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
     %
@@ -35,7 +35,7 @@ classdef oppNumBlockDiag < oppSpot
     %   previous case.
     %
     %
-    %   See also oppFoG, oppKron2Lo, oppDictionary.
+    %   See also oppBlockDiag, oppDictionary, oppStack
     
     %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
     %   See the file COPYING.txt for full copyright information.
