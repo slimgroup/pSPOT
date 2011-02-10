@@ -1,12 +1,19 @@
 classdef oppStack < oppSpot
     %OPPSTACK  Stack of vertically concatenated operators in parallel
     %
-    %   oppStack(WEIGHTS, OP1, OP2, ...OPn,GATHER) creates a stacked operator
+    %   oppStack([WEIGHTS], OP1, OP2, ...OPn,GATHER) creates a stacked operator
     %   consisting of the vertical concatenation of all operators. When applied
     %   the operators are divided amongst the labs and applied locally on each
-    %   lab. The optional last parameter, gather, specifies whether to gather
-    %   the final result to a local variable instead of a distributed vector,
-    %   by default this is set to 0.
+    %   lab. 
+    %
+    %   GATHER specifies whether to gather the results to a local array
+    %   or leave them distributed, default is 0.
+    %   GATHER = 0 will leave them distributed.
+    %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
+    %   GATHER = 2 will gather only in forward mode.
+    %   GATHER = 3 will gather only in backward (adjoint) mode.
+    %   
+    %   Optional WEIGHTS vector:
     %
     %               [WEIGHT1*OP1
     %                WEIGHT2*OP2
@@ -15,8 +22,8 @@ classdef oppStack < oppSpot
     %
     %   If the same weight is to be applied to each operator, set
     %   WEIGHTS to a scalar. When WEIGHTS is empty [], it is set to
-    %   one. The WEIGHT parameter can be omitted as long as OP1 is not
-    %   a vector of length (n-1); in which case there is no way to
+    %   one. The WEIGHT parameter can be omitted as long as OP1 is a
+    %   Spot operator; if not there is no way to
     %   decide whether it is a weight vector or operator.
     %
     %   See also oppDictionary, opFoG, opSum.
@@ -27,25 +34,12 @@ classdef oppStack < oppSpot
     %
     %   **Note - As of now the operators will be distributed according to 
     %   the Matlab default codistribution scheme. 
-    %   You could check the distribution scheme of your oppDictionary
-    %   object by using this code:
-    %
-    %       child = A.children;
-    %       spmd, child, end;
     %
     %   for more info, type 'help codistributor1d' 
     %   
     %   See also oppBlockDiag, oppNumBlockDiag, oppDictionary
     
     %   Nameet Kumar - Oct 2010
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Properties
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    properties
-        weights;
-    end
-    
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Methods
@@ -57,61 +51,52 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppStack(varargin)
             
+            % Setting up the variables
+            gather = 0;
+            
             % Check for gather parameter
             if isscalar( varargin{end} ) && any(varargin{end} == [0 1])
                 gather = varargin{end};
-                varargin = varargin(1:end-1);
-            else
-                gather = 0;
+                varargin(end) = [];
             end
-            nargin = length(varargin) ;
             
-            % Checks weights parameter
-            if ~isnumeric(varargin{1})
-                weights = ones(nargin,1);
-            else
+            % Check for weights
+            nargs = length(varargin);
+            
+            if isnumeric(varargin{1}) % weights
                 weights = varargin{1};
-                if isempty(weights), weights = 1; end;
-                [m,n] = size(weights);
-                if (((m == 1) && (n == nargin-1)) || ...
-                        ((n == 1) && (m == nargin-1)) || ...
-                        ((m == 1) && (n == 1)))
-                    weights = ones(nargin-1,1).*weights(:);
-                    varargin = varargin(2:end);
-                else
-                    weights = ones(nargin,1);
+                weights = weights(:);
+                
+                if isempty(weights) % Empty weights (why in the world???)
+                    weights = 1;
                 end
+                
+                if isscalar(varargin{1}) % Same weight applied to all
+                    weights = weights*ones(nargs-1,1);
+                    
+                else
+                    if length(varargin{1}) ~= nargs-1
+                        % Incorrect weight size
+                        error('Weights size mismatch');
+                    end
+                    % Else: Normal weights with normal ops
+                end
+                varargin(1) = []; % delete weights
+                
+            else    % no weights
+                weights = ones(nargs,1);
             end
             
-            % Check for empty operators and remove them
-            ops = ~cellfun(@isempty,varargin);
-            assert(any(ops),'At least one operator must be specified.');
-            arrayfun(@(ind) warning('input "%d" is empty',ind), find(~ops));
-            opList = varargin(ops);
-            
-            %Check for pSpot operators
-            ops = cellfun(@(p) isa(p,'oppSpot'), opList);
-            assert(~any(ops),' oppSpot operators are not supported');
-            
-            % Convert all Arguments to operators
-            ops = cellfun(@(p) ~isa(p,'opSpot'), opList);
-            opList(ops) = cellfun(@(p) {opMatrix(p)}, opList(ops));
-            
-            
-            % Check consistency and complexity
-            [m,n] = cellfun(@size,opList);
+            % Standard pSpot checking and setup sizes
+            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
             assert( all(n == n(1)), 'Operator sizes are not consistant');
             m = sum(m);
-            real = cellfun(@isreal,opList);
-            cflag = ~all(real);
-            linear = cellfun(@(p) logical(p.linear), opList);
-            linear = all(linear);
             
             % Construct
             op = op@oppSpot('pStack', m, n(1));
             op.cflag    = cflag;
             op.linear   = linear;
-            op.children = distributed(opList);
+            op.children = opList;
             op.sweepflag= true;
             op.gather   = gather;
             op.precedence= 1;
@@ -124,16 +109,14 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             % Initialize
-            opchildren = gather(op.children);
-            str = ['[',char(opchildren{1})];
+            str = ['[',char(op.children{1})];
             
-            for ops=opchildren(2:end)
+            for ops=op.children(2:end)
                 str = [str, '; ', char(ops{1})];
             end
             
             str = [str, ']'];
             
-            clear opchildren;
         end % Display
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -144,25 +127,25 @@ classdef oppStack < oppSpot
             %    A = double(op) will apply double to each child operator
             %    in oppStack, and return a distributed stack of explicit
             %    operators.
-            opchildren = op.children;
+            opchildren = distributed(op.children);
             childn = op.n;
             opm = op.m;
             spmd
-                opchildren = getLocalPart(opchildren);
+                local_children = getLocalPart(opchildren);
                 childm = 0;
                 partition = codistributed.zeros(1,numlabs);
                 globalsize = [opm childn];
                 A = zeros(childm,childn);
-                if ~isempty(opchildren)
-                    for i = 1:length(opchildren)
-                        child = opchildren{i};
+                if ~isempty(local_children)
+                    for i = 1:length(local_children)
+                        child = local_children{i};
                         childm = childm + child.m;
                     end
                     A = zeros(childm,childn);
                     partition(labindex) = childm;
                     k = 0;
-                    for i = 1:length(opchildren)
-                        child = opchildren{i};
+                    for i = 1:length(local_children)
+                        child = local_children{i};
                         m = child.m;
                         A(k+1:k+m,:) = double(child);
                         k = k+m;
@@ -182,67 +165,81 @@ classdef oppStack < oppSpot
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
-            % Setting up the class variables
-            opchildren = op.children;
-            opweights = op.weights;
-            opgather = op.gather;
             
-            % Check for distributed x
-            if isdistributed(x)
-                error('X should not be distributed for oppStack.');
-            end
-            spmd
-                % create a codist, and get global indices to see how many ops
-                % on each lab
-                codist = codistributor1d(2,[],[1,length(opchildren)]);
-                local_ops = codist.globalIndices(2);
+            if mode == 2 % Use oppDictionary, since a transpose of stack is
                 
-                % Get sizes of the ops to go on the lab
-                [M,N] = cellfun(@size, opchildren);
-                m = M(local_ops);
-                sM = cumsum(M);
-                
-                if mode == 1
-                    
-                    y = zeros(sum(m),1);   %preallocate local results
-                    for ops = local_ops
-                        ind = [ -M(ops)+1, 0] + sM(ops)-sM(local_ops(1))+m(1);
-                        y( ind(1):ind(2) ) = opweights(ops) * applyMultiply(...
-                            opchildren{ops}, x, 1 );
-                    end
-                    
-                    if opgather
-                        y = gcat(y,1);   %concatenate results
-                    else
-                        part = codistributed.build( sum(m), ...
-                            codistributor1d( 2, ones(1,numlabs), [1 numlabs]) );
-                        codist = codistributor1d( 1, part, [sM(end) 1]);
-                        y = codistributed.build( y, codist );
-                    end
-                    
-                else  % mode 2
-                    
-                    y = zeros(N(1),1);
-                    for ops = local_ops
-                        ind = [ -M(ops)+1, 0] + sM(ops);
-                        xd = opweights(ops) * x( ind(1):ind(2) );
-                        y = y + applyMultiply( opchildren{ops}, xd, 2 );
-                    end
-                    
-                    if labindex == 1   %sum all results on lab 1
-                        y = global_sum(y);
-                    else
-                        labSend(y,1);
-                    end
-                    
-                    if ~opgather
-                        y = codistributed(y,1,codistributor1d());
-                    end
-                    
+                opchildren = op.children; % equivalent to a dictionary with
+                tchild = cell(1,length(opchildren)); % transposed operators
+                for i = 1:length(opchildren) 
+                    child = opchildren{i}; 
+                    tchild{i} = child';
                 end
                 
+                B = oppDictionary(opEye(op.n,op.m)); % Pseudo copy constructor
+                B.children = tchild;
+                B.cflag = op.cflag;
+                B.sweepflag = op.sweepflag;
+                B.linear = op.linear;
+                B.gather = op.gather;
+                B.weights = conj(op.weights); % Conj for complex numbers
+                
+                % Multiply
+                y = B*x;
+                clear B;
+                return;
+            end % Mode 2
+            
+            if isdistributed(x) % Checking distribution of x
+                error('x should not be distributed');
+            end
+            
+            % Mode 1
+            % Setting up class variables
+            opchildren = distributed(op.children); % This "renaming" is
+            opm = op.m; opn = op.n;   % required to avoid
+            opweights = op.weights;   % passing in the whole op, which for
+                                      % some weird reason stalls spmd
+            spmd
+                % Setting up local parts
+                local_children = getLocalPart(opchildren);
+                finpart = codistributed.zeros(1,numlabs); % final partition
+                fingsize = [opm size(x,2)]; % final global size
+                
+                % Setting up weights
+                codist = getCodistributor(opchildren);
+                wind = globalIndices(codist,2);
+                local_weights = opweights(wind);                
+                
+                % Preallocate y
+                y = zeros(0,size(x,2));
+                
+                if ~isempty(local_children)
+                    % Setup partition size
+                    localm = 0;
+                    for i=1:length(local_children)
+                        child = local_children{i};
+                        localm = localm + child.m;
+                    end
+                    finpart(labindex) = localm;
+                    
+                    % Preallocate y, again
+                    y = zeros(localm,size(x,2));
+                    
+                    % Multiply
+                    B = opStack(local_weights,local_children{:});
+                    y = B*x;
+                end
+                
+                % Concatenating the results and distribute
+                finpart = gather(finpart);
+                fincodist = codistributor1d(1,finpart,fingsize);
+                y = codistributed.build(y,fincodist);
+                
             end %spmd
-            if op.gather, y = y{1}; end    %if we gathered, the data is on lab1
+            
+            if op.gather
+                y = gather(y); 
+            end    %if we gathered, the data is on master client
             
         end % Multiply
         
@@ -250,18 +247,15 @@ classdef oppStack < oppSpot
     
 end % Classdef
 
-function y = global_sum(y)
-% loop through labs checking if its ready to send data, and recieve if it
-% is
 
-labs = 2:numlabs;
-while ~isempty(labs)
-    if( labProbe(labs(1)) )
-        y = y + labReceive(labs(1));
-        labs(1) = [];
-    else
-        labs = circshift( labs, [0 -1] );
-    end
-end
 
-end
+
+
+
+
+
+
+
+
+
+

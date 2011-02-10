@@ -31,15 +31,6 @@ classdef oppBlockDiag < oppSpot
     
     %   http://www.cs.ubc.ca/labs/scl/spot
     
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Properties
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    properties
-        weights;
-    end
-    
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,34 +86,16 @@ classdef oppBlockDiag < oppSpot
             else    % no weights
                 weights = ones(nargs,1);
             end
-            
-            % Check for empty operators and remove them
-            ops = ~cellfun(@isempty,varargin);
-            assert(any(ops),'At least one operator must be specified.');
-            arrayfun(@(ind) warning('input "%d" is empty',ind), find(~ops));
-            opList = varargin(ops);
-            
-            % Check for pSpot operators
-            ops = cellfun(@(p) isa(p,'oppSpot'), opList);
-            assert(~any(ops),' oppSpot operators are not supported');
-            
-            % Convert all non-Spot arguments to operators
-            ops = cellfun(@(p) ~isa(p,'opSpot'), opList);
-            opList(ops) = cellfun(@(p) {opMatrix(p)}, opList(ops));
-            
-            % Check complexity and setup sizes
-            [m,n] = cellfun(@size,opList);
+                        
+            % Standard checking and setup sizes
+            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
             m = sum(m);     n = sum(n);
-            real = cellfun(@isreal,opList);
-            cflag = ~all(real);
-            linear = cellfun(@(p) logical(p.linear), opList);
-            linear = all(linear);
             
             % Construct operator
             op = op@oppSpot('pBlockDiag', m, n);
             op.cflag    = cflag;
             op.linear   = linear;
-            op.children = distributed(opList);
+            op.children = opList;
             op.weights  = weights;
             op.sweepflag= true;
             op.gather   = gather;
@@ -135,14 +108,13 @@ classdef oppBlockDiag < oppSpot
         function str = char(op)
             % Initialize
             str = 'pBlockDiag(';
-            opchildren = gather(op.children);
-            if ~isnumeric( opchildren{1} )
-                for child = opchildren
+            if ~isnumeric( op.children{1} )
+                for child = op.children
                     str = [str,char(child{1}),', '];
                 end
             else
-                [m,n] = cellfun(@size, opchildren);
-                for i=1:length(opchildren)
+                [m,n] = cellfun(@size, op.children);
+                for i=1:length(op.children)
                     str = [str,'Matrix(',int2str(m(i)),',', ...
                         int2str(n(i)),'), '];
                 end
@@ -161,7 +133,7 @@ classdef oppBlockDiag < oppSpot
         function y = multiply(op,x,mode)
             
             % Setting up the variables
-            opchildren = op.children;
+            opchildren = distributed(op.children);
             opweights = op.weights;
             gather = op.gather;
             opm = op.m;
@@ -171,43 +143,40 @@ classdef oppBlockDiag < oppSpot
             if ~isdistributed(x)
                 error('X is not distributed');
             end
-            
-            % Preallocate y
-            y = zeros(op.m,size(x,2));
-                        
+                                    
             spmd
                 % Setting up the local parts
                 codist = getCodistributor(opchildren);
                 wind = globalIndices(codist,2); % local weights indices
                 local_weights = opweights(wind);
-                childs = getLocalPart(opchildren);
-                x = getLocalPart(x);
+                local_children = getLocalPart(opchildren);
+                local_x = getLocalPart(x);
                 
                 % Setting up codistributor for y
                 finpart = codistributed.zeros(1,numlabs);
                 if mode ==  1
-                    fingsize = [opm size(x,2)];
+                    fingsize = [opm size(local_x,2)];
                 else
-                    fingsize = [opn size(x,2)];
+                    fingsize = [opn size(local_x,2)];
                 end
                 
-                if ~isempty(childs)
-                    if length(childs) == 1 % Just to avoid repeating op case
-                        B = childs{1};
+                if ~isempty(local_children)
+                    if length(local_children) == 1 % Just to avoid repeating op case
+                        B = local_children{1};
                         if mode == 1
-                            y = local_weights .* (B*x);
+                            y = local_weights .* (B*local_x);
                             finpart(labindex) = B.m;
                         else
-                            y = local_weights .* (B'*x);
+                            y = conj(local_weights) .* (B'*local_x);
                             finpart(labindex) = B.n;
                         end
                     else
-                        B = opBlockDiag(local_weights,childs{:});
+                        B = opBlockDiag(local_weights,local_children{:});
                         if mode == 1
-                            y = B*x;
+                            y = B*local_x;
                             finpart(labindex) = B.m;
                         else
-                            y = B'*x;
+                            y = B'*local_x;
                             finpart(labindex) = B.n;
                         end
                         

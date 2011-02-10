@@ -7,6 +7,7 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    properties
       gather = 0;
+      weights;
    end %properties
       
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
