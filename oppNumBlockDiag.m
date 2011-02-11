@@ -67,6 +67,11 @@ classdef oppNumBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppNumBlockDiag(varargin)
             
+            % Check Matlabpool
+            if matlabpool('size') == 0
+                error('Matlabpool is not on');
+            end
+            
             % Setting up the variables
             localm = 0;
             localn = 0;

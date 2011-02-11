@@ -48,6 +48,11 @@ classdef oppDictionary < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppDictionary(varargin)
             
+            % Check Matlabpool
+            if matlabpool('size') == 0
+                error('Matlabpool is not on');
+            end
+            
             % Setting up the variables
             gather = 0;
             
@@ -183,23 +188,57 @@ classdef oppDictionary < oppSpot
                 
                 % Multiply
                 if isdistributed(x)
-                    x = gather(x);
+                    tmpx = gather(x);
+                else
+                    tmpx = x;
                 end
-                y = B*x;
+                y = B*tmpx;
                 clear B;
+                clear tmpx;
                 return;
             end % Mode 2
             
+            % Checking x
             if ~isdistributed(x) % Checking distribution of x
                 error('x is not distributed');
             end
             
+            % Checking size of x
+            opchildren = distributed(op.children);
+            spmd
+                xcodist = getCodistributor(x);
+                chicodist = getCodistributor(opchildren);
+            end
+            xcodist = xcodist{1};
+            xpart = xcodist.Partition;
+            chicodist = chicodist{1};
+            chipart = chicodist.Partition;
+            nlabs = matlabpool('size');
+            
+            if xcodist.Dimension ~= 1 % Dimensional check
+                error('x is not distributed along dimension 1');
+            end
+            
+            childnum = 0;
+            for i=1:nlabs
+                childn = 0;
+                for j=childnum+1:(childnum+chipart(i))
+                    child = op.children{j};
+                    childn = childn + child.n;
+                end
+                if childn ~= xpart(i)
+                    error('x size mismatch at lab %d, check your distribution',i);
+                end
+                childnum = childnum + chipart(i);
+            end            
+            
             % Mode 1
             % Setting up class variables
-            opchildren = distributed(op.children); % This "renaming" is
-            opm = op.m; opn = op.n;   % required to avoid
-            opweights = op.weights;   % passing in the whole op, which for
-                                      % some weird reason stalls spmd
+            opm = op.m; opn = op.n;   
+            opweights = op.weights;
+            % This "renaming" is required to avoid passing in the whole op, 
+            % which for some weird reason stalls spmd
+            
             spmd
                 % Setting up local parts
                 local_children = getLocalPart(opchildren);
@@ -222,7 +261,7 @@ classdef oppDictionary < oppSpot
                 end
                 
                 % Summing the results and distribute
-                y = global_sum(y);
+                y = global_sum(y); % The result now sits on lab 1
                 y = codistributed(y,1,codistributor1d());
                 
             end %spmd
@@ -237,11 +276,3 @@ classdef oppDictionary < oppSpot
     end % Protected Methods
     
 end % Classdef
-
-
-
-
-
-
-
-

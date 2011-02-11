@@ -1,4 +1,4 @@
-function [opList,m,n,cflag,linear] = stdchk(varargin)
+function [opList,m,n,cflag,linear] = stdpspotchk(varargin)
 %STDCHK    Performs the standard checking and data extraction routine
 %          in pSpot.
 %

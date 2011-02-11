@@ -41,6 +41,11 @@ classdef oppBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppBlockDiag(varargin)
             
+            % Check Matlabpool
+            if matlabpool('size') == 0
+                error('Matlabpool is not on');
+            end
+            
             % Settin' up the variables
             gather = 0;
             
@@ -132,18 +137,56 @@ classdef oppBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
             
-            % Setting up the variables
-            opchildren = distributed(op.children);
-            opweights = op.weights;
-            gather = op.gather;
-            opm = op.m;
-            opn = op.n;
-            
-            % Checking for distributed x
-            if ~isdistributed(x)
-                error('X is not distributed');
+            % Checking x
+            if ~isdistributed(x) % Checking distribution of x
+                error('x is not distributed');
             end
             
+            % Checking size of x
+            opchildren = distributed(op.children);
+            spmd
+                xcodist = getCodistributor(x);
+                chicodist = getCodistributor(opchildren);
+            end
+            xcodist = xcodist{1};
+            xpart = xcodist.Partition;
+            chicodist = chicodist{1};
+            chipart = chicodist.Partition;
+            nlabs = matlabpool('size');
+            
+            if xcodist.Dimension ~= 1 % Dimensional check
+                error('x is not distributed along dimension 1');
+            end
+            
+            childnum = 0;
+            for i=1:nlabs
+                childm = 0;
+                childn = 0;
+                for j=childnum+1:(childnum+chipart(i))
+                    child = op.children{j};
+                    childm = childm + child.m;
+                    childn = childn + child.n;
+                end
+                if mode == 1
+                    if childn ~= xpart(i)
+                        error('x size mismatch at lab %d, check your distribution',i);
+                    end
+                else % mode 2
+                    if childm ~= xpart(i)
+                        error('x size mismatch at lab %d, check your distribution',i);
+                    end
+                end
+                childnum = childnum + chipart(i);
+            end     
+            
+            
+            % Setting up the variables
+            opweights = op.weights;
+            gather = op.gather;
+            opm = op.m;   opn = op.n;
+            % This "renaming" is required to avoid passing in the whole op, 
+            % which for some weird reason stalls spmd
+                        
             spmd
                 % Setting up the local parts
                 codist = getCodistributor(opchildren);
@@ -215,10 +258,47 @@ classdef oppBlockDiag < oppSpot
             opm = op.m;
             opn = op.n;
             
-            % Checking for distributed x
-            if ~isdistributed(x)
-                error('X is not distributed');
+            % Checking x
+            if ~isdistributed(x) % Checking distribution of x
+                error('x is not distributed');
             end
+            
+            % Checking size of x
+            opchildren = distributed(op.children);
+            spmd
+                xcodist = getCodistributor(x);
+                chicodist = getCodistributor(opchildren);
+            end
+            xcodist = xcodist{1};
+            xpart = xcodist.Partition;
+            chicodist = chicodist{1};
+            chipart = chicodist.Partition;
+            nlabs = matlabpool('size');
+            
+            if xcodist.Dimension ~= 1 % Dimensional check
+                error('x is not distributed along dimension 1');
+            end
+            
+            childnum = 0;
+            for i=1:nlabs
+                childm = 0;
+                childn = 0;
+                for j=childnum+1:(childnum+chipart(i))
+                    child = op.children{j};
+                    childm = childm + child.m;
+                    childn = childn + child.n;
+                end
+                if mode == 1
+                    if childm ~= xpart(i)
+                        error('x size mismatch at lab %d, check your distribution',i);
+                    end
+                else % mode 2
+                    if childn ~= xpart(i)
+                        error('x size mismatch at lab %d, check your distribution',i);
+                    end
+                end
+                childnum = childnum + chipart(i);
+            end     
             
             spmd
                 % Setting up the local parts

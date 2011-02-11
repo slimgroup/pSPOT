@@ -34,22 +34,26 @@ classdef oppStack < oppSpot
     %
     %   **Note - As of now the operators will be distributed according to 
     %   the Matlab default codistribution scheme. 
-    %
     %   for more info, type 'help codistributor1d' 
     %   
     %   See also oppBlockDiag, oppNumBlockDiag, oppDictionary
     
     %   Nameet Kumar - Oct 2010
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Methods
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppStack(varargin)
+            
+            % Check Matlabpool
+            if matlabpool('size') == 0
+                error('Matlabpool is not on');
+            end
             
             % Setting up the variables
             gather = 0;
@@ -97,10 +101,11 @@ classdef oppStack < oppSpot
             op.cflag    = cflag;
             op.linear   = linear;
             op.children = opList;
+            op.weights  = weights;
             op.sweepflag= true;
             op.gather   = gather;
             op.precedence= 1;
-            op.weights  = weights;
+            
             
         end %Constructor
         
@@ -155,6 +160,7 @@ classdef oppStack < oppSpot
                 codist = codistributor1d(1,partition,globalsize);
                 A = codistributed.build(A,codist,'noCommunication');
             end % spmd
+            
         end % double
         
     end % Methods
@@ -245,16 +251,3 @@ classdef oppStack < oppSpot
     end % Protected Methods
     
 end % Classdef
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -36,7 +36,7 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
 %       end
       
       function x = applyDivide(op,x,mode)
-         x = op.divide(op,x,mode);
+         x = divide(op,x,mode);
       end
       
       % Signature of external protected functions
