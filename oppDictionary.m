@@ -198,7 +198,7 @@ classdef oppDictionary < oppSpot
             % Setting up class variables
             opchildren = distributed(op.children); % This "renaming" is
             opm = op.m; opn = op.n;   % required to avoid
-                                      % passing in the whole op, which for
+            opweights = op.weights;   % passing in the whole op, which for
                                       % some weird reason stalls spmd
             spmd
                 % Setting up local parts
@@ -214,7 +214,10 @@ classdef oppDictionary < oppSpot
                 y = zeros(opm,size(x,2));
                 
                 if ~isempty(local_children)
-                    B = opDictionary(local_weights,local_children{:});
+                    for i=1:length(local_children)
+                        local_children{i} = local_weights(i) * local_children{i};
+                    end
+                    B = opDictionary(local_children{:});
                     y = B*local_x;
                 end
                 

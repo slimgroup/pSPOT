@@ -209,10 +209,7 @@ classdef oppStack < oppSpot
                 codist = getCodistributor(opchildren);
                 wind = globalIndices(codist,2);
                 local_weights = opweights(wind);                
-                
-                % Preallocate y
-                y = zeros(0,size(x,2));
-                
+                                
                 if ~isempty(local_children)
                     % Setup partition size
                     localm = 0;
@@ -222,12 +219,14 @@ classdef oppStack < oppSpot
                     end
                     finpart(labindex) = localm;
                     
-                    % Preallocate y, again
+                    % Preallocate y
                     y = zeros(localm,size(x,2));
                     
                     % Multiply
                     B = opStack(local_weights,local_children{:});
                     y = B*x;
+                else
+                    y = zeros(0,size(x,2));
                 end
                 
                 % Concatenating the results and distribute

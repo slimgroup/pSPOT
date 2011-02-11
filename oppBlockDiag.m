@@ -67,7 +67,7 @@ classdef oppBlockDiag < oppSpot
                     for i = 3:length(weights)+1
                         varargin{i} = varargin{2};
                     end
-                        
+                    
                 else % Non-repeating ops
                     
                     if isscalar(varargin{1}) % Same weight applied to all
@@ -86,7 +86,7 @@ classdef oppBlockDiag < oppSpot
             else    % no weights
                 weights = ones(nargs,1);
             end
-                        
+            
             % Standard checking and setup sizes
             [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
             m = sum(m);     n = sum(n);
@@ -143,7 +143,7 @@ classdef oppBlockDiag < oppSpot
             if ~isdistributed(x)
                 error('X is not distributed');
             end
-                                    
+            
             spmd
                 % Setting up the local parts
                 codist = getCodistributor(opchildren);
@@ -155,9 +155,9 @@ classdef oppBlockDiag < oppSpot
                 % Setting up codistributor for y
                 finpart = codistributed.zeros(1,numlabs);
                 if mode ==  1
-                    fingsize = [opm size(local_x,2)];
+                    fingsize = [opm size(x,2)]; % final partition
                 else
-                    fingsize = [opn size(local_x,2)];
+                    fingsize = [opn size(x,2)]; % final global size
                 end
                 
                 if ~isempty(local_children)
@@ -204,9 +204,137 @@ classdef oppBlockDiag < oppSpot
             
         end % Multiply
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Divide
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function y = divide(op,x,mode)
+            % Setting up the variables
+            opchildren = distributed(op.children);
+            opweights = op.weights;
+            gather = op.gather;
+            opm = op.m;
+            opn = op.n;
+            
+            % Checking for distributed x
+            if ~isdistributed(x)
+                error('X is not distributed');
+            end
+            
+            spmd
+                % Setting up the local parts
+                codist = getCodistributor(opchildren);
+                wind = globalIndices(codist,2); % local weights indices
+                local_weights = opweights(wind);
+                local_children = getLocalPart(opchildren);
+                local_x = getLocalPart(x);
+                
+                % Setting up codistributor for y
+                finpart = codistributed.zeros(1,numlabs);
+                if mode ==  1
+                    fingsize = [opn size(x,2)];
+                else
+                    fingsize = [opm size(x,2)];
+                    local_weights = conj(local_weights);
+                end
+                
+                if ~isempty(local_children)
+                    
+                    % Extracting local sizes
+                    localm = 0; localn = 0;
+                    for i=1:length(local_children)
+                        child = local_children{i};
+                        localm = localm + child.m;
+                        localn = localn + child.n;
+                    end
+                    
+                    if mode == 1
+                        finpart(labindex) = localn;
+                        
+                        % Preallocate y
+                        y = zeros(localn,size(x,2));
+                        
+                        % Divide
+                        j = 0;
+                        k = 0;
+                        for i=1:length(local_children) % Divide by operator
+                            child = local_children{i};
+                            y(j+1:j+child.n,:) = local_weights(i) .* ...
+                                (child \ local_x(k+1:k+child.m,:));
+                            j = j + child.n;
+                            k = k + child.m;
+                        end
+                        
+                    else % mode 2
+                        finpart(labindex) = localm;
+                        
+                        % Preallocate y
+                        y = zeros(localm,size(x,2));
+                        
+                        % Divide
+                        j = 0;
+                        k = 0;
+                        for i=1:length(local_children) % Divide by operator
+                            child = local_children{i};
+                            child = child';
+                            y(j+1:j+child.n,:) = local_weights(i) .* ...
+                                (child \ local_x(k+1:k+child.m,:));
+                            j = j + child.n;
+                            k = k + child.m;
+                        end
+                        
+                    end
+                else
+                    y = zeros(0,size(x,2));
+                end
+                
+                % Codistribute y
+                fincodist = codistributor1d(1,finpart,fingsize);
+                y = codistributed.build(y,fincodist,'noCommunication');
+                
+            end % spmd
+            
+            % Gather
+            if mode == 1
+                if op.gather == 1 || op.gather == 2
+                    y = gather(y);
+                end
+            else % mode == 2
+                if op.gather == 1 || op.gather == 3
+                    y = gather(y);
+                end
+            end % gather
+            
+        end % divide
     end % Protected Methods
     
 end % Classdef
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
