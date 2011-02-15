@@ -6,6 +6,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 function test_oppDictionary_builtin
 %%
+warning('off','pSpot:NoInput');
    m = 10; nA = 20; nB = 20;
    A = opGaussian(m,nA);
    B = opBernoulli(m,nB);
@@ -52,4 +53,5 @@ function test_oppDictionary_double
    D = oppDictionary(G,E,[],R,Z);
    
    assertEqual( gather(double(D)), [double(G), double(E), double(R), double(Z)] )
+   warning('on','pSpot:NoInput');
 end

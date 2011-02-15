@@ -11,7 +11,7 @@ function [opList,m,n,cflag,linear] = stdpspotchk(varargin)
 % Check for empty operators and remove them
 ops = ~cellfun(@isempty,varargin);
 assert(any(ops),'At least one operator must be specified.');
-arrayfun(@(ind) warning('input "%d" is empty',ind), find(~ops));
+arrayfun(@(ind) warning('pSpot:NoInput','input "%d" is empty',ind), find(~ops));
 opList = varargin(ops);
 
 % Check for pSpot operators
