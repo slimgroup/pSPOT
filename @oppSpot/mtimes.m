@@ -33,7 +33,7 @@ end
 %               If so, then we recast this as (C'*s)', which results in
 %               a call to the "usual" matrix-vector product.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if isnumeric(A) || isdistributed(A)
+if ~isa(A,'opSpot')
     if isscalar(A) && (B.m ~= 1)
        % s*C (mode 3)
        y = oppFoG(A,B);
@@ -48,7 +48,7 @@ if isnumeric(A) || isdistributed(A)
 %               If so, then we recast this as (C'*s)', which results in
 %               a call to the "usual" matrix-vector product.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif isnumeric(B) || isdistributed(B)
+elseif ~isa(B,'opSpot')
    if isscalar(B)
       if A.n ~= 1
          % C*s (mode 4)
@@ -83,5 +83,5 @@ elseif isnumeric(B) || isdistributed(B)
 % Both args are Spot/pSpot ops. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
-    y = oppFoG(A,B);
+    y = opFoG(A,B);
 end

@@ -59,7 +59,7 @@ classdef oppStack < oppSpot
             gather = 0;
             
             % Check for gather parameter
-            if isscalar( varargin{end} ) && any(varargin{end} == [0 1])
+            if isscalar( varargin{end} ) && ~isa(varargin{end},'opSpot')
                 gather = varargin{end};
                 varargin(end) = [];
             end
@@ -195,8 +195,13 @@ classdef oppStack < oppSpot
                 return;
             end % Mode 2
             
-            if isdistributed(x) % Checking distribution of x
-                error('x should not be distributed');
+            % Checking distribution of x
+            if isdistributed(x)
+                spmd, xcodist = getCodistributor(x); end
+                xcodist = xcodist{1};
+                if xcodist.Dimension == 1 % Checking distribution of x
+                    error('x should not be distributed along first dimension');
+                end
             end
             
             % Mode 1

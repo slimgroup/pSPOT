@@ -12,14 +12,14 @@ classdef oppBlockDiag < oppSpot
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
     %
-    %   B = oppBlockDiag([WEIGHT],OP1,...,OPN,OVERLAP,GATHER) additionally
+    %   B = oppBlockDiag([WEIGHT],OP1,...,OPN,GATHER) additionally
     %   weights each block by the elements of the vector WEIGHT. If
     %   only a single operator is given it is replicated as many times
     %   as there are weights. If a scalar weight is given for multiple
     %   operators the scalar WEIGHT will be expanded to the size of the
     %   operators, ie. WEIGHT*ones(N,1)
     %
-    %   B = oppBlockDiag(N,OP,OVERLAP,GATHER) similar as above with WEIGHT
+    %   B = oppBlockDiag(N,OP,GATHER) similar as above with WEIGHT
     %   equal to ones(N,1). This will cause operator OP to be repeated
     %   N times.
     %
@@ -50,7 +50,7 @@ classdef oppBlockDiag < oppSpot
             gather = 0;
             
             % Extract gather
-            if isscalar(varargin{end})
+            if isscalar(varargin{end}) && ~isa(varargin{end},'opSpot')
                 gather = varargin{end};
                 varargin(end) = [];
             end
@@ -207,41 +207,42 @@ classdef oppBlockDiag < oppSpot
                     if length(local_children) == 1 % Just to avoid repeating op case
                         B = local_children{1};
                         if mode == 1
-                            y = local_weights .* (B*local_x);
+                            tmpy = local_weights .* (B*local_x);
                             finpart(labindex) = B.m;
                         else
-                            y = conj(local_weights) .* (B'*local_x);
+                            tmpy = conj(local_weights) .* (B'*local_x);
                             finpart(labindex) = B.n;
                         end
                     else
                         B = opBlockDiag(local_weights,local_children{:});
                         if mode == 1
-                            y = B*local_x;
+                            tmpy = B*local_x;
                             finpart(labindex) = B.m;
                         else
-                            y = B'*local_x;
+                            tmpy = B'*local_x;
                             finpart(labindex) = B.n;
                         end
                         
                     end
                 else
-                    y = zeros(0,size(x,2));
+                    tmpy = zeros(0,size(x,2));
                 end
                 
                 % Codistribute y
                 fincodist = codistributor1d(1,finpart,fingsize);
-                y = codistributed.build(y,fincodist,'noCommunication');
+                y = codistributed.build(tmpy,fincodist);
                 
             end % spmd
             
             % Gather
-            if mode == 1
+            if mode == 1 % The gather function does not work for some weird
+                         % reason
                 if op.gather == 1 || op.gather == 2
-                    y = gather(y);
+                    y = cat(1,tmpy{:});
                 end
             else % mode == 2
                 if op.gather == 1 || op.gather == 3
-                    y = gather(y);
+                    y = cat(1,tmpy{:});
                 end
             end % gather
             
@@ -382,7 +383,7 @@ classdef oppBlockDiag < oppSpot
                 if op.gather == 1 || op.gather == 3
                     y = gather(y);
                 end
-            end % gather
+            end
             
         end % divide
     end % Protected Methods

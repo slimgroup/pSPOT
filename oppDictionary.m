@@ -57,7 +57,7 @@ classdef oppDictionary < oppSpot
             gather = 0;
             
             % Check for gather parameter
-            if isscalar( varargin{end} ) && any(varargin{end} == [0 1])
+            if isscalar( varargin{end} ) && ~isa(varargin{end},'opSpot')
                 gather = varargin{end};
                 varargin(end) = [];
             end
@@ -198,11 +198,6 @@ classdef oppDictionary < oppSpot
                 return;
             end % Mode 2
             
-            % Checking x
-            if ~isdistributed(x) % Checking distribution of x
-                error('x is not distributed');
-            end
-            
             % Checking size of x
             opchildren = distributed(op.children);
             spmd
@@ -268,7 +263,6 @@ classdef oppDictionary < oppSpot
             
             if op.gather
                 y = gather(y);
-                y = y{1};
             end % if we gathered, the data is on master client
             
         end % Multiply

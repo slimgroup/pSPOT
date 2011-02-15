@@ -49,7 +49,6 @@ classdef oppNumBlockDiag < oppSpot
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties
-        weights;
         locm; % Local sizes for use when multiplying
         locn;
         numcols; % number of implied RHS when handling x that is implicitly multidimensional, default to 1
@@ -82,8 +81,8 @@ classdef oppNumBlockDiag < oppSpot
             
             % Arguments Extraction
             % Extract gather & numcols
-            if isscalar(varargin{end}) % Gather
-                if isscalar(varargin{end-1}) % numcols
+            if isscalar(varargin{end}) && ~isa(varargin{end},'opSpot') % Gather
+                if isscalar(varargin{end-1}) && ~isa(varargin{end},'opSpot') % numcols
                     numcols_x = varargin{end-1};
                     varargin(end-1) = [];
                 end
