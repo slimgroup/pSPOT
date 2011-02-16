@@ -88,6 +88,56 @@ z = I*w;
 matlabpool('close');
 matlabpool('open',int2str(poolsize));
 
+%% Example on <Insert process name here>
+
+% Create x and S
+spmd
+    % Create x
+    x = randn(600,500,2);
+    xpart = 2*ones(1,numlabs);
+    xgsize
+    xcodist = codistributor1d(3,xpart,[600 500 8]);
+    x = codistributed.build(x,xcodist,'noCommunication');
+        
+end
+
+% Create S
+S = randn(600,1);
+
+% Run DFT on S
+S = opDFT(600)*S;
+
+% Run DFT along d1 of x
+x = oppSweep(opDFT(600))*x;
+
+% Hadamard of S and x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
