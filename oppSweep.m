@@ -117,12 +117,12 @@ classdef oppSweep < oppSpot
                     
                     % Vec local_x
                     vec_x = local_x(:);
-                    s = size(local_x);
                     % Setup kron
+                    size_loc = size(local_x);
                     if mode == 1
-                        kronop = opKron(opDirac(prod(s(2:end))),A);
+                        kronop = opKron(opDirac(prod(size_loc(2:end))),A);
                     else
-                        kronop = opKron(opDirac(prod(s(2:end))),A');
+                        kronop = opKron(opDirac(prod(size_loc(2:end))),A');
                     end
                                         
                     % Multiply

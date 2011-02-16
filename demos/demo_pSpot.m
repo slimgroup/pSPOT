@@ -95,7 +95,6 @@ spmd
     % Create x
     x = randn(600,500,2);
     xpart = 2*ones(1,numlabs);
-    xgsize
     xcodist = codistributor1d(3,xpart,[600 500 8]);
     x = codistributed.build(x,xcodist,'noCommunication');
         
