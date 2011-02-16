@@ -460,11 +460,7 @@ classdef oppNumBlockDiag < oppSpot
                         tmpy = tmpy(:);
                         
                     else
-                        opw = opweights(ind);
-                        for i=length(opchilds)
-                            opchilds{i} = opw(i)*opchilds{i};
-                        end
-                        B = opBlockDiag(opchilds{:});
+                        B = opBlockDiag(opweights(ind),opchilds{:});
                         if mode == 1
                             tmpy = B*local_x;
                         else
