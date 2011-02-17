@@ -97,6 +97,7 @@ spmd
     xpart = 2*ones(1,numlabs);
     xcodist = codistributor1d(3,xpart,[600 500 8]);
     x = codistributed.build(x,xcodist,'noCommunication');
+    %x = redistribute(x,codistributor1d(3,[4 4 0 0],[600 500 8]));
         
 end
 
@@ -110,8 +111,10 @@ S = opDFT(600)*S;
 x = oppSweep(opDFT(600))*x;
 
 % Hadamard of S and x
-
-
+size_x = size(x);
+K = oppKron2Lo(opDirac(4000),S);
+vec_x = x(:);
+x = K*vec_x;
 
 
 

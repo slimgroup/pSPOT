@@ -86,20 +86,11 @@ classdef oppSweep < oppSpot
             opm = op.m; opn = op.n;
             nlabs = matlabpool('size');
             size_x = size(x);
-            
-            % Preallocate y
             size_rest = size_x(2:end);
-            if mode == 1
-                size_zeros = [opm size_rest];
-            else
-                size_zeros = [opn size_rest];
-            end
-            y = distributed.zeros(size_zeros);
             
             spmd
                 % Setup local parts
                 local_x = getLocalPart(x);
-                local_y = getLocalPart(y);
                 
                 % Setup final codistributor
                 finpart = codistributed.zeros(1,nlabs);
@@ -110,45 +101,31 @@ classdef oppSweep < oppSpot
                 end
                 
                 % Multiply
-                if ~isempty(local_x)
-                    
-                    % Setup partition
-                    finpart(labindex) = size(local_x,length(size_x));
-                    
-                    % Vec local_x
-                    vec_x = local_x(:);
-                    % Setup kron
-                    size_loc = size(local_x);
-                    if mode == 1
-                        kronop = opKron(opDirac(prod(size_loc(2:end))),A);
-                    else
-                        kronop = opKron(opDirac(prod(size_loc(2:end))),A');
-                    end
-                                        
-                    % Multiply
-                    local_y = kronop*vec_x;
-                    
-                    % Reshape
-                    size_y = size(local_x);
-                    if mode == 1
-                        size_y(1) = opm;
-                    else
-                        size_y(1) = opn;
-                    end
-                    
-                    local_y = reshape(local_y,size_y);
-                    
+                % Setup partition
+                finpart(labindex) = size(local_x,length(size_x));
+                
+                % Vec local_x
+                vec_x = local_x(:);
+                % Setup kron
+                size_loc = size(local_x);
+                if mode == 1
+                    kronop = opKron(opDirac(prod(size_loc(2:end))),A);
                 else
-                    % Setup the empty vectors for empty labs
-                    size_y = size_x;
-                    if mode == 1
-                        size_y(1) = opm;
-                    else
-                        size_y(1) = opn;
-                    end
-                    size_y(end) = 0;
-                    local_y = zeros(size_y);
+                    kronop = opKron(opDirac(prod(size_loc(2:end))),A');
                 end
+                
+                % Multiply
+                local_y = kronop*vec_x;
+                
+                % Reshape
+                size_y = size(local_x);
+                if mode == 1
+                    size_y(1) = opm;
+                else
+                    size_y(1) = opn;
+                end
+                
+                local_y = reshape(local_y,size_y);
                 
                 fincodist = codistributor1d(length(size_x),finpart,fingsize);
                 
