@@ -36,7 +36,7 @@ end
 if ~isa(A,'opSpot')
     if isscalar(A) && (B.m ~= 1)
        % s*C (mode 3)
-       y = oppFoG(A,B);
+       y = opFoG(A,B);
     else
        % M*C (mode 1)
        y = (B' * A')';
@@ -52,7 +52,7 @@ elseif ~isa(B,'opSpot')
    if isscalar(B)
       if A.n ~= 1
          % C*s (mode 4)
-         y = oppFoG(A,B);
+         y = opFoG(A,B);
       else
          y = A.applyMultiply(B,1);  % A is a column "vector".
       end
