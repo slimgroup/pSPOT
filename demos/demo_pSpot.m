@@ -98,7 +98,7 @@ I = opDirac(n2*n3);
 s = randn(n1,1);
 S = opDiag(F*s);
 
-C2 = oppKron2Lo(I,F'*S*F) * x(:); % One line to rule them all
+C = oppKron2Lo(I,F'*S*F) * x(:); % One line to rule them all
 
 
 
