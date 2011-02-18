@@ -10,8 +10,9 @@ A = randn(5,10);
 B = randn(20,10);
 X = randn(10,20);
 K = oppKron2Lo(B',A); 
-C1 = vec(A*X*B);
-C2 = K*vec(X); 
+C1 = A*X*B;
+C1 = C1(:);
+C2 = K*X(:); 
 norm(C1 - C2) %% Answer should be 0
 
 %% oppSweep(A) == oppKron2Lo(opDirac(ncols),A)
