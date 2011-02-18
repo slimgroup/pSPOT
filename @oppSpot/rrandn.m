@@ -2,9 +2,16 @@ function x = rrandn(A,Ncols)
 %RRANDN  Normally distributed pseudorandom correctly distributed vector 
 %        in the operator range.
 %
-%   rrandn(A) returns a pseudorandom vector in the range of A.
+%   A.rrandn returns a pseudorandom vector in the range of A with
+%   the correct distribution matching with the distribution of operator A. 
 %
-%   See also opSpot.drandn, randn.
+%   rrandn(A,NCOLS) returns the same as above except with NCOLS number of
+%   columns.
+%
+%   Note: rrandn of oppDictionary and the transpose of oppStack will not
+%   have a distributed vector returned because it does not make any sense.
+%
+%   See also opSpot.rrandn, randn.
 
 %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
 %   See the file COPYING.txt for full copyright information.

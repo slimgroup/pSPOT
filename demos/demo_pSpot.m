@@ -3,19 +3,9 @@
 % 1) Speed
 % 2) Can't fit the whole thing into one node
 
-%% Example: 
+% Note: For this demo, use even number of matlabpool
 
-% Make sure matlabpool size is 2
-poolsize = 2;
-if matlabpool('size') ~= 2
-    poolsize = matlabpool('size');
-    if matlabpool('size') == 0
-        matlabpool('open','2');
-    else
-        matlabpool('close','force');
-        matlabpool('open','2');
-    end
-end
+%% Example: 
 
 n     = 100;
 nsrc  = 10;
@@ -58,13 +48,11 @@ d  = D(:);
 % now we can do a FFT 
 dt = F*d;
 
-%% Applications
-% Where A1 and A2 are helmholtz matrices
-% y would be sources
-% Also ask Tim for the stuff he does
+clear all
 
-% A nice use case for Stack and Dictionary
-% 
+%% A nice use case for Stack and Dictionary
+% Where A1 and A2 are helmholtz matrices
+% and y would be sources
 
 U1 = opGaussian(1000,10,1); % Forward wave field for Frequency 1
 U2 = opGaussian(1000,10,1); % Forward wave field for Frequency 2
@@ -85,47 +73,32 @@ w2 = opGaussian(1000,1);
 w = double(oppStack(w1,w2));
 z = I*w; 
 
-matlabpool('close');
-matlabpool('open',int2str(poolsize));
+clear all
 
-%% Example on <Insert process name here>
+%% Example on Seismic's Most Vanilla 
 
 % Create x and S
+% Setup the dimensions
+n1 = randi(2000);
+n2 = randi(100);
+n3 = 120;
 spmd
-    % Create x
-    x = randn(600,500,2);
-    xpart = 2*ones(1,numlabs);
-    xcodist = codistributor1d(3,xpart,[600 500 8]);
+    % Create 3D Matrix x, distributed along 3rd dimension
+    x = randn(n1,n2,n3/numlabs);
+    xpart = (n3/numlabs)*ones(1,numlabs);
+    xcodist = codistributor1d(3,xpart,[n1 n2 n3]);
     x = codistributed.build(x,xcodist,'noCommunication');
-    %x = redistribute(x,codistributor1d(3,[4 4 0 0],[600 500 8]));
         
 end
 
+F = opDFT(n1);
+I = opDirac(n2*n3);
+
 % Create S
-S = randn(600,1);
+s = randn(n1,1);
+S = opDiag(F*s);
 
-% Run DFT on S
-S = opDFT(600)*S;
-
-% Run DFT along d1 of x
-x = oppSweep(opDFT(600))*x;
-
-% Hadamard of S and x
-size_x = size(x);
-K = oppKron2Lo(opDirac(4000),S);
-vec_x = x(:);
-x = K*vec_x;
-
-
-
-
-
-
-
-
-
-
-
+C2 = oppKron2Lo(I,F'*S*F) * x(:); % One line to rule them all
 
 
 

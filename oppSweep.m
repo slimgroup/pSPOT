@@ -1,10 +1,10 @@
 classdef oppSweep < oppSpot
-    %OPPSWEEP   Operator that sweeps across parallel vectors.
+    %OPPSWEEP   Operator that sweeps across parallel multivectors/arrays
     %
     %   B = oppSweep(OP,GATHER) allows operator OP to perform 
-    %   sweeping operations across vectors distributed across the last 
-    %   dimension (which it is distributed), in parallel. OP has to be a 
-    %   Spot operator
+    %   sweeping multiplication across vectors or arrays distributed across
+    %   the last dimension (which it is distributed), in parallel. 
+    %   OP cannot be a pSpot operator.
     %
     %   GATHER specifies whether to gather the results to a local array
     %   or leave them distributed, default is 0.
@@ -12,7 +12,6 @@ classdef oppSweep < oppSpot
     %   GATHER = 1 will gather the results.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
-    %
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Methods
@@ -23,6 +22,11 @@ classdef oppSweep < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppSweep(varargin)
                         
+            % Check for matlabpool
+            if matlabpool('size') == 0
+                error('Matlabpool is not on');
+            end
+            
             % Settin' up the variables
             gather = 0;
             

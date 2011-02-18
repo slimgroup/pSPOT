@@ -9,9 +9,7 @@ classdef oppStack < oppSpot
     %   GATHER specifies whether to gather the results to a local array
     %   or leave them distributed, default is 0.
     %   GATHER = 0 will leave them distributed.
-    %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
-    %   GATHER = 2 will gather only in forward mode.
-    %   GATHER = 3 will gather only in backward (adjoint) mode.
+    %   GATHER = 1 will gather the results.
     %   
     %   Optional WEIGHTS vector:
     %
@@ -25,8 +23,6 @@ classdef oppStack < oppSpot
     %   one. The WEIGHT parameter can be omitted as long as OP1 is a
     %   Spot operator; if not there is no way to
     %   decide whether it is a weight vector or operator.
-    %
-    %   See also oppDictionary, opFoG, opSum.
     %
     %   *Note - only spot operators can be used in an oppStack, pSpot
     %   operators act in parallel already, and cannot be used with

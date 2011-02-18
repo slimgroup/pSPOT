@@ -2,8 +2,14 @@ function x = drandn(A,Ncols)
 %DRANDN  Normally distributed pseudorandom correctly distributed vector
 %        in the operator domain.
 %
-%   drandn(A) returns a pseudorandom vector in the domain of A with the
-%   correct distribution matching with the operator A.
+%   A.drandn returns a pseudorandom vector in the domain of A with
+%   the correct distribution matching with the distribution of operator A. 
+%
+%   drandn(A,NCOLS) returns the same as above except with NCOLS number of
+%   columns.
+%
+%   Note: drandn of oppStack and the transpose of oppDictionary will not
+%   have a distributed vector returned because it does not make any sense.
 %
 %   See also opSpot.rrandn, randn.
 

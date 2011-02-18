@@ -1,5 +1,5 @@
 classdef oppNumBlockDiag < oppSpot
-    %OPPBLOCKDIAG   Operator-diagonal operator in parallel sans overlap
+    %OPPNUMBLOCKDIAG   Operator-diagonal operator in parallel sans overlap
     %   Supports distributed x and distributed 3D Matrices
     %
     %   B = oppNumBlockDiag(OP1, OP2,...,OPN,GATHER) creates a compound
