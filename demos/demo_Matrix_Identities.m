@@ -31,3 +31,4 @@ fprintf('C2 = K*x(:) : ');
 tic, C2 = K*x(:); toc % oppSweep is about 2x faster
 
 norm( C1(:) - C2 ) % Answer should be 0
+
