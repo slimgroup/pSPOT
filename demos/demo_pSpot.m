@@ -86,28 +86,28 @@ D = distributed.randn(dim(1),prod(dim(2:end)));
 norm(D(:)-S'*S*D(:))
 
 
-%% Example 4: A use-case for Stack and Dictionary operators (I CAN'T TELL WHAT THIS SECTION IS SUPPOSED TO BE ABOUT. SOMEONE PLEASE CHIME IN [TIM])
+%% Example 4: Constructing large linear systems in parallel using Stack
 m = 100;
 n = 10;
-U1 = opGaussian(m,n,1); % Forward wave field for Frequency 1
-U2 = opGaussian(m,n,1); % Forward wave field for Frequency 2
-V1 = opGaussian(m,n,1); % Adjoint wave field for Frequency 1
-V2 = opGaussian(m,n,1); % Adjoint wave field for Frequency 2
+U1 = opGaussian(m,n,1);
+U2 = opGaussian(m,n,1);
+V1 = opGaussian(m,n,1);
+V2 = opGaussian(m,n,1);
 
-% Extended image volume I
+% Construct larger U and V using oppStack. This distributes the subblocks U1, U2, V1, V2 to different machines
 U = oppStack(U1,U2);
-V = oppStack(V1,V2,1); % has to be gathered because distributed x is not 
-                       % supported for oppStack forward mode.
-I = U*V'; 
+V = oppStack(V1,V2,1);
+
+% Can combine these oparators to creater even larger ones, for example the outer product of U and V
+A = U*V'; 
 %%
-% I will be stored as an opFog, which saves memory space because it is not
-% explicit.
-% Now we can access the image volume like so
+% A is never computed directly, instead only U and V are stored (in a distributed fashion)
+% We probe the properties of A by getting its action on a vector w:
 w1 = opGaussian(m,1);
 w2 = opGaussian(m,1);
-w = double(oppStack(w1,w2));
-z = I*w; 
-
+w = double(oppStack(w1,w2)); % w is re-cast as a native MATLAB distrtibuted vector 
+% The action of A on w can now be computed in a distributed fashion
+y = A * w;
 
 
 
