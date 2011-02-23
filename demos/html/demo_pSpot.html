@@ -62,7 +62,7 @@ p.footer {
   color: gray;
 }
 
-  </style></head><body><div class="content"><h1>DEMO FOR PSPOT</h1><!--introduction--><p>Demonstration for SLIM group's pSpot Toolbox</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#5">Example 1: Inverting a large block-diagonal linear system with multiple data-columns</a></li><li><a href="#10">Example 2: Convolve every trace of a seismic datacube with a fixed signal</a></li><li><a href="#11">Example 3: Defining seperable sparsity transforms over different axes</a></li><li><a href="#13">Example 4: A use-case for Stack and Dictionary operators (I CAN'T TELL WHAT THIS SECTION IS SUPPOSED TO BE ABOUT. SOMEONE PLEASE CHIME IN [TIM])</a></li></ul></div><p>There are two main reasons for using pSPOT:</p><p>1)Improved computational efficiency from parallel multiprocessing</p><p>2)Ability to hadle larger dataset by distributing amongst the memory space of multiple computers</p><p>The examples below serve to illustrate these points. Note: For this demo, please use an even number of matlabpool</p><h2>Example 1: Inverting a large block-diagonal linear system with multiple data-columns<a name="5"></a></h2><pre class="codeinput"><span class="keyword">if</span> matlabpool(<span class="string">'size'</span>) == 0 <span class="comment">% Setup matlabpool</span>
+  </style></head><body><div class="content"><h1>DEMO FOR PSPOT</h1><!--introduction--><p>Demonstration for SLIM group's pSpot Toolbox</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#5">Example 1: Inverting a large block-diagonal linear system with multiple data-columns</a></li><li><a href="#10">Example 2: Convolve every trace of a seismic datacube with a fixed signal</a></li><li><a href="#11">Example 3: Defining seperable sparsity transforms over different axes</a></li><li><a href="#13">Example 4: Constructing large linear systems in parallel using Stack</a></li></ul></div><p>There are two main reasons for using pSPOT:</p><p>1)Improved computational efficiency from parallel multiprocessing</p><p>2)Ability to hadle larger dataset by distributing amongst the memory space of multiple computers</p><p>The examples below serve to illustrate these points. Note: For this demo, please use an even number of matlabpool</p><h2>Example 1: Inverting a large block-diagonal linear system with multiple data-columns<a name="5"></a></h2><pre class="codeinput"><span class="keyword">if</span> matlabpool(<span class="string">'size'</span>) == 0 <span class="comment">% Setup matlabpool</span>
     matlabpool(<span class="string">'open'</span>,<span class="string">'2'</span>);
 <span class="keyword">end</span>
 
@@ -81,7 +81,7 @@ norm(b(:)-bt(:))/norm(b(:))
 </pre><pre class="codeoutput">
 ans =
 
-    0.2219
+    0.2181
 
 </pre><h2>Example 2: Convolve every trace of a seismic datacube with a fixed signal<a name="10"></a></h2><p>Create datacube x, and fixed signal s</p><pre class="codeinput">n1 = 128; <span class="comment">% time samples</span>
 n2 = 20; <span class="comment">% trace-per-gather</span>
@@ -118,24 +118,26 @@ norm(D(:)-S'*S*D(:))
 </pre><pre class="codeoutput">
 ans =
 
-   7.9932e-13
+   7.9828e-13
 
-</pre><h2>Example 4: A use-case for Stack and Dictionary operators (I CAN'T TELL WHAT THIS SECTION IS SUPPOSED TO BE ABOUT. SOMEONE PLEASE CHIME IN [TIM])<a name="13"></a></h2><pre class="codeinput">m = 100;
+</pre><h2>Example 4: Constructing large linear systems in parallel using Stack<a name="13"></a></h2><pre class="codeinput">m = 100;
 n = 10;
-U1 = opGaussian(m,n,1); <span class="comment">% Forward wave field for Frequency 1</span>
-U2 = opGaussian(m,n,1); <span class="comment">% Forward wave field for Frequency 2</span>
-V1 = opGaussian(m,n,1); <span class="comment">% Adjoint wave field for Frequency 1</span>
-V2 = opGaussian(m,n,1); <span class="comment">% Adjoint wave field for Frequency 2</span>
+U1 = opGaussian(m,n,1);
+U2 = opGaussian(m,n,1);
+V1 = opGaussian(m,n,1);
+V2 = opGaussian(m,n,1);
 
-<span class="comment">% Extended image volume I</span>
+<span class="comment">% Construct larger U and V using oppStack. This distributes the subblocks U1, U2, V1, V2 to different machines</span>
 U = oppStack(U1,U2);
-V = oppStack(V1,V2,1); <span class="comment">% has to be gathered because distributed x is not</span>
-                       <span class="comment">% supported for oppStack forward mode.</span>
-I = U*V';
-</pre><p>I will be stored as an opFog, which saves memory space because it is not explicit. Now we can access the image volume like so</p><pre class="codeinput">w1 = opGaussian(m,1);
+V = oppStack(V1,V2,1);
+
+<span class="comment">% Can combine these oparators to creater even larger ones, for example the outer product of U and V</span>
+A = U*V';
+</pre><p>A is never computed directly, instead only U and V are stored (in a distributed fashion) We probe the properties of A by getting its action on a vector w:</p><pre class="codeinput">w1 = opGaussian(m,1);
 w2 = opGaussian(m,1);
-w = double(oppStack(w1,w2));
-z = I*w;
+w = double(oppStack(w1,w2)); <span class="comment">% w is re-cast as a native MATLAB distrtibuted vector</span>
+<span class="comment">% The action of A on w can now be computed in a distributed fashion</span>
+y = A * w;
 </pre><p class="footer"><br>
       Published with MATLAB&reg; 7.9<br></p></div><!--
 ##### SOURCE BEGIN #####
@@ -227,28 +229,28 @@ D = distributed.randn(dim(1),prod(dim(2:end)));
 norm(D(:)-S'*S*D(:))
 
 
-%% Example 4: A use-case for Stack and Dictionary operators (I CAN'T TELL WHAT THIS SECTION IS SUPPOSED TO BE ABOUT. SOMEONE PLEASE CHIME IN [TIM])
+%% Example 4: Constructing large linear systems in parallel using Stack
 m = 100;
 n = 10;
-U1 = opGaussian(m,n,1); % Forward wave field for Frequency 1
-U2 = opGaussian(m,n,1); % Forward wave field for Frequency 2
-V1 = opGaussian(m,n,1); % Adjoint wave field for Frequency 1
-V2 = opGaussian(m,n,1); % Adjoint wave field for Frequency 2
+U1 = opGaussian(m,n,1);
+U2 = opGaussian(m,n,1);
+V1 = opGaussian(m,n,1);
+V2 = opGaussian(m,n,1);
 
-% Extended image volume I
+% Construct larger U and V using oppStack. This distributes the subblocks U1, U2, V1, V2 to different machines
 U = oppStack(U1,U2);
-V = oppStack(V1,V2,1); % has to be gathered because distributed x is not 
-                       % supported for oppStack forward mode.
-I = U*V'; 
+V = oppStack(V1,V2,1);
+
+% Can combine these oparators to creater even larger ones, for example the outer product of U and V
+A = U*V'; 
 %%
-% I will be stored as an opFog, which saves memory space because it is not
-% explicit.
-% Now we can access the image volume like so
+% A is never computed directly, instead only U and V are stored (in a distributed fashion)
+% We probe the properties of A by getting its action on a vector w:
 w1 = opGaussian(m,1);
 w2 = opGaussian(m,1);
-w = double(oppStack(w1,w2));
-z = I*w; 
-
+w = double(oppStack(w1,w2)); % w is re-cast as a native MATLAB distrtibuted vector 
+% The action of A on w can now be computed in a distributed fashion
+y = A * w;
 
 
 
