@@ -1,5 +1,5 @@
-function [ B b ] = fd_window_1Dbck( m, p, h )
-%UNTITLED Summary of this function goes here
+function [ B b1 b2 ] = fd_window_1Dbck( m, p, h )
+%fd_window_1Dbck inverse windowing sparse array for Finite Difference algorithms
 %   Detailed explanation goes here
 
     w0 = ceil(m/p);
@@ -15,17 +15,20 @@ function [ B b ] = fd_window_1Dbck( m, p, h )
 %    fprintf('\tw0=%d/r0=%d/r=%d w1=%d w2=%d\n',w0, r0,r, w1, w2);
 
     B=sparse(m,n);
-    b(1)=w0;
+    b1(1)=w0;
+    b2(1)=w1;
     for i=1:w0
         B(i,i)=1;
     end
     for w=2:p-1
-        b(w)=w2;
+        b1(w)=w0;
+        b2(w)=w2;
         for i=1:w0
             B((w - 1)*w0 + i,(w - 1)*w2 + i)=1;
         end
     end
-    b(p)=r0;
+    b1(p)=r0;
+    b2(p)=r+1;
     for i=0:r0-1
         B(m-i,n-i)=1;
     end

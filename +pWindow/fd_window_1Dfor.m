@@ -1,5 +1,5 @@
-function [ A, a ] = fd_window_1Dfor( m, p, h )
-%UNTITLED Summary of this function goes here
+function [ A a1 a2 ] = fd_window_1Dfor( m, p, h )
+%fd_window_1Dfor forward windowing sparse array for Finite Difference algorithms
 %   Detailed explanation goes here
 
     w0 = ceil(m/p);
@@ -15,17 +15,20 @@ function [ A, a ] = fd_window_1Dfor( m, p, h )
 %    fprintf('\tw0=%d/r0=%d/r=%d w1=%d w2=%d\n',w0, r0,r, w1, w2);
 
     A=sparse(n,m);
-    a(1)=w1;
+    a1(1)=w1;
+    a2(1)=w0;
     for i=1:w1
         A(i,i)=1;
     end
     for w=2:p-1
-        a(w)=w2;
+        a1(w)=w2;
+        a2(w)=w0;
         for i=1:w2
             A((w - 1)*w2 - h + i,(w - 1)*w0 - h + i)=1;
         end
     end
-    a(p)=r+1;
+    a1(p)=r+1;
+    a2(p)=r0;
     for i=0:r
         A(n-i,m-i)=1;
     end
