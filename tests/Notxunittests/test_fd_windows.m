@@ -1,7 +1,8 @@
 % testing window functions
-M=[13 14];
-P=4;
-H=3;
+clear;
+M=[10 11];
+P=2;
+H=1;
 
 disp('start test');
 
@@ -19,13 +20,18 @@ for m=M(1):M(2)
                     x1=B*y;
                     check=sum(abs((x1-x0)'));
                     fprintf('\tFD: m=%d n=%d p=%d h=%d: %d\n',m,n,p,h,check);
+                    assert(check<1e-10,'ERROR: does not pass inverse test check=%f',check);
                 catch xy
                     fprintf('FD: m=%d n=%d p=%d h=%d\n',m,n,p,h);
                     fprintf('FD: a1=%d a2=%d b1=%d b2=%d\n',sum(a1),sum(a2),sum(b1),sum(b2));
+                    disp(xy.message);
                     whos a1 a2 A b1 b2 B
-		    disp(xy.message);
+                    disp(full(A))
+                    disp(full(B))
+                    disp(full(B*A))
                 end
 	    catch AB
+            fprintf('FD: m=%d n=%d p=%d h=%d\n',m,n,p,h);
 	    	disp(AB.message);
 	    end
     
@@ -39,13 +45,18 @@ for m=M(1):M(2)
                     x1=B*y;
                     check=sum(abs((x1-x0)'));
                     fprintf('\tTPR: m=%d n=%d p=%d h=%d: %d\n',m,n,p,h,check);
+                    assert(check<1e-10,'ERROR: does not pass inverse test check=%f',check);
                 catch xy
                     fprintf('TPR: m=%d n=%d p=%d h=%d\n',m,n,p,h);
                     fprintf('TPR: a1=%d a2=%d b1=%d b2=%d\n',sum(a1),sum(a2),sum(b1),sum(b2));
+                    disp(xy.message);
                     whos a1 a2 A b1 b2 B
-		    disp(xy.message);
-                end
+                    disp(full(A))
+                    disp(full(B))
+                    disp(full(B*A))
+              end
 	    catch AB
+            fprintf('TPR: m=%d n=%d p=%d h=%d\n',m,n,p,h);
 	    	disp(AB.message);
 	    end
 

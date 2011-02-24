@@ -3,7 +3,7 @@ function [ A a1 a2 ] = tpr_window_1Dfor( m, p, h )
 %   Detailed explanation goes here
 
     w0 = ceil(m/p);
-    assert(h<w0/2,'half-overlap (%d) too large for window size (%d)\n',h,w0);
+    assert(h<w0/2,'half-overlap (%d) too large for local window size (%d)\n',h,w0);
     w1 = w0 + h;
     w2 = w0 + 2*h;
     n = m + (p - 1)*2*h;
