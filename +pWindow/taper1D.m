@@ -3,14 +3,15 @@ function [ t ] = taper1D( i, n, h )
 %   Detailed explanation goes here
 
     if i<= n/2
-        x=i
+        x=i;
     else
-        x=n-i+1
+        x=n-i+1;
     end
-    if x<=h+1
-        t=sin((pi/2.) * x/(2.*(h+1.)))
+    if x<=h+1;
+        t=sin(x*(pi/2.)/(2.*h+1.));
     else
-        t=1
+        t=1;
     end
+    fprintf('%d %d %d\n',i,x,t);
 end
 
