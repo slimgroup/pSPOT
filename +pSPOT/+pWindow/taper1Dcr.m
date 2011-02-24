@@ -1,9 +1,9 @@
-function [ t ] = taper1D( i, n, h )
-%taper1D 1D taper using sin()
+function [ t ] = taper1Dcr( i, n, h )
+%taper1Dcr 1D taper using sin() - for outer windows
 %   Detailed explanation goes here
 
-    if i< n/2
-        x=i;
+    if i<= n/2
+        x=n;
     else
         x=n-i+1;
     end
