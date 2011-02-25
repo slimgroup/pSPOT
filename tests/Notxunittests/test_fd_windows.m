@@ -1,5 +1,5 @@
 % testing window functions
-clear;
+clear all;
 M=[30 40]; % range of vector sizes
 P=4;            % range of processors
 H=3;            % range of half-overlap
