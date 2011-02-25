@@ -2,30 +2,16 @@ classdef oppNumBlockDiag < oppSpot
     %OPPNUMBLOCKDIAG   Operator-diagonal operator in parallel sans overlap
     %   Supports distributed x and distributed 3D Matrices
     %
-    %   B = oppNumBlockDiag(OP1, OP2,...,OPN,GATHER) creates a compound
-    %   block operator with the input operators OP1, OP2,... on the diagonal of
-    %   B, e.g., B = DIAG([OP1 OP2 ... OPN]). When multiplying the operators
-    %   are distributed among the labs and multiplied locally on each.
+    %   B = oppNumBlockDiag([WEIGHT],A,GATHER) where A is a 3D numerical
+    %   matrix. This will slice A along the 3rd dimension and use the 2D
+    %   slices as the blocks for the block-diagonal operator B.
+    %   Note: 2D x vector not supported for numeric 3D
     %   GATHER specifies whether to gather the results to a local array
     %   or leave them distributed, default is 0.
     %   GATHER = 0 will leave them distributed.
     %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
-    %
-    %   B = oppNumBlockDiag(WEIGHT,OP1,...,OPN,GATHER) additionally
-    %   weights each block by the elements of the vector WEIGHT. If
-    %   only a single operator is given it is replicated as many times
-    %   as there are weights.
-    %
-    %   B = oppNumBlockDiag(N,OP,GATHER) similar as above with WEIGHT
-    %   equal to ones(N,1), where N is a positive integer. This will cause
-    %   operator OP to be repeated N times.
-    %
-    %   B = oppNumBlockDiag([WEIGHT],A,GATHER) where A is a 3D numerical
-    %   matrix. This will slice A along the 3rd dimension and use the 2D
-    %   slices as the blocks for the block-diagonal operator B.
-    %   Note: 2D x vector not supported for numeric 3D
     %
     %   B = oppNumBlockDiag([WEIGHT],A,NUMCOLS_X,GATHER) where A is a 3D numerical
     %   matrix. This will slice A along the 3rd dimension and use the 2D
@@ -36,7 +22,7 @@ classdef oppNumBlockDiag < oppSpot
     %
     %
     %   See also oppBlockDiag, oppDictionary, oppStack
-    
+        
     %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
     %   See the file COPYING.txt for full copyright information.
     %   Use the command 'spot.gpl' to locate this file.
