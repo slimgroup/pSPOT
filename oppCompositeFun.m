@@ -1,9 +1,9 @@
 classdef oppQ < oppSpot
     %OPPQ   The final missing piece in pSpot
     %
-    %   Q = oppQ(S,F) where S is a distributed vector, and F a
-    %   function handle that takes in local parts of S and gives a local part
-    %   of the final answer.
+    %   Q = oppQ(S,F) where S is a composite of vectors, and F a
+    %   function handle that takes in local parts of S and gives a local 
+    %   part of the final answer.
     %   F has to take in S and x, local parts of the respective vectors.
     %
     %   For now it is assumed that the size of the final answer will be
