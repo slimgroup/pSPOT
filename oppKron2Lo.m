@@ -10,10 +10,19 @@ classdef oppKron2Lo < opKron
 %   GATHER = 2 will gather only in forward mode.
 %   GATHER = 3 will gather only in backwards (adjoint) mode.
 %
-%   ex.
-%       M = oppKron2Lo(opDFT(15),rand(20,30));
-%       x = distributed.rand(30,15);
-%       y = M*x(:);
+%       %% Example: Defining seperable sparsity transforms over different axes.
+%       Here we define a sparsity transform S that performs Wavelet analysis on the first dimension
+%       and a 2D Curvelet analysis on the second & third dimension
+%             dim=[64,32,32];
+%             C = opCurvelet(dim(2),dim(3));
+%             W = opWavelet(dim(1),1);
+%             S = oppKron2Lo(C,W',1);
+%       %%
+%       % Make a random 3d data-array
+%       D = distributed.randn(dim(1),prod(dim(2:end)));
+%  
+%       % Check to see if the analysis followed by synthesis returns the original signal
+%       norm(D(:)-S'*S*D(:))
 %
 %   note that the second operator is applied to x and then the first
 %   operator to the transpose of the result, and so x should be of
