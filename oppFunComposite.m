@@ -1,4 +1,4 @@
-classdef oppCompositeFun < oppSpot
+classdef oppFunComposite < oppSpot
     %OPPQ   The final missing piece in pSpot
     %
     %   Q = oppQ(S,F,m,n,cflag,linflag) where S is a composite of vectors, and F a
@@ -27,7 +27,7 @@ classdef oppCompositeFun < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function op = oppCompositeFun(S,F,m,n,cflag,linflag)
+        function op = oppFunComposite(S,F,m,n,cflag,linflag)
             
             if nargin ~= 6 % Check for number of arguments
                 error('There must be 6 arguments');
@@ -45,7 +45,7 @@ classdef oppCompositeFun < oppSpot
             end
             
             % Construct oppCompositeFun
-            op = op@oppSpot('CompositeFun', m, n);
+            op = op@oppSpot('FunComposite', m, n);
             op.children = {S};
             op.fun = F;
             op.cflag = cflag;
@@ -72,7 +72,7 @@ classdef oppCompositeFun < oppSpot
         % For the moment mtimes is only implemented for right
         % multiplication
         function y=mtimes(op,x)
-            if ~isa(op,'oppCompositeFun')
+            if ~isa(op,'oppFunComposite')
                 error('Left multiplication not taken in account')
             else
                 assert( isvector(x) , 'Please use vectorized matrix')
