@@ -1,22 +1,10 @@
-function [ A a1 a2 ] = tpr_window_1Dfor( m, p, h )
+function [ A a1 a2 ] = tpr_window_1Dfor( n, p, h )
 %tpr_window_1Dfor forward tapered windowing sparse array for partition-of-unity algorithms
 %   Detailed explanation goes here
 
-    w0 = ceil(m/p);
-    assert(h<w0/2,'tpr_window_1Dfor: half-overlap (%d) too large for local window size (%d)\n',h,w0);
-    w1 = w0 + h;
-    w2 = w0 + 2*h;
-    n = m + (p - 1)*2*h;
-    r0 = mod(m, w0);
-    if r0 == 0; r0 = w0; end
-    r = r0 + h - 1;
-    d0 = w0 - r0;
+    [ m w0 w1 w2 r0 r d0 ] = pSPOT.pWindow.window1Dparams( n, p, h );
 
-%    fprintf('\nwindowing params:\n');
-%    fprintf('\tm=%d p=%d h= %d n=%d\n',m, p, h, n);
-%    fprintf('\tw0=%d/r0=%d/r=%d w1=%d w2=%d\n',w0, r0,r, w1, w2);
-
-    A=sparse(n,m);
+    A=sparse(m,n);
     a1(1)=w1;
     a2(1)=w0;
     for i=1:w1
@@ -32,7 +20,7 @@ function [ A a1 a2 ] = tpr_window_1Dfor( m, p, h )
     a1(p)=r+1;
     a2(p)=r0;
     for i=0:r
-        A(n-i,m-i)=pSPOT.pWindow.taper1Dcr(d0+i+h+1,w2,h);
+        A(m-i,n-i)=pSPOT.pWindow.taper1Dcr(d0+i+h+1,w2,h);
     end
 
 end
