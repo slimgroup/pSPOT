@@ -5,6 +5,8 @@ classdef oppMatrix < oppSpot
 %   matrix-vector multiplication with matrix A. The optional parameter
 %   DESCRIPTION can be used to override the default operator name when
 %   printed.
+%
+%   Note: divide is only supported if the matrix is square.
 
 %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
 %   See the file COPYING.txt for full copyright information.
@@ -52,7 +54,6 @@ classdef oppMatrix < oppSpot
           op.sweepflag  = true;
           op.matrix = A;
        end % function opMatrix
-       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function str = char(op)
@@ -64,15 +65,25 @@ classdef oppMatrix < oppSpot
              str = char@opSpot(op);
           end          
        end % function char
-       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function x = double(op)
        %double  Convert operator to a double.
           x = op.matrix;
        end
+       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+       function x = drandn(op)
+       %drandn  pseudorandom vector in the domain of op
+          x = drandn@opSpot(op);
+       end
+       
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function x = rrandn(op)
+       %drandn  pseudorandom vector in the domain of op
+          x = rrandn@opSpot(op);
+       end
+       
     end % Methods
 
 
@@ -97,7 +108,6 @@ classdef oppMatrix < oppSpot
              x = op.matrix' \ b;
           end
        end % function divide
-       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 end % methods
    
