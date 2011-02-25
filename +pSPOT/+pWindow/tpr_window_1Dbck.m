@@ -3,13 +3,14 @@ function [ A a1 a2 ] = tpr_window_1Dbck( m, p, h )
 %   Detailed explanation goes here
 
     w0 = ceil(m/p);
-    assert(h<w0/2,'half-overlap (%d) too large for local window size (%d)\n',h,w0);
+    assert(h<w0/2,'tpr_window_1Dbck: half-overlap (%d) too large for local window size (%d)\n',h,w0);
     w1 = w0 + h;
     w2 = w0 + 2*h;
     n = m + (p - 1)*2*h;
     r0 = mod(m, w0);
     if r0 == 0; r0 = w0; end
     r = r0 + h - 1;
+    d0 = w0 - r0;
 
 %    fprintf('\nwindowing params:\n');
 %    fprintf('\tm=%d p=%d h= %d n=%d\n',m, p, h, n);
@@ -31,7 +32,7 @@ function [ A a1 a2 ] = tpr_window_1Dbck( m, p, h )
     a1(p)=r0;
     a2(p)=r+1;
     for i=0:r
-        A(m-i,n-i)=pSPOT.pWindow.taper1Dcr(i+h+1,w2,h);
+        A(m-i,n-i)=pSPOT.pWindow.taper1Dcr(d0+i+h+1,w2,h);
     end
 
 end
