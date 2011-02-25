@@ -15,16 +15,22 @@ end % builtin
 
 function test_oppMatrix_multiply
 %% Multiplication test for oppMatrix
+% There is a minor error between undistributed and distributed matrix
+% multiplications because of the distributed nature of the distributed
+% matrices. Error is in the order of e-15 so it is ok. We will just use
+% assertElementsAlmostEqual
 m = randi(100); n = randi(100);
 A1 = randn(m,n);
 A2 = oppMatrix(distributed(A1));
 x1 = [A2.drandn A2.drandn];
-
-assertElementsAlmostEqual(A1*x1,A2*x1);
+y1 = A1*x1;
+y2 = A2*x1;
+assertElementsAlmostEqual(y1,y2);
 
 x2 = [A2.rrandn A2.rrandn];
-
-assertElementsAlmostEqual(A1'*x2,A2'*x2);
+z1 = A1'*x2;
+z2 = A2'*x2;
+assertElementsAlmostEqual(z1,z2);
 
 end % multiply
 
