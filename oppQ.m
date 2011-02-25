@@ -25,7 +25,7 @@ classdef oppQ < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppQ(S,F)
             
-            m = 1; n = length(S);
+            [m,n] = size(S);
             op = op@oppSpot('Q', m, n);
             op.children = {S};
             op.fun = F;
