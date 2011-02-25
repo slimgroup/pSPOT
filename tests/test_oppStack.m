@@ -10,9 +10,9 @@ function test_oppStack_builtin
    A = opGaussian(mA,n);
    B = opBernoulli(mB,n);
    D = oppStack(A,B);
-   D.utest;
+   utest(D,1);
    D = D';
-   D.utest;
+   utest(D,1);
 end
 
 function test_oppStack_prod

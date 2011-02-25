@@ -10,7 +10,7 @@ function test_oppBlockDiag_builtin
    A = opMatrix(randn(m,m));
    B = opMatrix(randn(n,n));
    D = oppBlockDiag(A,B);
-   D.utest;
+   utest(D,1);
 end
 
 function test_oppBlockDiag_prod

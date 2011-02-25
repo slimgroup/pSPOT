@@ -38,7 +38,7 @@ classdef oppNumBlockDiag < oppSpot
         locm; % Local sizes for use when multiplying
         locn;
         numcols; % number of implied RHS when handling x that is implicitly multidimensional, default to 1
-        isBlockMatrix;  % a flag that indicates whether the block diagonal operators are built from slices of a 3D array
+        
     end
     
     
@@ -54,21 +54,19 @@ classdef oppNumBlockDiag < oppSpot
             
             % Check Matlabpool
             if matlabpool('size') == 0
-                error('Matlabpool is not on');
+                error('Matlabpool is not open');
             end
             
             % Setting up the variables
             localm = 0;
             localn = 0;
-            Nrep = [];
             numcols_x = 1;
             gather = 0;
-            isBlockMatrix = false;
             
             % Arguments Extraction
             % Extract gather & numcols
-            if isscalar(varargin{end}) && ~isa(varargin{end},'opSpot') % Gather
-                if isscalar(varargin{end-1}) && ~isa(varargin{end},'opSpot') % numcols
+            if isscalar(varargin{end}) % Gather
+                if isscalar(varargin{end-1}) % numcols
                     numcols_x = varargin{end-1};
                     varargin(end-1) = [];
                 end
@@ -76,156 +74,69 @@ classdef oppNumBlockDiag < oppSpot
                 varargin(end) = [];
             end
             
-            % Extract weight
+            % Extract weights
             nargs = length(varargin);
             if ~isnumeric(varargin{1}) || ndims(varargin{1})==3   % No weights
                 weights = ones(nargs,1);
             else
-                if isscalar(varargin{1}) 
-                    if ndims(varargin{2}) ==3
-                        weights = varargin{1};
-                    else% N for repeating ops
-                        Nrep = varargin{1};
-                    end
-                else                       % weights
-                    weights = varargin{1};
-                    if isempty(weights), weights = 1; end;
-                end
+                % weights
+                weights = varargin{1};
+                if isempty(weights), weights = 1; end;
                 varargin(1) = []; % Remove
                 nargs = nargs - 1;
             end
             
-            if nargs == 1 % 3D input matrix or repeating ops
-                if ndims(varargin{1}) == 3 % 3D Matrix
-                    nSlices = size(varargin{1},3);
-                    Cube = varargin{1};
-                    isBlockMatrix = true;
-                    if isscalar(weights)
-                        weights = weights.*ones(size(varargin{1},3),1); % default
-                    else
-                        if length(weights(:)) == nSlices
-                            weights = ones(nSlices,1).*weights(:);
-                        else
-                            error('WEIGHTS size mismatch');
-                        end
-                    end
-                elseif ~isempty(Nrep) % Repeating Op
-                    weights = ones(Nrep,1);
-                else
-                    % Single spot operator repeated weights times
-                    weights = ones(length(weights(:)),1).*weights(:);
-                end
-                
-            else % Normal
-                if (((length(weights(:)) == nargs)) || length(weights(:)) == 1)
-                    weights = ones(nargs,1).*weights(:);
+            % Check weights
+            nSlices = size(varargin{1},3);
+            Cube = varargin{1};
+            if isscalar(weights)
+                weights = weights.*ones(size(varargin{1},3),1); % default
+            else
+                if length(weights(:)) == nSlices
+                    weights = ones(nSlices,1).*weights(:);
                 else
                     error('WEIGHTS size mismatch');
                 end
             end
             
             % Operators Extraction and Processing
-            % Extracting and distributing the operators (in distributed cell
-            % arrays)
-            if ~isBlockMatrix % Normal or repeating ops
-                % Check for empty operators and remove them
-                ops = cellfun(@isempty,varargin);
-                assert(any(~ops),'At least one operator must be specified.');
-                arrayfun(@(ind) warning('No:Input','input "%d" is empty',ind), find(ops));
-                varargin(ops) = [];
-                opList = distributed(varargin); % There is no way varargin is distributed
-                
-            else % 3D matrix case
-                if isdistributed(Cube) % Distributed 3D Matrix
-                    warn3D = {0};
-                    spmd
-                        numcodist = getCodistributor(Cube);
-                        if numcodist.Dimension ~= 3
-                            warn3D = 1;
-                            Cube = redistribute(Cube, codistributor1d(3));
-                        end
+            % Check for distribution of the 3D Matrix
+            if isdistributed(Cube) % Distributed 3D Matrix
+                warn3D = {0};
+                spmd
+                    numcodist = getCodistributor(Cube);
+                    if numcodist.Dimension ~= 3
+                        warn3D = 1;
                     end
-                    if warn3D{1}
-                        warning('WarnDist:Wrongdistribution',...
-                                    '3D Matrix is not distributed correctly!\nCommencing automatic redistribution...');
-                    end
-                    clear warn3D;
-                    opList = Cube;
-                else % Undistributed 3D Matrix
-                    warning('WarnDist:Nodistribution',...
-                        '3D Matrix is not distributed!\nCommencing automatic redistribution...');
-                    opList = distributed(Cube);
                 end
+                if warn3D{1}
+                    error('3D Matrix is not distributed correctly!');
+                end
+                clear warn3D;
+                opList = Cube;
+            else % Undistributed 3D Matrix
+                error('3D Matrix is not distributed!');
             end
             clear varargin;
-            
-            % Check for pSpot operators
-            if ~isBlockMatrix % Numeric matrix has no spot operators
-                for ops = cellfun(@(p) isa(p,'oppSpot'), opList)
-                    if ops, error('oppSpot operators are not supported');end
-                end
-            end
-            
-            % Convert all Arguments to operators -except 3D matrix case
-            if ~isBlockMatrix
-                ops = cellfun(@(p) ~isa(p,'opSpot'), opList);
-                if isdistributed(ops)
-                    spmd
-                        ops = getLocalPart(ops);
-                    end
-                    ops = ops{:};
-                end
-                opList(ops) = cellfun(@(p) {opMatrix(p)}, opList(ops));
-            end
-            
-            % Check complexity and setup single Op cases
-            if isBlockMatrix  % 3D matrix
+                        
+            % Check complexity 
+            [m,n,nSlices] = size(opList);
+            m = m*nSlices;  n = n*nSlices;
+            cflag = ~isreal(opList) || ~all(isreal(weights));
+            linear = 1;
+            % numcols_x for multiple RHS
+            m = m*numcols_x;    n = n*numcols_x;
                 
-                [m,n,nSlices] = size(opList);
-                m = m*nSlices;  n = n*nSlices;
-                cflag = ~isreal(opList) || ~all(isreal(weights));
-                linear = 1;
-                % numcols_x for multiple RHS
-                m = m*numcols_x;    n = n*numcols_x;
-                
-            elseif length(opList) == 1    % Repeat 1 operator
-                
-                [m,n] = cellfun( @size, opList );
-                m = m * length(weights);
-                n = n * length(weights);
-                cflag  = ~cellfun( @isreal, opList) || ~all( isreal( weights));
-                linear = cellfun(@(opl) opl.linear, opList );
-                spmd, opList = getLocalPart(opList); end; % De-distributify opList
-                opList = opList{1};
-                for i = 1:length(weights)
-                    opList{i} = opList{1};
-                end
-                opList = distributed(opList);
-            else
-                
-                [m,n] = cellfun(@size,opList);
-                m = sum(m);     n = sum(n);
-                real = cellfun(@isreal,opList);
-                cflag = ~all(real);
-                linear = cellfun(@(p) logical(p.linear), opList);
-                linear = all(linear);
-                
-            end
             
             % Post-processing and Construction of Operator
             % Convert distributed attributes to non-distributed scalars
             spmd
                 % Extract local m and n for future use
-                if isBlockMatrix % Distributed 3D case
-                    childs = getLocalPart(opList);
-                    [mm,nn,ss] = size(childs);
-                    for i = 1:ss
-                        localm(1,i) = mm;
-                        localn(1,i) = nn;
-                    end
-                else
-                    childs = getLocalPart(opList);
-                    [localm,localn] = cellfun(@size,childs);
+                childs = getLocalPart(opList);
+                [mm,nn,ss] = size(childs);
+                for i = 1:ss
+                    localm(1,i) = mm;
+                    localn(1,i) = nn;
                 end
                 if iscodistributed(m), m = getLocalPart(m); end
                 if iscodistributed(n), n = getLocalPart(n); end
@@ -250,7 +161,6 @@ classdef oppNumBlockDiag < oppSpot
             op.weights  = weights;
             op.sweepflag= true;
             op.gather   = gather;
-            op.isBlockMatrix = isBlockMatrix;
             if exist('numcols_x','var')
                 op.numcols = numcols_x;
             else
@@ -321,28 +231,18 @@ classdef oppNumBlockDiag < oppSpot
             opweights = op.weights;
             childs = op.children;
             opgather = op.gather;
-            isBlockMatrix = op.isBlockMatrix;
             numcols = op.numcols;
             
             % Matrix x preprocessing
-            if isBlockMatrix
-                if size(x,2) ~= 1
-                    error('Please vectorize your x');
-                else
-                    multicols = 1;
-                end
+            if size(x,2) ~= 1
+                error('Please vectorize your x');
             else
-                multicols = size(x,2); % for matrix multiplications
+                multicols = 1;
             end
             
             
             % Get the number of labs running
-            if matlabpool('size') == 0
-                warning('Now:LookieHere','Matlabpool is not open');
-                nlabs = 1;
-            else
-                nlabs = matlabpool('size');
-            end
+            nlabs = matlabpool('size');
             
             % Forward mode (mode = 1)
             if mode == 1
@@ -390,17 +290,11 @@ classdef oppNumBlockDiag < oppSpot
                     end
                 end
                 if warnx{1}
-                    warning('WarnDist:Wrongdistribution',...
-                                'x is not distributed correctly!\nCommencing automatic redistribution...');
+                    error('x is not distributed correctly!');
                 end
                 clear warnx;
             else    % Distribute x
-                warning('WarnDist:Nodistribution',...
-                    'x is not distributed!\nCommencing automatic redistribution...');
-                spmd
-                    codist = codistributor1d(1,partition,glosize);
-                    x = codistributed(x,codist);
-                end
+                error('x is not distributed!');
             end
             clear codist; % codistributor for x cleared
             clear partition; % partition for x cleared
@@ -412,48 +306,31 @@ classdef oppNumBlockDiag < oppSpot
                 codist = getCodistributor(childs);
                 opchilds = getLocalPart(childs);
                 local_x = getLocalPart(x);
-                
-                if isBlockMatrix % multiply for distributed 3D matrix case
-                    ind = globalIndices(codist,3);
-                else
-                    ind = globalIndices(codist,2);
-                end
+                ind = globalIndices(codist,3);
                 
                 if ~isempty(opchilds)
-                    
-                    if isBlockMatrix
                         
-                        num_child_ops = size(opchilds,3); % number of blocks local to this machine
-                        local_weights = opweights(ind);
-                        % reshape x if we have multiple RHS
-                        % assertion: this block only executes for 3D matrix input. Therefore, all the sizes (m and n) of all
-                        % child operators must be the same at this point.
-                        local_x = reshape(local_x, [], numcols, num_child_ops);
-                        if mode == 1
-                            tmpy = zeros(size(opchilds,1), numcols, num_child_ops);
-                            for k = 1:num_child_ops;
-                                A = opchilds(:,:,k);
-                                tmpy(:,:,k) = local_weights(k) .* (A * local_x(:,:,k));
-                            end
-                        else
-                            tmpy = zeros(size(opchilds,2), numcols, num_child_ops);
-                            for k = 1:num_child_ops;
-                                A = opchilds(:,:,k);
-                                tmpy(:,:,k) = conj(local_weights(k)) .* (A' * local_x(:,:,k));
-                            end
+                    num_child_ops = size(opchilds,3); % number of blocks local to this machine
+                    local_weights = opweights(ind);
+                    % reshape x if we have multiple RHS
+                    % assertion: this block only executes for 3D matrix input. Therefore, all the sizes (m and n) of all
+                    % child operators must be the same at this point.
+                    local_x = reshape(local_x, [], numcols, num_child_ops);
+                    if mode == 1
+                        tmpy = zeros(size(opchilds,1), numcols, num_child_ops);
+                        for k = 1:num_child_ops;
+                            A = opchilds(:,:,k);
+                            tmpy(:,:,k) = local_weights(k) .* (A * local_x(:,:,k));
                         end
-                        
-                        tmpy = tmpy(:);
-                        
                     else
-                        B = opBlockDiag(opweights(ind),opchilds{:});
-                        if mode == 1
-                            tmpy = B*local_x;
-                        else
-                            tmpy = B'*local_x;
+                        tmpy = zeros(size(opchilds,2), numcols, num_child_ops);
+                        for k = 1:num_child_ops;
+                            A = opchilds(:,:,k);
+                            tmpy(:,:,k) = conj(local_weights(k)) .* (A' * local_x(:,:,k));
                         end
-                        
                     end
+
+                    tmpy = tmpy(:);
                     
                 else
                     % local part of distributed vector for nodes that do not contain data is of size (0,1) for some reason

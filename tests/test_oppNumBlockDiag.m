@@ -22,7 +22,7 @@ A2 = oppBlockDiag(C{:});
 tol    = sqrt(eps);
 err    = 0;
 kpass  = 0;
-k = 5;
+k = 1;
 
 Ratio = [inf,0];
 for i=1:k
@@ -52,7 +52,7 @@ end
 function test_oppNumBlockDiag_weights
 %%
 % Test for negative scalar weights
-B = randn(5,4,3);
+B = distributed.randn(5,4,3);
 A = oppNumBlockDiag(-2,B);
 assertEqual(A.weights,[-2;-2;-2]);
 
@@ -73,26 +73,6 @@ assertElementsAlmostEqual(A'*x, A2'*x);
 
 end
 
-function test_oppNumBlockDiag_distribution
-%%
-% Test for 3D Matrix undistributed
-B = randn(6,5,2);
-C = {opMatrix(B(:,:,1)),opMatrix(B(:,:,2))};
-A1 = oppBlockDiag(C{:},1);
-A2 = oppNumBlockDiag(B,1);
-x = A1.drandn;
-y1 = A1*x;
-y2 = A2*x;
-assertElementsAlmostEqual(y1,y2);
-
-% Test for 3D Matrix correctly distributed
-B2 = distributed(B);
-A2 = oppNumBlockDiag(B2,1);
-y2 = A2*x;
-assertElementsAlmostEqual(y1,y2);
-
-end
-
 function test_oppNumBlockDiag_xvec
 %% Testing multidimensional x in vector form
 B = randn(5,4,2);
@@ -104,10 +84,10 @@ A2 = oppBlockDiag(C{:},1);
 
 x = drandn(A2);
 
-y = A*x;
+y1 = A*x;
 y2 = A2*x;
 
-assertElementsAlmostEqual(y,y2);
+assertElementsAlmostEqual(y1,y2);
 
 %% Testing for scalar kronification
 B = randn(1,1,2);
@@ -119,10 +99,10 @@ A2 = oppBlockDiag(C{:},1);
 
 x = drandn(A2);
 
-y = A*x;
+y1 = A*x;
 y2 = A2*x;
 
-assertElementsAlmostEqual(y,y2);
+assertElementsAlmostEqual(y1,y2);
 
 
 warning('on','WarnDist:Wrongdistribution');
@@ -131,12 +111,42 @@ warning('on','No:Input');
 warning('on','distcomp:codistributed:norm:usingNormest');
 end % xvec
 
+function test_oppNumBlockDiag_empty
+%% Testing for empty labs
+% To make sure that oppNumBlockDiag actually works with empty labs
 
+% Create B with empty first lab
+B = distributed.randn(5,5,2);
+spmd
+    Bloc = getLocalPart(B);
+    gsize = [5 5 1];
+    part = codistributed.zeros(1,numlabs);
+    part(labindex) = size(Bloc,3);
+    if labindex == 1
+        Bloc = zeros(5,5,0);
+        part(1) = 0;
+    end
+    B = codistributed.build(Bloc,codistributor1d(3,part,gsize));
+end
 
+% Construct A
+A = oppNumBlockDiag(B);
 
+spmd % Create x with only second lab
+    x = codistributed.randn(numlabs*5,1);
+    xloc = getLocalPart(x);
+    gsize = [5 1];
+    part = codistributed.zeros(1,numlabs);
+    if labindex ~= 2;
+        xloc = zeros(0,1);
+    else
+        part(labindex) = 5;
+    end
+    x = codistributed.build(xloc,codistributor1d(1,part,gsize));
+end
 
-
-
+A*x;
+end
 
 
 
