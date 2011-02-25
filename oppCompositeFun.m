@@ -1,9 +1,13 @@
-classdef oppQ < oppSpot
+classdef oppCompositeFun < oppSpot
     %OPPQ   The final missing piece in pSpot
     %
-    %   Q = oppQ(S,F) where S is a composite of vectors, and F a
+    %   Q = oppQ(S,F,m,n,cflag,linflag) where S is a composite of vectors, and F a
     %   function handle that takes in local parts of S and gives a local 
     %   part of the final answer.
+    %   m and n has to be the conceptual size of Q so that the
+    %   multiplication sizes would match.
+    %   cflag is the complexity of this operator.
+    %   linflag is the linearity of this operator.
     %   F has to take in S and x, local parts of the respective vectors.
     %
     %   For now it is assumed that the size of the final answer will be
@@ -23,12 +27,30 @@ classdef oppQ < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function op = oppQ(S,F)
+        function op = oppCompositeFun(S,F,m,n,cflag,linflag)
             
-            [m,n] = size(S);
-            op = op@oppSpot('Q', m, n);
+            if nargin ~= 6 % Check for number of arguments
+                error('There must be 6 arguments');
+            end
+            if matlabpool('size') == 0 % Check for matlabpool
+                error('Matlabpool is not open');
+            end
+            
+            if ~isa(S,'Composite') % Check for the compositeness of S
+                error('S must be a composite');
+            end
+            
+            if ~isa(F,'function_handle') % Check for the function-handleness
+                error('F must be a function handle'); % of F
+            end
+            
+            % Construct oppCompositeFun
+            op = op@oppSpot('CompositeFun', m, n);
             op.children = {S};
             op.fun = F;
+            op.cflag = cflag;
+            op.linear = linflag;
+            op.sweepflag = true;
             
         end % constructor
         
@@ -50,15 +72,11 @@ classdef oppQ < oppSpot
         % For the moment mtimes is only implemented for right
         % multiplication
         function y=mtimes(op,x)
-            if ~isa(op,'oppQ')
+            if ~isa(op,'oppCompositeFun')
                 error('Left multiplication not taken in account')
-            elseif isnumeric(x) || isdistributed(x)
-                assert( isvector(x) , 'Please use vectorized matrix')
-                y=op.multiply(x, 1 ); 
-            elseif isa(x,'opSpot')
-                y = opFoG(op,x);
             else
-                error(['unsupported data type: ' class(x)]);
+                assert( isvector(x) , 'Please use vectorized matrix')
+                y=mtimes@opSpot(op,x);
             end
         end
         
@@ -73,16 +91,17 @@ classdef oppQ < oppSpot
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
+            if mode ~= 1
+                error('Only forward mode is allowed');
+            end
             S = op.children{1};
             F = op.fun;
             spmd
                 % Setup local parts
                 local_x = getLocalPart(x);
-                local_S = getLocalPart(S);
-                
+                                
                 % Preallocate y and apply function
-                y = zeros(size(local_x));
-                y = F(local_S,local_x);
+                y = F(S,local_x);
                 
                 y = codistributed.build(y,getCodistributor(x),'noCommunication');
                 
