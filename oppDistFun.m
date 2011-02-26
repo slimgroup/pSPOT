@@ -1,4 +1,4 @@
-classdef oppFunComposite < oppSpot
+classdef oppDistFun < oppSpot
     %OPPQ   The final missing piece in pSpot
     %
     %   Q = oppQ(S,F,m,n,cflag,linflag) where S is a composite of vectors, and F a
@@ -12,6 +12,33 @@ classdef oppFunComposite < oppSpot
     %
     %   For now it is assumed that the size of the final answer will be
     %   the same as the size of x.
+    %
+    %   Use case to keep in mind:
+    %   (Ax - s)
+    %
+    %     A = length m x n
+    %     s = length n
+    % 
+    %     P <---- constructs like oppFunComposite({A,s},F)
+    % 
+    %     F <-- function  y = functionF(A, B, x, mode)
+    %            if mode==1
+    %            y = A * x - B;
+    %            elseif mode==2
+    %            y = A' * x - conj(B);
+    %            elseif mode=='0'
+    %            retrun {m, n}
+    %          end
+    % 
+    %     A distributed over last dim (2)
+    %     s distributed over last dim (1)
+    % 
+    % 
+    %     want P to do
+    % 
+    %     for each A(:,k), s(k), k = 1:n distributed
+    %        y(k) = F(A(:,k),s(k),x(k))
+    %     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
@@ -27,7 +54,7 @@ classdef oppFunComposite < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function op = oppFunComposite(S,F,m,n,cflag,linflag)
+        function op = oppDistFun(S,F,m,n,cflag,linflag)
             
             if nargin ~= 6 % Check for number of arguments
                 error('There must be 6 arguments');
@@ -44,8 +71,12 @@ classdef oppFunComposite < oppSpot
                 error('F must be a function handle'); % of F
             end
             
+            if ~isposintscalar(m) || ~isposintscalar(n) % check m and n
+              error('Dimensions of operator must be positive integers.');
+            end
+            
             % Construct oppCompositeFun
-            op = op@oppSpot('FunComposite', m, n);
+            op = op@oppSpot('DistFun', m, n);
             op.children = {S};
             op.fun = F;
             op.cflag = cflag;
@@ -72,7 +103,7 @@ classdef oppFunComposite < oppSpot
         % For the moment mtimes is only implemented for right
         % multiplication
         function y=mtimes(op,x)
-            if ~isa(op,'oppFunComposite')
+            if ~isa(op,'oppDistFun')
                 error('Left multiplication not taken in account')
             else
                 assert( isvector(x) , 'Please use vectorized matrix')
