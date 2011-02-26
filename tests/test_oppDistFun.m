@@ -1,27 +1,47 @@
-function test_suite = test_oppFunComposite
+function test_suite = test_oppDistFun
 %test_oppCompositeFun  Unit tests for the oppCompositeFun operator
 initTestSuite;
 end
 
-function test_oppFunComposite_cell
-%% Testing composite S with cells
-% Multiple vectors of different dimensions stored in the cells stored as a 
-% composite. Wonderful
+function test_oppDistFun_fun
+%% Testing oppDistFun with a fun
+% Solving the problem of indexing over last dimension
+nlabs = matlabpool('size');
+m = 500;
+n = 300;
+A = distributed.randn(m,n,nlabs);
+S = distributed.randn(m,nlabs);
+x = distributed.randn(n,nlabs);
+F = @funfun;
 
-spmd % spmd way of generating composites
-    S1 = cell(1,labindex);
-    for k=1:labindex
-        S1{k} = randn(2*k,k);
-    end
-end
-disp(S1);
+Q = oppDistFun(A,S,F);
 
-% Local way of generating composites
-% No spmd!!! HUZZAH!!!
-A1 = {randn(2,1)};
-A2 = {randn(4,1) randn(4,1)};
-S2 = composite;
-S2{1} = A1;
-S2{2} = A2;
-disp(S2);
 end %
+
+function y = funfun(varargin)
+%% Function for testing
+if nargin == 1 && varargin{1} == 0
+    y = [500 300 1 1];
+    return;
+else % Multiply
+    A = varargin{1};
+    S = varargin{2};
+    x = varargin{3};
+    mode = varargin{4};
+    
+    if mode == 1
+        y = A*x - S;
+    else
+        y = A'*x - conj(S);
+    end
+    
+end % multiply
+
+end % funfun
+
+%% Ingenious code that will forever solve the problem of last-dimension
+% indexing, from
+% http://www.mathworks.com/matlabcentral/answers/846-multidimensional-colon-operator
+% idx(1:ndims(A) - 1) = {':'};
+% A(idx{:},t) = x;
+%

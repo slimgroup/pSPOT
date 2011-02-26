@@ -1,17 +1,21 @@
 classdef oppDistFun < oppSpot
-    %OPPQ   The final missing piece in pSpot
+    %OPPDISTFUN     Becuz u noe dis'fun!
     %
-    %   Q = oppQ(S,F,m,n,cflag,linflag) where S is a composite of vectors, and F a
-    %   function handle that takes in local parts of S and gives a local 
-    %   part of the final answer.
+    %   Q = oppDistFun(A,S,F), where A is a distributed 2D matrix and S a 
+    %   distributed vector, both distributed over the last dimension, 
+    %   and F is a function handle that takes in local parts of A and S and
+    %   gives a local part of the final answer. The arguments of F has to
+    %   be standardized as: y = F(a,s,x,mode), where a and s corresponds to
+    %   the local parts of A and S, and x is the distributed vector that 
+    %   the operator is applied on.
+    %   mode = 1 defines the forward mode
+    %   mode = 2 defines the adjoint mode
+    %   mode = 0 will return the sizes, complexity and linearity in an
+    %   array in the following format: [m n cflag linflag]
     %   m and n has to be the conceptual size of Q so that the
     %   multiplication sizes would match.
     %   cflag is the complexity of this operator.
     %   linflag is the linearity of this operator.
-    %   F has to take in S and x, local parts of the respective vectors.
-    %
-    %   For now it is assumed that the size of the final answer will be
-    %   the same as the size of x.
     %
     %   Use case to keep in mind:
     %   (Ax - s)
@@ -45,6 +49,8 @@ classdef oppDistFun < oppSpot
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties
         fun;
+        A;
+        S;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,30 +60,43 @@ classdef oppDistFun < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function op = oppDistFun(S,F,m,n,cflag,linflag)
+        function op = oppDistFun(A,S,F)
             
-            if nargin ~= 6 % Check for number of arguments
-                error('There must be 6 arguments');
+            if nargin ~= 3 % Check for number of arguments
+                error('There must be 3 arguments');
             end
             if matlabpool('size') == 0 % Check for matlabpool
                 error('Matlabpool is not open');
             end
             
-            if ~isa(S,'Composite') % Check for the compositeness of S
-                error('S must be a composite');
+            if ~isdistributed(S) % Check for distributions
+                error('S must be distributed');
+            end
+            
+            if ~isdistributed(A)
+                error('A must be distributed');
             end
             
             if ~isa(F,'function_handle') % Check for the function-handleness
                 error('F must be a function handle'); % of F
             end
             
+            % Extract parameters from function
+            [m n cflag linflag] = F(0);
+            
             if ~isposintscalar(m) || ~isposintscalar(n) % check m and n
               error('Dimensions of operator must be positive integers.');
             end
             
+            % Setup sizes
+%             sizeA = size(A);
+%             m = m*sizeA(end);
+%             n = n*sizeA(end);
+            
             % Construct oppCompositeFun
             op = op@oppSpot('DistFun', m, n);
-            op.children = {S};
+            op.A = A;
+            op.S = S;
             op.fun = F;
             op.cflag = cflag;
             op.linear = linflag;
@@ -122,19 +141,26 @@ classdef oppDistFun < oppSpot
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
-            if mode ~= 1
-                error('Only forward mode is allowed');
-            end
-            S = op.children{1};
+            A = op.A;
+            S = op.S;
             F = op.fun;
             spmd
                 % Setup local parts
-                local_x = getLocalPart(x);
-                                
+                Aloc = getLocalPart(A);
+                Sloc = getLocalPart(S);
+                xloc = getLocalPart(x);
+                % Setup the colon indexes
+                idA(1:ndims(A) - 1) = {':'};
+                idS(1:ndims(S) - 1) = {':'};
+                % Setup the sizes
+                sizA = size(A);
+                sizS = size(S);
+                                                
                 % Preallocate y and apply function
-                y = F(S,local_x);
-                
-                y = codistributed.build(y,getCodistributor(x),'noCommunication');
+                for k = 1:sizA(end)
+                    y(idS{:},k) = F(Aloc(idA{:},k),Sloc(idS{:},k),xloc(idS{:},k),mode);
+                end
+                %y = codistributed.build(y,getCodistributor(x),'noCommunication');
                 
             end % spmd
                 
