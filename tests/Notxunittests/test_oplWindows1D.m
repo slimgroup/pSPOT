@@ -1,6 +1,6 @@
 % testing window functions
 clear all;
-M=[30 10 150]; % range of vector sizes
+M=[30 1 40]; % range of vector sizes
 P=4;            % range of processors
 H=3;            % range of half-overlap
 T=13;          % tolerrance 1e-T
@@ -21,21 +21,21 @@ for m=M(1):M(2):M(3)
 	    end
 
 	    try
-                [A a1 a2]=pSPOT.pWindow.fd_window_1Dfor(m,p,h);
-                [B b1 b2]=pSPOT.pWindow.fd_window_1Dbck(m,p,h);
+                A=oplWindow1Dfd(m,p,h);
+                B=A';
                 try
-                    n=m+(p-1)*2*h;
+                    n=A.m;
                     x0=rand(m,1);
                     y=A*x0;
                     x1=B*y;
                     check=sum(abs((x1-x0)'));
-                    %fprintf('\tFD: m=%d n=%d p=%d h=%d: %d\n',m,n,p,h,check);
+                    fprintf('\tFD: m=%d n=%d p=%d h=%d: %d\n',m,n,p,h,check);
                     assert(check<10^-T,'ERROR: does not pass inverse test check=%f',check);
                 catch xy
                     fprintf('FD: m=%d n=%d p=%d h=%d\n',m,n,p,h);
                     fprintf('FD: a1=%d a2=%d b1=%d b2=%d\n',sum(a1),sum(a2),sum(b1),sum(b2));
                     disp(xy.message);
-                    whos a1 a2 A b1 b2 B
+                    whos A B
                     %disp(full(A))
                     %disp(full(B))
                     %disp(full(B*A))
@@ -46,10 +46,10 @@ for m=M(1):M(2):M(3)
 	    end
     
 	    try
-                [A a1 a2]=pSPOT.pWindow.tpr_window_1Dfor(m,p,h);
-                [B b1 b2]=pSPOT.pWindow.tpr_window_1Dbck(m,p,h);
+                A=oplWindow1Dtpr(m,p,h);
+                B=A';
                 try
-                    n=m+(p-1)*2*h;
+                    n=A.m;
                     x0=rand(m,1);
                     y=A*x0;
                     x1=B*y;

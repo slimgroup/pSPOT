@@ -22,5 +22,8 @@ function [ A a1 a2 ] = fd_window_1Dfor( n, p, h )
     for i=0:r
         A(m-i,n-i)=1;
     end
+    szs=size(A);
+    assert(sum(a1)==m&szs(1)==m,'tpr_window_1Dfor: failed building the array');
+    assert(sum(a2)==n&szs(2)==n,'tpr_window_1Dfor: failed building the array');
 
 end

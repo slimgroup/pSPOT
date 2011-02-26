@@ -22,5 +22,8 @@ function [ A a1 a2 ] = tpr_window_1Dbck( n, p, h )
     for i=0:r
         A(n-i,m-i)=pSPOT.pWindow.taper1Dcr(d0+i+h+1,w2,h);
     end
+    szs=size(A);
+    assert(sum(a1)==n&szs(1)==n,'tpr_window_1Dbck: failed building the array');
+    assert(sum(a2)==m&szs(2)==m,'tpr_window_1Dbck: failed building the array');
 
 end

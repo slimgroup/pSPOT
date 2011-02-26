@@ -22,5 +22,8 @@ function [ B b1 b2 ] = fd_window_1Dbck( n, p, h )
     for i=0:r0-1
         B(n-i,m-i)=1;
     end
+    szs=size(B);
+    assert(sum(b1)==n&szs(1)==n,'tpr_window_1Dbck: failed building the array');
+    assert(sum(b2)==m&szs(2)==m,'tpr_window_1Dbck: failed building the array');
 
 end
