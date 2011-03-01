@@ -10,8 +10,9 @@ classdef oppKron2Lo < opKron
 %   GATHER = 2 will gather only in forward mode.
 %   GATHER = 3 will gather only in backwards (adjoint) mode.
 %
-%       %% Example: Defining seperable sparsity transforms over different axes.
-%       Here we define a sparsity transform S that performs Wavelet analysis on the first dimension
+%       %% Example: Defining seperable sparsity transforms over different 
+%       axes. Here we define a sparsity transform S that performs Wavelet 
+%       analysis on the first dimension
 %       and a 2D Curvelet analysis on the second & third dimension
 %             dim=[64,32,32];
 %             C = opCurvelet(dim(2),dim(3));
@@ -21,7 +22,8 @@ classdef oppKron2Lo < opKron
 %       % Make a random 3d data-array
 %       D = distributed.randn(dim(1),prod(dim(2:end)));
 %  
-%       % Check to see if the analysis followed by synthesis returns the original signal
+%       % Check to see if the analysis followed by synthesis returns the 
+%       original signal
 %       norm(D(:)-S'*S*D(:))
 %
 %   note that the second operator is applied to x and then the first
@@ -92,8 +94,8 @@ classdef oppKron2Lo < opKron
             elseif isnumeric(x) || isdistributed(x)
                 assert( isvector(x) , 'Please use vectorized matrix')
                 op.counter.plus1(op.tflag + 1 );
-                y=op.multiply(x, 1 ); %use tflag to determine mode within multiply
-            elseif isa(x,'opSpot')
+                y=op.multiply(x, 1 ); %use tflag to determine mode within 
+            elseif isa(x,'opSpot')    %multiply
                 y = opFoG(op,x);
             else
                 error(['unsupported data type: ' class(x)]);
@@ -204,33 +206,36 @@ classdef oppKron2Lo < opKron
             %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             perm = op.permutation; %Permutation to take in account.
+            skipA = A.isDirac;
+            skipB = B.isDirac;
             
             if perm(1)==2 %Classic multiplication order
                 spmd
+                    % Setup partition of columns
+                    partition = codistributed.zeros(1,numlabs);
+                    
                     if iscodistributed(x)
                         y=getLocalPart(x);
                         local_width=length(y)/cB;
                         assert( mod(local_width,1) == 0, ...
                             ' x must be distributed along columns before vec')
                         y = reshape(y,cB,local_width);%reshape to local matrices
+                        partition(labindex) = local_width;
                     else
                         y = reshape(x,cB,cA);
                         y = codistributed(y);
                         y = getLocalPart(y);
                         local_width = size(y,2);
+                        partition(labindex) = local_width;
                     end
-                    
-                    partition = codistributed.build(local_width, ...
-                        codistributor1d(2,codistributor1d.unsetPartition,...
-                        [1,numlabs]));%partition of columns
                     
                     y=B*y;%apply B to local matrices, then transpose
                     y=y.';
                     
                     y = codistributed.build(y, codistributor1d...
                         (1,partition,[cA,rB]));
-                    y = redistribute(y,codistributor1d(2));%distributed along cols
-                    
+                    y = redistribute(y,codistributor1d(2));%distributed
+                                                           %along cols
                     y = getLocalPart(y);
                     y=A*y;%apply A to local matrices, then transpose
                     y=y.';
@@ -241,24 +246,23 @@ classdef oppKron2Lo < opKron
                     %now vectorize y
                     y = getLocalPart(y);
                     local_size = numel(y);
-                    partition = codistributed.build(local_size, ...
-                        codistributor1d(2,codistributor1d.unsetPartition,...
-                        [1,numlabs]));
+                    partition(labindex) = local_size;
                     y = y(:);
                     y = codistributed.build(y, codistributor1d(1,...
                         partition, [rA*rB,1]));
                 end
             else  %Inverted multiplication order 
                 spmd
+                    % Setup partition of columns
+                    partition = codistributed.zeros(1,numlabs);
+                    
                     if iscodistributed(x)
                         y=getLocalPart(x);
                         local_width=length(y)/cB;
                         assert( mod(local_width,1) == 0, ...
                             'x must be distributed along columns before vec')
                         y = reshape(y,cB,local_width);%reshape to local matrices
-                        partition = codistributed.build(local_width, ...
-                            codistributor1d(2,codistributor1d.unsetPartition,...
-                            [1,numlabs]));%partition of columns
+                        partition(labindex) = local_width;
 
                         y=y.'; %transpose since we're gonna apply A first
                         y = codistributed.build(y, codistributor1d...
@@ -282,19 +286,17 @@ classdef oppKron2Lo < opKron
                     
                     %now vectorize y
                     local_size = numel(y);
-                    partition = codistributed.build(local_size, ...
-                        codistributor1d(2,codistributor1d.unsetPartition,...
-                        [1,numlabs]));
+                    partition(labindex) = local_size;
                     y = y(:);
                     y = codistributed.build(y, codistributor1d(1,...
                         partition, [rA*rB,1]));
                 end
             end
             % if op.gather, y = gather(y); end %#ok<PROP,CPROP>
-            if mode == 2 && ~op.tflag || mode ==1 && op.tflag % this is the correct adjoint case
-                if op.gather == 1 || op.gather == 3
-                    y = gather(y);
-                end
+            if mode == 2 && ~op.tflag || mode ==1 && op.tflag % this is the
+                if op.gather == 1 || op.gather == 3           % correct
+                    y = gather(y);                            % adjoint 
+                end                                           % case
             else % this is the forward case
                 if op.gather == 1 || op.gather == 2
                     y = gather(y);
