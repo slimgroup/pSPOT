@@ -1,4 +1,5 @@
-function test_suite = test_oppDistFun
+function test_suite = exp_oppDistFun
+% Experimental stage of oppDistFun
 %test_oppCompositeFun  Unit tests for the oppCompositeFun operator
 initTestSuite;
 end
@@ -13,12 +14,11 @@ A = distributed.randn(m,n,nlabs);
 S = distributed.randn(m,nlabs);
 x = distributed.randn(n,nlabs);
 F = @funfun;
-
 Q = oppDistFun(A,S,F);
 
 end %
 
-function y = funfun(varargin)
+function varargout = funfun(varargin)
 %% Function for testing
 if nargin == 1 && varargin{1} == 0
     y = [500 300 1 1];
@@ -34,7 +34,6 @@ else % Multiply
     else
         y = A'*x - conj(S);
     end
-    
 end % multiply
 
 end % funfun
