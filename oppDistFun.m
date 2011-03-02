@@ -82,7 +82,8 @@ classdef oppDistFun < oppSpot
             end
             
             % Extract parameters from function
-            [m n cflag linflag] = F(0);
+            bleh = F(0);
+            m = bleh(1); n = bleh(2); cflag = bleh(3); linflag = bleh(4);
             
             if ~isposintscalar(m) || ~isposintscalar(n) % check m and n
               error('Dimensions of operator must be positive integers.');
@@ -125,7 +126,7 @@ classdef oppDistFun < oppSpot
             if ~isa(op,'oppDistFun')
                 error('Left multiplication not taken in account')
             else
-                assert( isvector(x) , 'Please use vectorized matrix')
+                %assert( isvector(x) , 'Please use vectorized matrix')
                 y=mtimes@opSpot(op,x);
             end
         end
@@ -153,8 +154,17 @@ classdef oppDistFun < oppSpot
                 idA(1:ndims(A) - 1) = {':'};
                 idS(1:ndims(S) - 1) = {':'};
                 % Setup the sizes
-                sizA = size(A);
-                sizS = size(S);
+                sizA = size(Aloc);
+%                 sizS = size(Sloc);
+                
+                % Compensate for single slices
+                if ndims(Aloc) ~= ndims(A)
+                    sizA(end+1) = 1;
+                end
+                
+%                 if ndims(Sloc) ~= ndims(S)
+%                     sizS(end+1) = 1;
+%                 end
                                                 
                 % Preallocate y and apply function
                 for k = 1:sizA(end)

@@ -16,27 +16,10 @@ x = distributed.randn(n,nlabs);
 F = @funfun;
 Q = oppDistFun(A,S,F);
 
+y = Q*x;
+
 end %
 
-function varargout = funfun(varargin)
-%% Function for testing
-if nargin == 1 && varargin{1} == 0
-    y = [500 300 1 1];
-    return;
-else % Multiply
-    A = varargin{1};
-    S = varargin{2};
-    x = varargin{3};
-    mode = varargin{4};
-    
-    if mode == 1
-        y = A*x - S;
-    else
-        y = A'*x - conj(S);
-    end
-end % multiply
-
-end % funfun
 
 %% Ingenious code that will forever solve the problem of last-dimension
 % indexing, from
