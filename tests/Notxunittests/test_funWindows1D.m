@@ -13,15 +13,16 @@ for n=N(1):N(2):N(3)
     for p=2:P
         for h=0:H
     
-	    try
-	        [ m ysf xsf ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
-	    catch pr
-		fprintf('shapes: n=%d p=%d h=%d\n',n,p,h);
-	        disp(pr.message);
-		continue;
-	    end
+            fprintf('\ttest: n=%d p=%d h=%d\n',n,p,h);
+            try
+                [ m ysf xsf ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+            catch pr
+                fprintf('shapes: n=%d p=%d h=%d\n',n,p,h);
+                disp(pr.message);
+                continue;
+            end
 
-	    try
+            try
                 [ A ]=pSPOT.pWindow.funWindow1DfdFor(n,p,h);
                 [ B ]=pSPOT.pWindow.funWindow1DfdBck(n,p,h);
                 try
@@ -37,12 +38,12 @@ for n=N(1):N(2):N(3)
                     %disp(full(B))
                     %disp(full(B*A))
                 end
-	    catch AB
+            catch AB
                 fprintf('FD: n=%d m=%d p=%d h=%d\n',n,m,p,h);
-	    	disp(AB.message);
-	    end
+                    disp(AB.message);
+            end
     
-	    try
+            try
                 [ A ]=pSPOT.pWindow.funWindow1DtprFor(n,p,h);
                 [ B ]=pSPOT.pWindow.funWindow1DtprBck(n,p,h);
                 try
@@ -58,10 +59,10 @@ for n=N(1):N(2):N(3)
                     %disp(full(B))
                     %disp(full(B*A))
                 end
-	    catch AB
+            catch AB
                 fprintf('TPR: n=%d m=%d p=%d h=%d\n',n,m,p,h);
-	    	disp(AB.message);
-	    end
+                    disp(AB.message);
+            end
 
         end
     end
