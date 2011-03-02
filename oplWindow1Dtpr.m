@@ -40,10 +40,10 @@ classdef oplWindow1Dtpr < opSpot
         % Multiplication
         function y = multiply(op,x,mode)
            if (mode == 1)
-	      [A a1 a2] = pSPOT.pWindow.tpr_window_1Dfor(op.n,op.p,op.h);
+	      [ A ] = pSPOT.pWindow.funWindow1DtprFor(op.n,op.p,op.h);
               y = A * x;
            else
-	      [B b1 b2] = pSPOT.pWindow.tpr_window_1Dbck(op.n,op.p,op.h);
+	      [ B ] = pSPOT.pWindow.funWindow1DtprBck(op.n,op.p,op.h);
               y = B * x;
            end
         end % Multipy
