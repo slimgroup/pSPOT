@@ -1,5 +1,5 @@
-function [ t ] = taper1Dmm( i, n, h )
-%taper1Dmm 1D taper using sin() - for inner windows
+function [ t ] = Taper1Dmm( i, n, h )
+%Taper1Dmm 1D taper using sin() - for inner windows
 %   Detailed explanation goes here
 
     if i<= n/2
