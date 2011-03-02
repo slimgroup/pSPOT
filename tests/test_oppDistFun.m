@@ -15,7 +15,7 @@ A = distributed.randn(m,n,o);
 S = distributed.randn(m,o);
 x = distributed.randn(n,o);
 F = @funfun;
-Q = oppDistFun(A,S,F,1);
+Q = oppDistFun(A,S,F);
 x = x(:);
 y = Q*x;
 

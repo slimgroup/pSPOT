@@ -128,7 +128,19 @@ classdef oppDistFun < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             % Initialize
-            str=char(op.fun);
+            str=strcat(char(op.fun),' of [');
+            sizA = size(op.A);
+            strsiz = int2str(sizA(1));
+            for i=2:length(sizA)
+                strsiz = strcat(strsiz,'-by-',int2str(sizA(i)));
+            end
+            str = strcat(str,strsiz,'] A with [');
+            sizS = size(op.S);
+            strsiz = int2str(sizS(1));
+            for i=2:length(sizS)
+                strsiz = strcat(strsiz,'-by-',int2str(sizS(i)));
+            end
+            str = strcat(str,strsiz,'] S');
             
         end % Display
         
@@ -160,6 +172,11 @@ classdef oppDistFun < oppSpot
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
+            
+            if ~isdistributed(x)
+                error('x must be distributed');
+            end
+            
             A = op.A;
             S = op.S;
             F = op.fun;
