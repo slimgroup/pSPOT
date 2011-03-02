@@ -1,7 +1,7 @@
 classdef oppDistFun < oppSpot
     %OPPDISTFUN     Becuz u noe dis'fun!
     %
-    %   Q = oppDistFun(A,S,F), where A is a distributed 2D matrix and S a 
+    %   Q = oppDistFun(A,S,F,GATHER), where A is a distributed 2D matrix and S a 
     %   distributed vector, both distributed over the last dimension, 
     %   and F is a function handle that takes in local parts of A and S and
     %   gives a local part of the final answer. The arguments of F has to
@@ -16,6 +16,13 @@ classdef oppDistFun < oppSpot
     %   multiplication sizes would match.
     %   cflag is the complexity of this operator.
     %   linflag is the linearity of this operator.
+    %
+    %   GATHER specifies whether to gather the results to a local array
+    %   or leave them distributed, default is 0.
+    %   GATHER = 0 will leave them distributed.
+    %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
+    %   GATHER = 2 will gather only in forward mode.
+    %   GATHER = 3 will gather only in backward (adjoint) mode.
     %
     %   Use case to keep in mind:
     %   (Ax - s)
@@ -60,10 +67,20 @@ classdef oppDistFun < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function op = oppDistFun(A,S,F)
+        function op = oppDistFun(A,S,F,gather)
             
-            if nargin ~= 3 % Check for number of arguments
-                error('There must be 3 arguments');
+            if nargin == 4
+                if isscalar(gather)
+                    opgather = gather;
+                else
+                    error('Gather must be 0,1,2 or 3');
+                end
+            else
+                opgather = 0;
+            end
+            
+            if nargin < 3 % Check for number of arguments
+                error('There must be at least 3 arguments');
             end
             if matlabpool('size') == 0 % Check for matlabpool
                 error('Matlabpool is not open');
@@ -90,11 +107,11 @@ classdef oppDistFun < oppSpot
             end
             
             % Setup sizes
-%             sizeA = size(A);
-%             m = m*sizeA(end);
-%             n = n*sizeA(end);
-            
-            % Construct oppCompositeFun
+            sizA = size(A);
+            m = m*sizA(end);
+            n = n*sizA(end);
+                        
+            % Construct oppCompositexun
             op = op@oppSpot('DistFun', m, n);
             op.A = A;
             op.S = S;
@@ -102,6 +119,7 @@ classdef oppDistFun < oppSpot
             op.cflag = cflag;
             op.linear = linflag;
             op.sweepflag = true;
+            op.gather = opgather;
             
         end % constructor
         
@@ -110,7 +128,7 @@ classdef oppDistFun < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             % Initialize
-            str='???';
+            str=char(op.fun);
             
         end % Display
         
@@ -126,7 +144,7 @@ classdef oppDistFun < oppSpot
             if ~isa(op,'oppDistFun')
                 error('Left multiplication not taken in account')
             else
-                %assert( isvector(x) , 'Please use vectorized matrix')
+                assert( isvector(x) , 'Please use vectorized matrix')
                 y=mtimes@opSpot(op,x);
             end
         end
@@ -155,24 +173,45 @@ classdef oppDistFun < oppSpot
                 idS(1:ndims(S) - 1) = {':'};
                 % Setup the sizes
                 sizA = size(Aloc);
-%                 sizS = size(Sloc);
+                sizS = size(Sloc);
                 
                 % Compensate for single slices
                 if ndims(Aloc) ~= ndims(A)
                     sizA(end+1) = 1;
                 end
                 
-%                 if ndims(Sloc) ~= ndims(S)
-%                     sizS(end+1) = 1;
-%                 end
-                                                
-                % Preallocate y and apply function
-                for k = 1:sizA(end)
-                    y(idS{:},k) = F(Aloc(idA{:},k),Sloc(idS{:},k),xloc(idS{:},k),mode);
+                if ndims(Sloc) ~= ndims(S)
+                    sizS(end+1) = 1;
                 end
-                %y = codistributed.build(y,getCodistributor(x),'noCommunication');
+                
+                % Setup partition
+                ypart = codistributed.zeros(1,numlabs);
+                                                
+                % Apply function
+                i = 0;  j = 0;
+                for k = 1:sizA(end) % Iterate through the slices
+                    y(i+1:i+sizA(1),1) = F(Aloc(idA{:},k),Sloc(idS{:},k),...
+                        xloc(j+1:j+sizA(2),1),mode);
+                    i = i+ sizA(1);
+                    j = j + sizA(2);
+                end
+                ypart(labindex) = i; % set local partition
+                % Build distributed y
+                y = codistributed.build(y,codistributor1d(1,...
+                    ypart,[sum(ypart) 1]),'noCommunication');
                 
             end % spmd
+            
+            % Gather
+            if mode == 1
+                if op.gather == 1 || op.gather == 2
+                    y = gather(y);
+                end
+            else % mode == 2
+                if op.gather == 1 || op.gather == 3
+                    y = gather(y);
+                end
+            end
                 
         end % multiply
         

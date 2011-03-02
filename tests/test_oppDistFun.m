@@ -1,4 +1,4 @@
-function test_suite = exp_oppDistFun
+function test_suite = test_oppDistFun
 % Experimental stage of oppDistFun
 %test_oppCompositeFun  Unit tests for the oppCompositeFun operator
 initTestSuite;
@@ -10,12 +10,13 @@ function test_oppDistFun_fun
 nlabs = matlabpool('size');
 m = 500;
 n = 300;
-A = distributed.randn(m,n,nlabs);
-S = distributed.randn(m,nlabs);
-x = distributed.randn(n,nlabs);
+o = 5;
+A = distributed.randn(m,n,o);
+S = distributed.randn(m,o);
+x = distributed.randn(n,o);
 F = @funfun;
-Q = oppDistFun(A,S,F);
-
+Q = oppDistFun(A,S,F,1);
+x = x(:);
 y = Q*x;
 
 end %
