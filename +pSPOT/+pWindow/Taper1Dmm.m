@@ -2,7 +2,7 @@ function [ t ] = Taper1Dmm( i, n, h )
 %Taper1Dmm 1D taper using sin() - for inner windows
 %   Detailed explanation goes here
 
-    if i<= n/2
+    if i<=n/2
         x=i;
     else
         x=n-i+1;

@@ -1,7 +1,7 @@
 % testing window functions
 clear all;
-%N=[30 1+randi(10) 500]; % range of vector sizes
-N=[20 1 100]; % range of vector sizes
+%N=[10 1 20]; % range of vector sizes
+N=[10 1 1024]; % range of vector sizes
 P=10;         % range of processors
 H=5;         % range of half-overlap
 T=13;        % tolerrance 1e-T
@@ -17,7 +17,7 @@ for n=N(1):N(2):N(3)
                 [ m ysf xsf ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
                 %fprintf('\ttest: n=%d p=%d h=%d\n',n,p,h);
             catch pr
-                %fprintf('shapes skipped: n=%d p=%d h=%d\n',n,p,h);
+                %fprintf('invalid shape: n=%d p=%d h=%d\n',n,p,h);
                 %disp(pr.message);
                 continue;
             end
