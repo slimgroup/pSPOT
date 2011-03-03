@@ -11,9 +11,9 @@ warning('off','pSpot:NoInput');
    A = opGaussian(m,nA);
    B = opBernoulli(m,nB);
    D = oppDictionary(A,B);
-   D.utest;
+   utest(D,1);
    D = D';
-   D.utest;
+   utest(D,1);
 end    
     
 function test_oppDictionary_mixed
@@ -35,11 +35,11 @@ function test_oppDictionary_multiple
 %%
    % Test non-Spot operators
    D = oppDictionary(opDCT(5),opDFT(5),double(opDCT(5)));
-   assertFalse(dottest(D,2))
+   assertFalse(dottest(D,1))
     
    % Test empty operators
    D = oppDictionary(opDCT(5),opDFT(5),[],double(opDCT(5)));
-   assertFalse(dottest(D,2))
+   assertFalse(dottest(D,1))
    assertTrue( all(size(D) == [5 15]) )
    
 end

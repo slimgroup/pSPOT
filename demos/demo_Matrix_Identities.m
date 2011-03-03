@@ -1,8 +1,6 @@
 %   This page is for demoing useful matrix identities using pSpot
 %   operators
 %
-%   Checkout
-%   https://slimgroup.eos.ubc.ca/groups/matlab/wiki/e6052/Useful_matrix_identities.html
 
 % Kronecker
 %%   kron(B',A)*vec(X) = vec(A*X*B) 
