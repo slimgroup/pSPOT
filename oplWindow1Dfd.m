@@ -43,6 +43,33 @@ classdef oplWindow1Dfd < opSpot
 	  op.xshape = xs;
        end % function oplWindow1Dfd
        
+       % xtratests
+       function result = xtratests(op)
+           T = 14;
+	   x0=rand(op.n,1);
+	   y=op*x0;
+	   x1=op'*y;
+	   check=norm(x1-x0);
+	   if check < op.n*10^-T
+               result = true;
+	   else
+               result = false;
+	   end
+       end % xtratests
+
+       % utest ( skip dottest )
+       function output = utest(op,k,verbose)
+           try
+               addpath(fullfile(spot.path,'tests','xunit'))
+           catch ME
+               error('Can''t find xunit toolbox.')
+           end
+           if nargin < 3, verbose = 0; end
+           if nargin < 2, k = 5; end
+           assertTrue(op.xtratests,k);
+           output = 'PASSED!';
+       end % utest
+
     end % Methods
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

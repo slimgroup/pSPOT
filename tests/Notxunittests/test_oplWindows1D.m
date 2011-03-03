@@ -24,19 +24,14 @@ for n=N(1):N(2):N(3)
 
             try
                 A=oplWindow1Dfd(n,p,h);
-                B=A';
                 try
-                    x0=rand(n,1);
-                    y=A*x0;
-                    x1=B*y;
-                    check=sum(abs((x1-x0)'));
-                    assert(check<10^-T,'ERROR: does not pass inverse test check=%f',check);
+                    A.utest();
                 catch xy
                     fprintf('FD: n=%d m=%d p=%d h=%d\n',n,m,p,h);
                     disp(xy.message);
                     %disp(full(A))
-                    %disp(full(B))
-                    %disp(full(B*A))
+                    %disp(full(A'))
+                    %disp(full(A'*A))
                 end
             catch AB
                 fprintf('FD: n=%d m=%d p=%d h=%d\n',n,m,p,h);
@@ -45,19 +40,14 @@ for n=N(1):N(2):N(3)
     
             try
                 A=oplWindow1Dtpr(n,p,h);
-                B=A';
                 try
-                    x0=rand(n,1);
-                    y=A*x0;
-                    x1=B*y;
-                    check=sum(abs((x1-x0)'));
-                    assert(check<10^-T,'ERROR: does not pass inverse test check=%f',check);
+                    A.utest();
                 catch xy
                     fprintf('TPR: n=%d m=%d p=%d h=%d\n',n,m,p,h);
                     disp(xy.message);
                     %disp(full(A))
-                    %disp(full(B))
-                    %disp(full(B*A))
+                    %disp(full(A'))
+                    %disp(full(A'*A))
                 end
             catch AB
                 fprintf('TPR: n=%d m=%d p=%d h=%d\n',n,m,p,h);

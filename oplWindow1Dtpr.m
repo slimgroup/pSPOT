@@ -42,6 +42,20 @@ classdef oplWindow1Dtpr < opSpot
 	  op.xshape = xs;
        end % function oplWindow1Dtpr
        
+       % xtratests
+       function result = xtratests(op)
+           T = 14;
+	   x0=rand(op.n,1);
+	   y=op*x0;
+	   x1=op'*y;
+	   check=norm(x1-x0);
+	   if check < op.n*10^-T
+               result = true;
+	   else
+               result = false;
+	   end
+       end % xtratests
+
     end % Methods
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
