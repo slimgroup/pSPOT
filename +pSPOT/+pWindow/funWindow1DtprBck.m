@@ -1,6 +1,14 @@
 function [ A ] = funWindow1DtprBck( n, p, h )
 %funWindow1DtprBck inverse tapered windowing sparse array for partition-of-unity algorithms
-%   Detailed explanation goes here
+%
+%   [ A ] = funWindow1DtprBck( N, P, H )
+%
+%   INPUT:
+%      N = length of the input vector
+%      P = number of processors
+%      H = half of the overlap's size
+%   OUTPUT:
+%      A = 'inverse' operator
 
     [ m ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
 

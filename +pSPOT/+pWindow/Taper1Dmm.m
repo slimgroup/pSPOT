@@ -1,6 +1,15 @@
 function [ t ] = Taper1Dmm( i, n, h )
 %Taper1Dmm 1D taper using sin() - for inner windows
-%   Detailed explanation goes here
+%
+%   [ T ] = Taper1Dmm( I, N, H )
+%
+%   INPUT:
+%      I = element index (1:N)
+%      N = window length
+%      H = half of the overlap's size
+%   OUTPUT:
+%      T = taper's value at I
+%
 
     if i<=n/2
         x=i;

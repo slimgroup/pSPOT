@@ -1,7 +1,16 @@
 classdef oplWindow1Dfd < opSpot
-%OPONES   Operator equivalent to ones function.
+%oplWindow1Dfd windowing for finite difference algorithms
 %
 %   oplWindow1Dfd(N,P,H)
+%
+%   ARGUMENTS:
+%      N = length of the input vector
+%      P = number of processors
+%      H = half of the overlap's size
+%
+%   Notes:
+%       1. This is not a parallel/distributed operator
+%       2. This operator does not pass dottest
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
@@ -9,6 +18,8 @@ classdef oplWindow1Dfd < opSpot
     properties (SetAccess = private)
         p = 0;
 	h = 0;
+	yshape = 0;
+	xshape = 0;
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -24,10 +35,12 @@ classdef oplWindow1Dfd < opSpot
 	  n = varargin{1};
 	  p = varargin{2};
 	  h = varargin{3};
-          m = n + (p - 1) * 2 * h;
+          [ m ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
 	  op = op@opSpot('lWindow1Dfd',m,n);
 	  op.p = p;
 	  op.h = h;
+	  op.yshape = ys;
+	  op.xshape = xs;
        end % function oplWindow1Dfd
        
     end % Methods

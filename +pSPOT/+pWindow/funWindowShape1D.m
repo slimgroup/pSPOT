@@ -1,6 +1,8 @@
 function [ m ys xs ] = funWindowShape1D( n, p, h )
 %funWindowShape1D is a support function for forward oplWindow1D* operators.
+%
 %   [ M YS XS ] = funWindowShape1D( N, P, H )
+%
 %   INPUT:
 %      N = length of the input vector
 %      P = number of processors
@@ -11,6 +13,7 @@ function [ m ys xs ] = funWindowShape1D( n, p, h )
 %           of the output vector in every window
 %      XS = (p,3) vector holding start, size, end indecies
 %           of the input vector in every window
+%
 
     % initialize shape vecs
     yo=zeros(p,1); yd=zeros(p,1); ye=zeros(p,1);

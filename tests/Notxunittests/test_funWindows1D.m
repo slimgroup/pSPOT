@@ -2,12 +2,12 @@
 clear all;
 %N=[10 1 20]; % range of vector sizes
 N=[10 1 1024]; % range of vector sizes
-P=10;         % range of processors
-H=5;         % range of half-overlap
+P=13;         % range of processors
+H=13;         % range of half-overlap
 T=13;        % tolerrance 1e-T
 
 disp('start test');
-fprintf('n=[%d:%d:%d] p=[2:%d] h=[0:%d] T=1e-%d\n',N(1),N(2),N(3),P,H,T);
+fprintf('funWindows1D: n=[%d:%d:%d] p=[2:%d] h=[0:%d] T=1e-%d\n',N(1),N(2),N(3),P,H,T);
 
 for n=N(1):N(2):N(3)
     for p=2:P

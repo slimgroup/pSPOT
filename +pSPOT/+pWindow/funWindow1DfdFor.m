@@ -1,6 +1,14 @@
 function [ A ] = funWindow1DfdFor( n, p, h )
-%funWindow1DfdFor forward windowing sparse array for Finite Difference algorithms
-%   Detailed explanation goes here
+%funWindow1DfdFor forward windowing sparse array for finite difference algorithms
+%
+%   [ A ] = funWindow1DfdFor( N, P, H )
+%
+%   INPUT:
+%      N = length of the input vector
+%      P = number of processors
+%      H = half of the overlap's size
+%   OUTPUT:
+%      A = 'inverse' operator
 
     [ m ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
 

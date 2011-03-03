@@ -1,6 +1,15 @@
 function [ t ] = Taper1Dcr( i, n, h )
 %Taper1Dcr 1D taper using sin() - for outer windows
-%   Detailed explanation goes here
+%
+%   [ T ] = Taper1Dcr( I, N, H )
+%
+%   INPUT:
+%      I = element index (1:N)
+%      N = window length
+%      H = half of the overlap's size
+%   OUTPUT:
+%      T = taper's value at I
+%
 
     if i<n-2*h
         x=n;
