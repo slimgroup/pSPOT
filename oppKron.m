@@ -7,7 +7,7 @@ classdef oppKron < oppSpot
     %   the rest of the operators to the tranpose of the result, ans so x
     %   should be of dimensions [cols(OP1),cols(OP2),...,cols(OPN)], and
     %   vectorized after distribution.
-    %   
+    %
     %   You have to specify the dimension at which x is distributed via the
     %   DIMDIST parameter.
     %
@@ -17,7 +17,7 @@ classdef oppKron < oppSpot
     %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
-        
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,20 +57,19 @@ classdef oppKron < oppSpot
                     error('Distribution dimension has to be specified');
                 end
             end
-            
-            
+                        
             % Standard checking and setup sizes
             [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
             m = prod(m);
             n = prod(n);
-            
+                        
             % Construct operator
             op = op@oppSpot('pKron', m, n);
             op.cflag    = cflag;
             op.linear   = linear;
             op.children = opList;
             op.sweepflag= true;
-            op.dimdist = dimdist;
+            op.dimdist  = dimdist;
             op.gather   = gather;
             
         end % constructor
@@ -97,7 +96,7 @@ classdef oppKron < oppSpot
         
     end % methods
     
-     methods ( Access = protected )
+    methods ( Access = protected )
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Multiply
@@ -108,34 +107,74 @@ classdef oppKron < oppSpot
             if ~isdistributed(x)
                 error('x must be distributed');
             end
-            
-            % Reshape x back into the correct size
+                        
+            % For the reshaping of x back into the correct size
             % Fetch the global size of x
-            opchildren = op.children;
-            dimdist    = op.dimdist;
-            childsize  = cellfun(@size,opchildren,'UniformOutput',0);
+            ops = op.children;
+            DIMDIST    = op.dimdist;
+            childsize  = cellfun(@size,ops,'UniformOutput',0);
             
             for i = 1:length(childsize)
-                xgsize{i} = childsize{i}(2);
+                if mode == 1
+                    xgsize{i} = childsize{i}(2);
+                else
+                    xgsize{i} = childsize{i}(1);
+                end
             end
+                
+            % Reversing order of children for intuitive indexing
+            u = length(ops);
+            for v = 1:length(ops)
+                temp(v) = ops(u);
+                u = u - 1;
+            end
+            ops = temp;
             
-            % Setup empty size on distributed dimension
-            xsize = xgsize;
-            xsize{dimdist} = [];
-            
-            spmd
-                % Reshape x into N-D array and rebuild
+            spmd % Permute
+                % Setup dimensional sizes and indices
+                numops    = length(ops);
+                dimArray  = 1:numops; % Array dimension
+                permArray = circshift(dimArray,[0 -1]); % Permutation index
+                distArray = [dimArray dimArray]; % Distributed dimension
+                distArray = circshift(distArray,[0 -DIMDIST+1]);
+                % So now the distributed dimension can be indexed with
+                % distArray(i)
+                                
+                % Setup x
                 xloc = getLocalPart(x);
+                xlocsize = xg18 size;
+                xlocsize(DIMDIST) = [];
                 xpart = codistributed.zeros(1,numlabs);
-                xpart(labindex) = size(xloc,dimdist);
-                xcodist = codistributor1d(dimdist,xpart,xgsize);
-                xloc = reshape(xloc,xsize{:});
-                xloc = codistributed.build(xloc,xcodist,'noCommunication');
-            end            
+                
+                % First reshaping of vector x into N-D array
+                xloc = reshape(xloc,xlocsize{:});
+                
+                % Loop through the children
+                for i = 1:numops
+                    
+%                     % Multiply
+%                     if mode == 1
+%                         xloc = nDimsMultiply(ops{i},xloc);
+%                     else
+%                         xloc = nDimsMultiply(ops{i}',xloc);
+%                     end
+                    
+                    % Permute to the next dimension
+                    xloc = permute(xloc,permArray);                   
+                    
+                end
+%                 % Re-distribute
+%                 xpart(labindex) = size(xloc,DIMDIST);
+%                 xgsize = size(xloc);
+%                 xgsize(DIMDIST) = sum(xpart);
+%                 xcodist = codistributor1d(DIMDIST,xpart,xgsize);
+%                 x = codistributed.build(xloc,xcodist,'noCommunication');
+%                 y = x;
+            end % spmd
             
             
         end % Multiply
         
-     end % Methods
-     
+    end % Methods
+    
 end % classdef

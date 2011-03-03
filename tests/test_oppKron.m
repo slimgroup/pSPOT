@@ -1,47 +1,150 @@
 function test_suite = test_oppKron
-    initTestSuite;
+initTestSuite;
 end
 
 function test_oppKron_concept
-%% Test for the viability of a n-operator oppKron based on oppKron2Lo
-% Setup variables
-m = randi(10);
-n = randi(10);
-o = 3;
+%% Test for the concept oppKron
+% Generate variables
+dims    = 3;
+lim     = 10;
+DIMDIST = 2;
 
-for i=1:3
+for i=1:dims       
+    m    = 2;
+    n    = 2;
     A{i} = opGaussian(m,n);
 end
+% Build oppKron
+K = oppKron(A{:},DIMDIST);
 
-% Dry run for x distributed over last dimension
-K1 = opKron(A{:});
-K2 = oppKron2Lo(opKron(A{1:2}),A{3},1);
+% Construct N-D array x
+xsize = cellfun(@size,K.children,'UniformOutput',0);
 
-% Build x
-x = randn(n,n,n);
+for i = 1:length(xsize)
+    xgsize{i} = xsize{i}(2);
+end
+
+x = randn(xgsize{:});
+
 spmd
-    x2 = codistributed(x,codistributor1d(3));
+    x = codistributed(x,codistributor1d(DIMDIST));
 end
 
-% Multiply
-y1 = K1*x(:);
-y2 = K2*x(:);
+%% Run code
+xorig = x;
+op    = K;
+mode  = 1;
+x     = x(:);
+% Check for distribution of x
+if ~isdistributed(x)
+    error('x must be distributed');
+end
 
-% Check
-assertElementsAlmostEqual(y1,y2);
+% For the reshaping of x back into the correct size
+% Fetch the global size of x
+ops = op.children;
+DIMDIST    = op.dimdist;
+childsize  = cellfun(@size,ops,'UniformOutput',0);
 
-% Now try distributed over second dimension
-K3 = oppKron2Lo(A{1},opKron(A{2:3}),1);
+for i = 1:length(childsize)
+    if mode == 1
+        xgsize{i} = childsize{i}(2);
+    else
+        xgsize{i} = childsize{i}(1);
+    end
+end
 
-% Redistribute x
+% Reversing order of children for intuitive indexing
+u = length(ops);
+for v = 1:length(ops)
+    temp(v) = ops(u);
+    u = u - 1;
+end
+ops = temp;
+%% spmd
+spmd % Permute
+    % Setup dimensional sizes and indices
+    numops    = length(ops);
+    dimArray  = 1:numops; % Array dimension
+    permArray = circshift(dimArray,[0 -1]); % Permutation index
+    distArray = [dimArray dimArray]; % Distributed dimension
+    distArray = circshift(distArray,[0 -DIMDIST+1]);
+    % So now the distributed dimension can be indexed with
+    % distArray(i)
+end
+%% spmd 2
 spmd
-    x3 = codistributed(x,codistributor1d(2));
+    
+    % Setup x
+    xloc = getLocalPart(x);
+    xlocsize = xgsize;
+    xlocsize{DIMDIST} = [];
+    xpart = codistributed.zeros(1,numlabs);
+    
+    % First reshaping of vector x into N-D array
+    xloc = reshape(xloc,xlocsize{:});
 end
-% Multiply
-y3 = K3*x3(:);
-
-% Check
-assertElementsAlmostEqual(y1,y3);
-
+%% spmd 3
+spmd
+    % Loop through the children
+    for i = 1:numops
+        
+        %                     % Multiply
+        %                     if mode == 1
+        %                         xloc = nDimsMultiply(ops{i},xloc);
+        %                     else
+        %                         xloc = nDimsMultiply(ops{i}',xloc);
+        %                     end
+        
+        % Permute to the next dimension
+        xloc = permute(xloc,permArray);
+        
+    end
+    %                 % Re-distribute
+    %                 xpart(labindex) = size(xloc,DIMDIST);
+    %                 xgsize = size(xloc);
+    %                 xgsize(DIMDIST) = sum(xpart);
+    %                 xcodist = codistributor1d(DIMDIST,xpart,xgsize);
+    %                 x = codistributed.build(xloc,xcodist,'noCommunication');
+    %                 y = x;
 end
 
+%% Reverse engineering of (:) and reshape
+clear all
+clc
+x = randn(3,3,3);
+spmd
+    xd   = codistributed(x,codistributor1d(2));
+    xdl  = getLocalPart(xd);
+    xvl  = xdl(:);
+end
+
+xv = xd(:);
+
+spmd
+    xvl = codistributed.build(xvl,getCodistributor(xv));
+end
+
+xv - xvl
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end
