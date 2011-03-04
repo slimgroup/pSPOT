@@ -90,7 +90,7 @@ classdef oppDictionary < oppSpot
             end
             
             % Standard pSpot checking and setup sizes
-            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             assert( all(m == m(1)), 'Operator sizes are not consistent');
             n = sum(n);
             
@@ -256,7 +256,7 @@ classdef oppDictionary < oppSpot
                 end
                 
                 % Summing the results and distribute
-                y = global_sum(y); % The result now sits on lab 1
+                y = pSPOT.utils.global_sum(y); % The result now sits on lab 1
                 y = codistributed(y,1,codistributor1d());
                 
             end %spmd

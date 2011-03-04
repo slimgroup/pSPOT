@@ -88,7 +88,7 @@ classdef oppStack < oppSpot
             end
             
             % Standard pSpot checking and setup sizes
-            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             assert( all(n == n(1)), 'Operator sizes are not consistant');
             m = sum(m);
             

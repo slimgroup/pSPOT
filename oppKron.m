@@ -59,7 +59,7 @@ classdef oppKron < oppSpot
             end
             
             % Standard checking and setup sizes
-            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             m = prod(m);
             n = prod(n);
             
@@ -172,9 +172,9 @@ classdef oppKron < oppSpot
                     
                     % Multiply recursively
                     if mode == 1
-                        xloc = nDimsMultiply(ops{i},xloc);
+                        xloc = spot.utils.nDimsMultiply(ops{i},xloc);
                     else
-                        xloc = nDimsMultiply(ops{i}',xloc);
+                        xloc = spot.utils.nDimsMultiply(ops{i}',xloc);
                     end
                     
                     if i == DIMDIST

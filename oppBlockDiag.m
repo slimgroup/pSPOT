@@ -93,7 +93,7 @@ classdef oppBlockDiag < oppSpot
             end
             
             % Standard checking and setup sizes
-            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             m = sum(m);     n = sum(n);
             
             % Construct operator
