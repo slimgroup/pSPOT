@@ -15,6 +15,9 @@ function [ m ys xs ] = funWindowShape1D( n, p, h )
 %           of the input vector in every window
 %
 
+    % check # of processors
+    assert(p>1,'funWindowShape1D: number of processors has to be bigger then %d',p);
+
     % initialize shape vecs
     yo=zeros(p,1); yd=zeros(p,1); ye=zeros(p,1);
     xo=zeros(p,1); xd=zeros(p,1); xe=zeros(p,1);
@@ -40,7 +43,7 @@ function [ m ys xs ] = funWindowShape1D( n, p, h )
 
     % test for minimal window size for source
     t=min(xd);
-    assert(t>2*h,'funWindowShape1D: half-overlap (%d) too large for local window size (%d). Args: (%d,%d,%d)\n',h,t,n,p,h);
+    assert(t>2*h,'funWindowShape1D: half-overlap (%d) too large for local window size (%d). Args: (%d,%d,%d)',h,t,n,p,h);
 
     % put array together
     ys = [yo yd ye];
