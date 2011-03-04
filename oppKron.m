@@ -130,13 +130,13 @@ classdef oppKron < oppSpot
             end
             ops = temp;
             
-            spmd % Permute
+            spmd
                 % Reshape and redistribute x into N-D array
                 xloc          = getLocalPart(x);
                 nd            = length(xgsize);
-                xlocsize      = [xgsize{:}];
-                xlocsize(end) = size(xloc,nd);
-                xloc          = reshape(xloc,xlocsize);
+                xlocsize      = xgsize;
+                xlocsize{end} = [];
+                xloc          = reshape(xloc,xlocsize{:});
                 
                 % Build codistributed N-D array distributed over last dim
                 xpart           = codistributed.zeros(1,numlabs);
@@ -201,9 +201,19 @@ classdef oppKron < oppSpot
                 xcodist         = codistributor1d(DIMDIST,xpart,xgsize);
                 x               = codistributed.build(xloc,xcodist,...
                                 'noCommunication');
-                y               = x;
             end % spmd            
+            y = x(:);
             
+            % Gather
+            if mode == 1
+                if op.gather == 1 || op.gather == 2
+                    y = gather(y);
+                end
+            else % mode == 2
+                if op.gather == 1 || op.gather == 3
+                    y = gather(y);
+                end
+            end
         end % Multiply
         
     end % Methods
