@@ -57,12 +57,12 @@ classdef oppKron < oppSpot
                     error('Distribution dimension has to be specified');
                 end
             end
-                        
+            
             % Standard checking and setup sizes
             [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
             m = prod(m);
             n = prod(n);
-                        
+            
             % Construct operator
             op = op@oppSpot('pKron', m, n);
             op.cflag    = cflag;
@@ -107,7 +107,7 @@ classdef oppKron < oppSpot
             if ~isdistributed(x)
                 error('x must be distributed');
             end
-                        
+            
             % For the reshaping of x back into the correct size
             % Fetch the global size of x
             ops = op.children;
@@ -121,7 +121,7 @@ classdef oppKron < oppSpot
                     xgsize{i} = childsize{i}(1);
                 end
             end
-                
+            
             % Reversing order of children for intuitive indexing
             u = length(ops);
             for v = 1:length(ops)
@@ -131,50 +131,91 @@ classdef oppKron < oppSpot
             ops = temp;
             
             spmd % Permute
+                % Reshape and redistribute x into N-D array
+                xloc          = getLocalPart(x);
+                nd            = length(xgsize);
+                xlocsize      = [xgsize{:}];
+                xlocsize(end) = size(xloc,nd);
+                xloc          = reshape(xloc,xlocsize);
+                
+                % Build codistributed N-D array distributed over last dim
+                xpart           = codistributed.zeros(1,numlabs);
+                xpart(labindex) = size(xloc,nd);
+                defcodist       = codistributor1d(nd,xpart,[xgsize{:}]);
+                x               = codistributed.build(xloc,defcodist,...
+                    'noCommunication');
+                
+                % Redistribute into desired dimension
+                x    = redistribute(x,codistributor1d(DIMDIST));
+                xloc = getLocalPart(x);
+                
                 % Setup dimensional sizes and indices
                 numops    = length(ops);
                 dimArray  = 1:numops; % Array dimension
                 permArray = circshift(dimArray,[0 -1]); % Permutation index
-                distArray = [dimArray dimArray]; % Distributed dimension
-                distArray = circshift(distArray,[0 -DIMDIST+1]);
-                % So now the distributed dimension can be indexed with
-                % distArray(i)
-                                
-                % Setup x
-                xloc = getLocalPart(x);
-                xlocsize = xg18 size;
-                xlocsize(DIMDIST) = [];
-                xpart = codistributed.zeros(1,numlabs);
-                
-                % First reshaping of vector x into N-D array
-                xloc = reshape(xloc,xlocsize{:});
                 
                 % Loop through the children
                 for i = 1:numops
                     
-%                     % Multiply
-%                     if mode == 1
-%                         xloc = nDimsMultiply(ops{i},xloc);
-%                     else
-%                         xloc = nDimsMultiply(ops{i}',xloc);
-%                     end
+                    % Multiply
+                    if i == DIMDIST % if distributed dimension
+                        % Rebuild and redistribute to the next dimension
+                        xpart(labindex) = size(xloc,1); % Partition
+                        xsize = size(xloc); % Global size
+                        xsize(1) = sum(gather(xpart));
+                        distcodist = codistributor1d(1,xpart,xsize);
+                        x = codistributed.build(xloc,distcodist,...
+                            'noCommunication');
+                        x = redistribute(x,codistributor1d(2));
+                        xloc = getLocalPart(x);
+                    end
                     
+                    % Multiply recursively
+                    if mode == 1
+                        xloc = nDimsMultiply(ops{i},xloc);
+                    else
+                        xloc = nDimsMultiply(ops{i}',xloc);
+                    end
+                    
+                    if i == DIMDIST
+                        % Redistribute back to the original distributed
+                        % dimension
+                        xpart(labindex) = size(xloc,2);
+                        xsize      = size(xloc);
+                        xsize(2) = sum(gather(xpart));
+                        nextcodist = codistributor1d(2,xpart,xsize);
+                        x    = codistributed.build(xloc,nextcodist,...
+                             'noCommunication');
+                        x    = redistribute(x,codistributor1d(1));
+                        xloc = getLocalPart(x);                        
+                    end
+                                        
                     % Permute to the next dimension
-                    xloc = permute(xloc,permArray);                   
+                    xloc = permute(xloc,permArray);
                     
                 end
-%                 % Re-distribute
-%                 xpart(labindex) = size(xloc,DIMDIST);
-%                 xgsize = size(xloc);
-%                 xgsize(DIMDIST) = sum(xpart);
-%                 xcodist = codistributor1d(DIMDIST,xpart,xgsize);
-%                 x = codistributed.build(xloc,xcodist,'noCommunication');
-%                 y = x;
-            end % spmd
-            
+                % Re-distribute
+                xpart(labindex) = size(xloc,DIMDIST);
+                xgsize          = size(xloc);
+                xgsize(DIMDIST) = sum(gather(xpart));
+                xcodist         = codistributor1d(DIMDIST,xpart,xgsize);
+                x               = codistributed.build(xloc,xcodist,...
+                                'noCommunication');
+                y               = x;
+            end % spmd            
             
         end % Multiply
         
     end % Methods
     
 end % classdef
+
+
+
+
+
+
+
+
+
+
