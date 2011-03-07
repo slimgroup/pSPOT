@@ -1,9 +1,23 @@
-function test_oppKron2Lo
+function test_suite = test_oppKron2Lo
+    initTestSuite;
+end
+    
+function test_oppKron2Lo_builtin
+%% Built-in unit tests for oppKron2Lo
+m = randi(100);
+n = randi(100);
+A = opDCT(m);
+B = opDFT(n);
+K = oppKron2Lo(B,A);
+utest(K,1);
+end % builtin
+
+function test_oppKron2Lo_basic
 %% test_opKron  Unit tests for Kronecker products
-   m = matlabpool('size');
-   n = m+1;
-   o = n+1;
-   A1 = randn(m,o) + 1i*randn(m,o);
+   m = 2;
+   n = 3;
+   o = 4;
+   A1 = randn(n,o) + 1i*randn(n,o);
    A2 = randn(n,m) + 1i*randn(n,m);
    A3 = randn(m,m) + 1i*randn(m,m);
    A  = kron(A1,kron(A2,A3));
@@ -17,3 +31,51 @@ function test_oppKron2Lo
    Bleh = double(B,1);
    assertElementsAlmostEqual(A',Bleh')
 end
+
+function test_oppKron2Lo_emptylabs
+%% Test for empty labs
+% Setup x
+spmd
+    x = codistributed.randn(100,1,1);
+    xpart = [1 zeros(1,numlabs-1)];
+    xgsize = [100 1 1];
+    xcodist = codistributor1d(3,xpart,xgsize);
+    x = redistribute(x,xcodist);
+end
+
+A = opDFT(100);
+K = oppKron2Lo(opDirac(1),A);
+xvec = x(:);
+y = K*xvec;
+end % empty labs
+
+function test_oppKron2Lo_dirac
+%% Test for Dirac-skipping functionality
+m = randi(100);
+n = randi(100);
+A = opDirac(m);
+B = opDFT(n);
+x = randn(n,m);
+spmd
+    x = codistributed(x,codistributor1d(2));
+end
+x = x(:);
+A2 = A;
+A2.isDirac = false;
+
+% Dirac-Skipping
+K1 = oppKron2Lo(A,B,1);
+
+% Non-Skipping
+K2 = oppKron2Lo(A2,B,1);
+
+% fprintf('Dirac-skipping: '); tic; 
+y1 = K1*x; 
+% toc;
+
+% fprintf('Non-skipping  : '); tic; 
+y2 = K2*x; 
+% toc;
+
+assertEqual(y1,y2);
+end % dirac

@@ -1,9 +1,9 @@
 function Data = DistPermute(Data, perm, dist, varargin)
-%DISTPERMUTE(Data, perm, dist) - to permute distributed nd-arrays. Data is
-%a distributed array, perm is the desired arrangement of dimensions, and
-%the optional dist specifies the dimension from the original array for the
-%output to be distributed along. If dist isn't provided, the output is
-%distributed along its last dimension.
+% DISTPERMUTE(Data, perm, dist) - to permute distributed nd-arrays. Data is
+% a distributed array, perm is the desired arrangement of dimensions, and
+% the optional dist specifies the dimension from the original array for the
+% output to be distributed along. If dist isn't provided, the output is
+% distributed along its last dimension.
 
 numdims = ndims(Data);
 if ~(nargin == 5 && ischar( varargin{1} ) && ...
