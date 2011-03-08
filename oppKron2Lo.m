@@ -89,12 +89,8 @@ classdef oppKron2Lo < opKron
         % For the moment mtimes is only implemented for right
         % multiplication
         function y=mtimes(op,x)
-            try
-                if isa(x,'dataContainer')
-                    x = double(x);
-                end
-            catch MEH
-                MEH.rethrow;
+            if isa(x,'dataContainer')
+                x = double(x);
             end
             
             if ~isa(op,'oppKron2Lo')
