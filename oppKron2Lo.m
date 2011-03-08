@@ -89,9 +89,17 @@ classdef oppKron2Lo < opKron
         % For the moment mtimes is only implemented for right
         % multiplication
         function y=mtimes(op,x)
+            try
+                if isa(x,'dataContainer')
+                    x = double(x);
+                end
+            catch MEH
+                MEH.rethrow;
+            end
+            
             if ~isa(op,'oppKron2Lo')
                 error('Left multiplication not taken in account')
-            elseif isnumeric(x) || isdistributed(x)
+            elseif ~isa(x,'oppKron2Lo')
                 assert( isvector(x) , 'Please use vectorized matrix')
                 op.counter.plus1(op.tflag + 1 );
                 y=op.multiply(x, 1 ); %use tflag to determine mode within

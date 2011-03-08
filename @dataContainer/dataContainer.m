@@ -1,15 +1,16 @@
-classdef dataContainer < handle
+classdef (InferiorClasses = {?opSpot}) dataContainer < handle
     
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = private)
-        dims = [];          %original dimensions of data
-        collapsed = false;  %flag indicating if data is collapsed to a matrix
-        veced = false;      %flag indicating if data is collapsed to a vector
-        org = {};           %cell array describing which of the original dimensions is in each dimension of the data container
-        Data = []
+        dims = [];      % original dimensions of data
+        veced = false;  % flag indicating if data is implicitly vectorized
+        reallyveced = false; % flag indicating if data is explicitly 
+                             % vectorized
+        isdist = false; % If data is distributed
+        Data = [];      % Actual data for the container
     end
     
     
@@ -18,19 +19,20 @@ classdef dataContainer < handle
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods
         function obj = dataContainer(data)
-            assert( isnumeric(data), 'DataContainer can only be created with numeric data' )
-            obj.Data = distributed(data);
+            if isdistributed(data)
+                assert( strcmp(classUnderlying(data),'double'),...
+                'DataContainer can only be created with numeric data' )
+                obj.isdist = true;
+            end
+            if isvector(data)
+                obj.reallyveced = true;
+            end
+            
+            obj.Data = data;
             obj.dims = size(data);
-            obj.org = num2cell( 1:ndims(data) );
+            
         end
-        
-        function d = Dims( obj )
-            d = obj.dims;
-        end
-        
-        function o = Org( obj )
-            o = obj.org;
-        end
+                
     end
     
     
