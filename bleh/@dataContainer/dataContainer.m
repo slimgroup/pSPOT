@@ -26,6 +26,7 @@ classdef (InferiorClasses = {?opSpot}) dataContainer < handle
             end
             if isvector(data)
                 obj.reallyveced = true;
+                obj.veced = true;
             end
             
             obj.Data = data;

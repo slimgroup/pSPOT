@@ -14,8 +14,8 @@ o = 3;
 
 x = randn(m,n,o) + 1i*randn(m,n,o);
 x = distributed(x);
-
-A = dataContainer(x(:));
+x = x(:);
+A = dataContainer(x);
 K = oppKron2Lo(opDirac(n*o),opDFT(m));
 
 y = K*A;
