@@ -1,11 +1,10 @@
 function obj = unvec(obj)
 
-if obj.reallyveced
+if obj.reallyveced    
+    obj             = reshape(obj,obj.odims{:});
+    obj.veced       = false;
+    obj.reallyveced = false;
     
-    tmp = obj;
-    tmp.Data = reshape(tmp,tmp.odims);
-    tmp.dims = tmp.odims;
-    tmp.veced = true;
-    obj = tmp;
-    clear('tmp');    
+else
+    obj.veced = false;
 end

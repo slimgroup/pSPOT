@@ -14,6 +14,8 @@ function d = size(A,dim)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
+d = [A.dims{:}];
+
 if nargin == 0
    error('Not enough input arguments');
 
@@ -27,9 +29,7 @@ elseif nargin > 1 && ~isempty('dim')
     if dim < 1 || dim > length(A.dims)
        error('Dimension argument must be within the dimensions of A');
     else
-       d = A.dims(dim);
+       d = d(dim);
     end
     
-else
-    d = A.dims;
 end

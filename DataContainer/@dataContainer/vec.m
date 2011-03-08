@@ -2,9 +2,10 @@ function obj = vec(obj)
 
 if ~obj.reallyveced
     
-    tmp = obj;
-    tmp.dims = [prod(tmp.dims) 1];
+    tmp       = obj;
+    d         = [tmp.dims{:}];
+    tmp.dims  = {prod(d) 1};
     tmp.veced = true;
-    obj = tmp;
+    obj       = tmp;
     clear('tmp');
 end
