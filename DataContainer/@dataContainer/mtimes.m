@@ -1,10 +1,21 @@
-function y = mtimes(A,D)
-    if ~isa(A,'dataContainer')
-        y = A*D.Data;
-        
-    elseif ~isa(D,'dataContainer')
-        y = A.Data*D;
-        
-    else % Both data containers
-        y = A.Data*D.Data;
-    end
+function y = mtimes(A,D,swp)
+if nargin < 3
+    swp = 'meh';
+end
+
+if strcmp(swp,'swap')
+    tmp = D;
+    D = A;
+    A = tmp;
+    clear('tmp');
+end
+
+if ~isa(A,'dataContainer')
+    y = dataContainer(A*double(D));
+
+elseif ~isa(D,'dataContainer')
+    y = dataContainer(double(A)*D);
+
+else % Both data containers
+    y = dataContainer(double(A)*double(D));
+end
