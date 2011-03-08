@@ -36,6 +36,9 @@ m = 5;
 n = 4;
 o = 3;
 x = randn(m,n,o) + 1i*randn(m,n,o);
+spmd
+    x = codistributed(x,codistributor1d(1));
+end
 x = dataContainer(x)
 x = vec(x);
 double(x);

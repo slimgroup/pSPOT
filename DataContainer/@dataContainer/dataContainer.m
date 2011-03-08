@@ -1,5 +1,16 @@
 classdef (InferiorClasses = {?opSpot}) dataContainer < handle
-    
+%DATACONTAINER  The Data Container Mother Class
+%
+%   dataContainer(DATA) returns a data container object containing the
+%   explicit data as well as important properties of the data such as the
+%   dimensions (implicit and original dimensions included), whether it is
+%   implicitly or explicitly vectorized, distributed, and its distribution
+%   dimension.
+%
+%   Implicit methods can be called on the data container object without
+%   explicitly affecting the data until needed (ie. multiplication time).
+%
+%   methods: size, vec, unvec, double, reshape, isdistributed, mtimes
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
@@ -48,7 +59,7 @@ classdef (InferiorClasses = {?opSpot}) dataContainer < handle
             obj.dims  = num2cell(size(data));
             obj.odims = obj.dims;
             
-        end
+        end % Constructor
                 
     end
     

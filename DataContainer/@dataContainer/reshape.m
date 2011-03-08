@@ -1,4 +1,15 @@
 function obj = reshape(obj,varargin)
+%RESHAPE    Reshape data container object to desired shape
+%
+%   reshape(A,N1,N2,...,N) reshapes data container A into the dimensions
+%   defined as [N1,N2,...,N]. Note that the number of elements must be
+%   conserved.
+%
+%   If A is vectorized using matlab default vectorizing method (:),
+%   reshaping A using the original dimensions will also redistribute A back
+%   into its original distribution scheme
+%
+%   See also: unvec, vec, double
 
 if obj.isdist
     data = obj.Data;
