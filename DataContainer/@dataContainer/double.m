@@ -1,4 +1,4 @@
-function y = double(obj)
+function y = double(x)
 %DOUBLE     Returns the explicit representation of the data container
 %
 %   double(A) returns the underlying explicit representation of data
@@ -11,17 +11,17 @@ function y = double(obj)
 %
 %   See also: unvec, vec, reshape
 
-if obj.reallyveced
-    y = obj.Data;
+if x.reallyveced
+    y = x.Data;
 else
-    if obj.veced
-        data = obj.Data;
-        obj.Data = data(:);
-        obj.reallyveced = true;
-        y = obj.Data;
+    if x.veced
+        data = x.Data;
+        x.Data = data(:);
+        x.reallyveced = true;
+        y = x.Data;
         
     else
-        y = obj.Data;
+        y = x.Data;
     end
 end
     

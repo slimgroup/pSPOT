@@ -1,4 +1,4 @@
-function obj = reshape(obj,varargin)
+function y = reshape(x,varargin)
 %RESHAPE    Reshape data container object to desired shape
 %
 %   reshape(A,N1,N2,...,N) reshapes data container A into the dimensions
@@ -11,12 +11,13 @@ function obj = reshape(obj,varargin)
 %
 %   See also: unvec, vec, double
 
-if obj.isdist
-    data = obj.Data;
-    rdim = obj.ddims; % Actual distributed dimension
-    rvec = obj.reallyveced;
+y = x;
+
+if x.isdist
+    data = y.Data;
+    rdim = x.ddims; % Actual distributed dimension
+    rvec = x.reallyveced;
     
-        
     spmd
         % Check for signs of redistribution
         ccod = getCodistributor(data);
@@ -52,10 +53,10 @@ if obj.isdist
         
     end
     
-    obj.dims = varargin;
-    obj.Data = data;
+    y.dims = varargin;
+    y.Data = data;
     
 else
-    obj.Data = reshape(obj.Data,varargin{:});
-    obj.dims = varargin;    
+    y.Data = reshape(x.Data,varargin{:});
+    y.dims = varargin;    
 end

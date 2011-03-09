@@ -1,4 +1,4 @@
-function obj = vec(obj)
+function y = vec(x)
 %VEC    Implicit vectorization of the data container
 %
 %   vec(A) returns data container A as if it is explicitly vectorized, but
@@ -8,12 +8,10 @@ function obj = vec(obj)
 %
 %   See also: unvec, double, reshape
 
-if ~obj.reallyveced
+if ~x.reallyveced
     
-    tmp       = obj;
-    d         = [tmp.dims{:}];
-    tmp.dims  = {prod(d) 1};
-    tmp.veced = true;
-    obj       = tmp;
-    clear('tmp');
+    y       = x;
+    d       = [x.dims{:}];
+    y.dims  = {prod(d) 1};
+    y.veced = true;
 end

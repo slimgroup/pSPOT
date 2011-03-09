@@ -44,3 +44,15 @@ x = vec(x);
 double(x);
 x
 x = unvec(x)
+
+%% Test distriCon
+m = 5;
+n = 4;
+o = 3;
+x = randn(m,n,o) + 1i*randn(m,n,o);
+x = dataContainer(distributed(x))
+q = double(x);
+spmd,q,end
+x = distriCon(x,2)
+q = double(x);
+spmd,q,end
