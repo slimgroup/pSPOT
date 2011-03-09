@@ -49,7 +49,7 @@ x = unvec(x)
 m = 5;
 n = 4;
 o = 3;
-x = randn(m,n,o) + 1i*randn(m,n,o);
+x = randn(m,n,o,p) + 1i*randn(m,n,o,p);
 x = dataContainer(distributed(x))
 q = double(x);
 spmd,q,end
@@ -61,11 +61,14 @@ spmd,q,end
 m = 5;
 n = 4;
 o = 3;
-x = randn(m,n,o) + 1i*randn(m,n,o);
+p = 6;
+
+x = randn(m,n,o,p) + 1i*randn(m,n,o,p);
 x = dataContainer(distributed(x))
 
 % Permute
-x = permute(x,[1 3 2])
+x = permute(x,[1 4 3 2])
+x = permute(x,[4 3 2 1])
 
 % unpermute
-x = permute(x,[1 3 2])
+x = unpermute(x)

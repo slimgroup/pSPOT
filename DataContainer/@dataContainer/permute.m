@@ -1,4 +1,10 @@
 function y = permute(varargin)
+%PERMUTE    Permutation for data container
+%
+%   permute(x,N1,N2,...,N) permutes the data container according to the
+%   order of permutation [N1,N2,...,N]
+%
+%   See also: unpermute
 
 % Setup variables
 x     = varargin{1};
@@ -15,8 +21,8 @@ assert(sum(perm) == sum(x.perm),'Permutation dimensions mismatch')
 y = x;
 fdim   = 0;
 gsize  = y.dims;
-ogsize = y.odims;
-operm  = y.perm;
+ogsize = y.odims; % Original dimensions
+operm  = y.perm; % Original permutation
 for  i = 1:length(perm)
     if perm(i) == y.ddims
         fdim = i;
@@ -29,9 +35,7 @@ gsize  = tgsize;
 ogsize = togsize;
 operm  = toperm;
 
-if y.isdist
-    assert(logical(fdim),'Permute array did not contain distribution dimension')
-    
+if y.isdist    
     % Setup variables
     data = y.Data;
         
