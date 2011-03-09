@@ -16,14 +16,15 @@ classdef (InferiorClasses = {?opSpot}) dataContainer < handle
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = private)
-        dims = {};      % Current dimensions of data
-        odims = {};     % Original dimensions of data
-        veced = false;  % flag indicating if data is implicitly vectorized
+        dims        = {};    % Current dimensions of data
+        odims       = {};    % Original dimensions of data
+        veced       = false; % flag indicating if data is implicitly vectorized
         reallyveced = false; % flag indicating if data is explicitly 
                              % vectorized
-        isdist = false; % If data is distributed
-        ddims = [];     % Distributed dimension
-        Data = [];      % Actual data for the container
+        isdist      = false; % If data is distributed
+        oddims      = 0;     % Original distributed dimension
+        ddims       = 0;     % Current distributed dimension
+        Data        = [];    % Actual data for the container
     end
     
     
@@ -40,10 +41,11 @@ classdef (InferiorClasses = {?opSpot}) dataContainer < handle
                 
                 % Extract distribution dimension
                 spmd
-                    cod   = getCodistributor(data);
+                    cod    = getCodistributor(data);
                 end
-                cod       = cod{1};
-                obj.ddims = cod.Dimension;
+                cod        = cod{1};
+                obj.ddims  = cod.Dimension;
+                obj.oddims = obj.ddims;
             else
                 assert( isnumeric(data),...
                     'DataContainer can only be created with numeric data')

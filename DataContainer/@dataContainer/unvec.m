@@ -9,8 +9,9 @@ function y = unvec(x)
 %   See also: vec, reshape, double
 
 y = x;
-if x.reallyveced    
-    y             = reshape(x,x.odims{:});
+if x.reallyveced
+    y             = reshape(length(size(x)),x,x.odims{:});
+    y             = distriCon(y,x.oddims);
     y.veced       = false;
     y.reallyveced = false;
     

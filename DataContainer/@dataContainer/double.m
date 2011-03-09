@@ -15,10 +15,11 @@ if x.reallyveced
     y = x.Data;
 else
     if x.veced
-        data = x.Data;
-        x.Data = data(:);
+        data          = x.Data;
+        x.Data        = data(:);
         x.reallyveced = true;
-        y = x.Data;
+        x.ddims       = 1;
+        y             = x.Data;
         
     else
         y = x.Data;

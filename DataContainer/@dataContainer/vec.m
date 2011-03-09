@@ -14,4 +14,5 @@ if ~x.reallyveced
     d       = [x.dims{:}];
     y.dims  = {prod(d) 1};
     y.veced = true;
+    y.ddims = 1;
 end
