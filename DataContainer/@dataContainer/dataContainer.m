@@ -24,6 +24,7 @@ classdef (InferiorClasses = {?opSpot}) dataContainer < handle
         isdist      = false; % If data is distributed
         oddims      = 0;     % Original distributed dimension
         ddims       = 0;     % Current distributed dimension
+        perm        = [];    % Original permutation of data
         Data        = [];    % Actual data for the container
     end
     
@@ -60,6 +61,7 @@ classdef (InferiorClasses = {?opSpot}) dataContainer < handle
             obj.Data  = data;
             obj.dims  = num2cell(size(data));
             obj.odims = obj.dims;
+            obj.perm  = 1:length(obj.dims);
             
         end % Constructor
                 

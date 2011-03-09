@@ -11,18 +11,13 @@ function y = double(x)
 %
 %   See also: unvec, vec, reshape
 
-if x.reallyveced
-    y = x.Data;
+if x.veced
+    data          = x.Data;
+    x.Data        = data(:);
+    x.reallyveced = true;
+    y             = x.Data;
+
 else
-    if x.veced
-        data          = x.Data;
-        x.Data        = data(:);
-        x.reallyveced = true;
-        x.ddims       = 1;
-        y             = x.Data;
-        
-    else
-        y = x.Data;
-    end
+    y = x.Data;
 end
     

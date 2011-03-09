@@ -56,3 +56,16 @@ spmd,q,end
 x = distriCon(x,2)
 q = double(x);
 spmd,q,end
+
+%% Test permute & unpermute
+m = 5;
+n = 4;
+o = 3;
+x = randn(m,n,o) + 1i*randn(m,n,o);
+x = dataContainer(distributed(x))
+
+% Permute
+x = permute(x,[1 3 2])
+
+% unpermute
+x = permute(x,[1 3 2])

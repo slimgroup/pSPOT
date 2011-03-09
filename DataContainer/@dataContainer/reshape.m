@@ -30,7 +30,6 @@ end
 
 % Check for distributed
 assert(~xor(dim,x.isdist), 'Distributed status mismatch')
-% assert(dim == x.ddims, 'Distributed dimension mismatch')
 
 % Check for number of elements
 s = size(x);
@@ -39,9 +38,9 @@ assert(prod(s) == prod(t),'Number of elements must be conserved')
 
 y = x;
 
-if x.isdist
+if y.isdist
     data = y.Data;
-    rdim = x.ddims; % Actual distributed dimension
+    rdim = y.ddims; % Actual distributed dimension
     
     spmd        
         % Setup local parts
@@ -65,6 +64,6 @@ if x.isdist
     y.Data = data;
     
 else
-    y.Data = reshape(x.Data,varargin{:});
+    y.Data = reshape(y.Data,varargin{:});
     y.dims = sizes;    
 end
