@@ -1,24 +1,21 @@
-%% Test for data container
+%% Test for distriCon
+m = 5;
+n = 4;
+x = randn(m,n);
+
+x = dataContainer(x)
+
+x = distriCon(x,1)
+
+%% Test data reshape
 m = 5;
 n = 4;
 o = 3;
-
-x = randn(m,n,o) + 1i*randn(m,n,o);
-
-A = dataContainer(x);
-
-%% Test data container multiplication
-m = 5;
-n = 4;
-o = 3;
-
 x = randn(m,n,o) + 1i*randn(m,n,o);
 x = distributed(x);
-x = x(:);
-A = dataContainer(x);
-K = oppKron2Lo(opDirac(n*o),opDFT(m));
 
-y = K*A;
+x = dataContainer(x)
+x = reshape(x,4,5,3)
 
 %% Test data container on Spot
 m = 5;
@@ -35,7 +32,8 @@ y = F*A
 m = 5;
 n = 4;
 o = 3;
-x = randn(m,n,o) + 1i*randn(m,n,o);
+x = randn(m,n,o);
+size(x);
 spmd
     x = codistributed(x,codistributor1d(2));
 end
