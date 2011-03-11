@@ -15,7 +15,7 @@ if x.veced, vec = 'yes';
 else vec = 'no'; end
 
 % Display
-fprintf('<< Data Container >> \n');
+fprintf('[[Data Container]] \n');
 fprintf(['       Dimensions : [' num2str(size(x)) ']\n']);
 fprintf(['      Permutation : [' num2str(x.perm) ']\n']);
 fprintf(['       Vectorized : ' vec '\n']);

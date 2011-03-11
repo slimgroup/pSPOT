@@ -13,15 +13,22 @@ classdef dataContainer < handle
 %   data container object will affect all copies of the object. 
 %   (ie. copied by assignment, etc.)
 %
+%   The following properties can be accessed via dot notation:
+%
+%   x.data returns the actual data stored in the data container. Note that
+%   any changes made to this data by itself is not monitored by the data
+%   container and thus may break its history.
+%
 %   x.history returns a struct of the history of this data container,
 %   including informations such as dimensions, permutations and
 %   codistributors. History is written everytime a modifying function is
 %   called on x. (ie. reshape, permute, distriCon)
 %
-%   Implicit methods can be called on the data container object without
-%   explicitly affecting the data until needed (ie. multiplication time).
+%   data container methods: 
+%   distriCon, reshape, vec, unvec, permute, unpermute, mtimes
 %
-%   methods: size, vec, unvec, double, reshape, isdistributed, mtimes
+%   overloaded Matlab methods:
+%   size, norm, isdistributed, norm, subsref, subsasgn
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
