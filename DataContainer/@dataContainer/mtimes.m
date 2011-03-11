@@ -11,11 +11,11 @@ if strcmp(swp,'swap')
 end
 
 if ~isa(A,'dataContainer') % Right multiply
-    y = dataContainer(A*double(D));
+    y = A*double(D);
 
 elseif ~isa(D,'dataContainer') % Left multiply
-    y = dataContainer(double(A)*D);
+    y = double(A)*D;
 
 else % Both data containers
-    y = dataContainer(double(A)*double(D));
+    y = double(A)*double(D);
 end

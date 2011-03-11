@@ -1,4 +1,4 @@
-function y = permute(varargin)
+function x = permute(varargin)
 %PERMUTE    Permutation for data container
 %
 %   permute(x,N1,N2,...,N) permutes the data container according to the
@@ -18,26 +18,23 @@ assert(sum(perm) == sum(x.perm),'Permutation dimensions mismatch')
 % Setup future variables
 % Find final distributed dimension and setup global size at the same
 % time
-y = x;
+
 fdim   = 0;
-gsize  = y.dims;
-ogsize = y.odims; % Original dimensions
-operm  = y.perm; % Original permutation
-for  i = 1:length(perm)
-    if perm(i) == y.ddims
+gsize  = x.dims;
+operm  = x.perm; % Original permutation
+for  i = 1:length(perm) % Find new dimension of distribution
+    if perm(i) == x.codist.Dimension
         fdim = i;
     end
-    tgsize{i}  = gsize{perm(i)};
-    togsize{i} = ogsize{perm(i)};
+    tgsize(i)  = gsize(perm(i));
     toperm(i)  = operm(perm(i));
 end
 gsize  = tgsize;
-ogsize = togsize;
 operm  = toperm;
 
-if y.isdist    
+if x.isdist    
     % Setup variables
-    data = y.Data;
+    data = x.data;
         
     spmd
         % Setup local parts and Permute and re-codistribute
@@ -45,19 +42,18 @@ if y.isdist
         data = permute(data,perm);
         part = codistributed.zeros(1,numlabs);
         part(labindex) = size(data,fdim);
-        cod  = codistributor1d(fdim,part,[gsize{:}]);
+        cod  = codistributor1d(fdim,part,gsize);
         data = codistributed.build(data,cod,'noCommunication');        
         
     end % spmd
-    y.Data   = data;
-    y.ddims  = fdim;
-    y.oddims = fdim;
+    x.data   = data;
+    x.codist = cod{1};
     
 else % Serial
     % Permute
-    y.Data  = permute(y.Data,perm);
+    x.data  = permute(x.data,perm);
         
 end
-y.perm  = operm;
-y.dims  = gsize;
-y.odims = ogsize;
+x.perm  = operm;
+x.dims  = gsize;
+setHistory(x);

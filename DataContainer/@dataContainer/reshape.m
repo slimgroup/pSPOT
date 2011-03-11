@@ -52,11 +52,13 @@ if x.isdist
         data = codistributed.build(data,cod,'noCommunication');                
     end
     
-    x.data = data;    
+    x.data   = data;
+    x.codist = cod{1};
 else
     x.data = reshape(data,varargin{:});    
 end
 
 % Set variables
+x.perm = 1:length(sizes); % Old permutation is void
 x.dims = sizes;
 setHistory(x);

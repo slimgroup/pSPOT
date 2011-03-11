@@ -1,7 +1,7 @@
 classdef dataContainer < handle
 %DATACONTAINER  The Data Container Mother Class
 %
-%   dataContainer(DATA) returns a data container object containing the
+%   x = dataContainer(DATA) returns a data container object containing the
 %   explicit data as well as important properties of the data such as the
 %   dimensions (implicit and original dimensions included), whether it is
 %   implicitly or explicitly vectorized, distributed, and its distribution
@@ -12,6 +12,11 @@ classdef dataContainer < handle
 %   object, and data is not copied. any change made to one instance of the 
 %   data container object will affect all copies of the object. 
 %   (ie. copied by assignment, etc.)
+%
+%   x.history returns a struct of the history of this data container,
+%   including informations such as dimensions, permutations and
+%   codistributors. History is written everytime a modifying function is
+%   called on x. (ie. reshape, permute, distriCon)
 %
 %   Implicit methods can be called on the data container object without
 %   explicitly affecting the data until needed (ie. multiplication time).

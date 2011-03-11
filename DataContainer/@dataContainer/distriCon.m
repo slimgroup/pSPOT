@@ -20,7 +20,8 @@ dim   = length(x.dims);
 part  = [];
 gsize = size(x);
 l     = length(varargin);
-if isa(varargin{1},'codistributor1d') % Codistributor case
+if l == 1 && isa(varargin{1},'codistributor1d')
+    % Codistributor case
     dim = varargin{1}.Dimension;
     part = varargin{1}.Partition;
     gsize = varargin{1}.Cached.GlobalSize;

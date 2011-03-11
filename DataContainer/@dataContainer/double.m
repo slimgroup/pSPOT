@@ -1,23 +1,8 @@
 function y = double(x)
-%DOUBLE     Returns the explicit representation of the data container
+%DOUBLE     Returns the data contained in the data container
 %
-%   double(A) returns the underlying explicit representation of data
-%   container A. If A is implicitly vectorized, the vectorization will
-%   happen now, and stored explicitly in the data container. It uses
-%   Matlab's default vectorization methods for this purpose.
+%   double(A) returns the underlying data contained in the data container
 %
-%   Vectorization can be reversed by calling unvec on the data container
-%   after this operation.
-%
-%   See also: unvec, vec, reshape
+%   See also: vec, reshape
 
-if x.veced
-    data          = x.Data;
-    x.Data        = data(:);
-    x.reallyveced = true;
-    y             = x.Data;
-
-else
-    y = x.Data;
-end
-    
+y = x.data;

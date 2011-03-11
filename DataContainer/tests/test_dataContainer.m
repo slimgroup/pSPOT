@@ -18,44 +18,6 @@ x = dataContainer(x)
 x = reshape(x,4,5,3)
 
 
-%% Test data container on Spot
-m = 5;
-n = 4;
-o = 3;
-
-x = randn(m,n,o) + 1i*randn(m,n,o);
-x = x(:);
-A = dataContainer(x);
-F = opDFT(m*n*o);
-y = F*A
-
-%% Test vec and unvec
-m = 5;
-n = 4;
-o = 3;
-x = randn(m,n,o);
-size(x);
-spmd
-    x = codistributed(x,codistributor1d(2));
-end
-x = dataContainer(x)
-x = vec(x);
-double(x);
-x
-x = unvec(x)
-
-%% Test distriCon
-m = 5;
-n = 4;
-o = 3;
-x = randn(m,n,o,p) + 1i*randn(m,n,o,p);
-x = dataContainer(distributed(x))
-q = double(x);
-spmd,q,end
-x = distriCon(x,2)
-q = double(x);
-spmd,q,end
-
 %% Test permute & unpermute
 m = 5;
 n = 4;
@@ -71,3 +33,30 @@ x = permute(x,[4 3 2 1])
 
 % unpermute
 x = unpermute(x)
+%% Test vec and unvec
+m = 5;
+n = 4;
+o = 3;
+x = randn(m,n,o);
+size(x);
+spmd
+    x = codistributed(x,codistributor1d(2));
+end
+x = dataContainer(x)
+x = vec(x)
+x = distriCon(x,1,[30 30]);
+x = distriCon(x,1,[40 20]);
+x = unvec(x)
+
+%% Test distriCon
+m = 5;
+n = 4;
+o = 3;
+x = randn(m,n,o,p) + 1i*randn(m,n,o,p);
+x = dataContainer(distributed(x))
+q = double(x);
+spmd,q,end
+x = distriCon(x,2)
+q = double(x);
+spmd,q,end
+

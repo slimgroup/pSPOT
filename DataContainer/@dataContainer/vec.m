@@ -13,5 +13,4 @@ if x.isdist
         x = distriCon(x);
     end    
 end
-sizes = size(x);
-x = reshape(1,x,[prod(sizes(1:end-1)) 1]);
+x = reshape(1,x,[numel(x.data) 1]);
