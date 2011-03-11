@@ -86,7 +86,7 @@ classdef dataContainer < handle
             x.count         = c + 1;
             
         end % setHistory
-        
+                
     end % Protected
     
     
