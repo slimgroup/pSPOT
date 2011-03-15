@@ -1,13 +1,13 @@
 classdef oppDistFun < oppSpot
     %OPPDISTFUN     Becuz u noe dis'fun!
     %
-    %   Q = oppDistFun(A,S,F,GATHER), where A is a distributed 2D matrix and S a 
-    %   distributed vector, both distributed over the last dimension, 
-    %   and F is a function handle that takes in local parts of A and S and
-    %   gives a local part of the final answer. The arguments of F has to
-    %   be standardized as: y = F(a,s,x,mode), where a and s corresponds to
-    %   the local parts of A and S, and x is the distributed vector that 
-    %   the operator is applied on.
+    %   Q = oppDistFun(A1,A2,...,AN,F,GATHER), where A1,A2,...,AN are data
+    %   containers and F is a function handle that takes in local parts of 
+    %   A1,A2,...,AN and gives a local part of the final answer. The 
+    %   arguments of F has to be standardized as: 
+    %   y = F(a1,a2,...,an,x,mode), where a1,a2,...,an corresponds to
+    %   the local parts of A1,A2,...,AN, and x is the distributed vector 
+    %   that the operator is applied on.
     %   mode = 1 defines the forward mode
     %   mode = 2 defines the adjoint mode
     %   mode = 0 will return the sizes, complexity and linearity in an
@@ -20,7 +20,8 @@ classdef oppDistFun < oppSpot
     %   GATHER specifies whether to gather the results to a local array
     %   or leave them distributed, default is 0.
     %   GATHER = 0 will leave them distributed.
-    %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
+    %   GATHER = 1 will gather the results of forwards or adjoint 
+    %            multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
     %
@@ -56,8 +57,7 @@ classdef oppDistFun < oppSpot
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties
         fun;
-        A;
-        S;
+        AS;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,37 +67,33 @@ classdef oppDistFun < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function op = oppDistFun(A,S,F,gather)
+        function op = oppDistFun(varargin)
             
-            if nargin == 4
-                if isscalar(gather)
-                    opgather = gather;
-                else
-                    error('Gather must be 0,1,2 or 3');
-                end
-            else
-                opgather = 0;
-            end
+            % Check for number of arguments
+            assert(nargin >= 3 ,'There must be at least 3 arguments');
             
-            if nargin < 3 % Check for number of arguments
-                error('There must be at least 3 arguments');
-            end
             if matlabpool('size') == 0 % Check for matlabpool
                 error('Matlabpool is not open');
             end
-            
-            if ~isdistributed(S) % Check for distributions
-                error('S must be distributed');
+            % Setup and extract variables
+            opgather = 0;
+            if isscalar(varargin{end}) && isnumeric(varargin{end})
+                assert(any(varargin{end} == [0 1 2 3]),...
+                    'Gather must be 0,1,2 or 3')
+                opgather      = varargin{end};
+                varargin(end) = [];
             end
             
-            if ~isdistributed(A)
-                error('A must be distributed');
-            end
+            % Check for and extract function handle
+            assert(isa(varargin{end},'function_handle'),...
+                'F must be a function handle');
+            F             = varargin{end};
+            varargin(end) = [];
             
-            if ~isa(F,'function_handle') % Check for the function-handleness
-                error('F must be a function handle'); % of F
-            end
-            
+            % Check for data containers
+            assert(all(cellfun(@(p) isa(p,'dataContainer'),varargin)),...
+                'A1,A2,...,AN must be data containers');
+                        
             % Extract parameters from function
             bleh = F(0);
             m = bleh(1); n = bleh(2); cflag = bleh(3); linflag = bleh(4);
@@ -107,19 +103,18 @@ classdef oppDistFun < oppSpot
             end
             
             % Setup sizes
-            sizA = size(A);
-            m = m*sizA(end);
-            n = n*sizA(end);
+            sizA = size(varargin{1});
+            m    = m*sizA(end);
+            n    = n*sizA(end);
                         
             % Construct oppCompositexun
-            op = op@oppSpot('DistFun', m, n);
-            op.A = A;
-            op.S = S;
-            op.fun = F;
-            op.cflag = cflag;
-            op.linear = linflag;
+            op           = op@oppSpot('DistFun', m, n);
+            op.AS        = varargin;
+            op.fun       = F;
+            op.cflag     = cflag;
+            op.linear    = linflag;
             op.sweepflag = true;
-            op.gather = opgather;
+            op.gather    = opgather;
             
         end % constructor
         
@@ -132,7 +127,7 @@ classdef oppDistFun < oppSpot
             sizA = size(op.A);
             strsiz = int2str(sizA(1));
             for i=2:length(sizA)
-                strsiz = strcat(strsiz,'-by-',int2str(sizA(i)));
+                strsiz = strcat(strsiz,'x',int2str(sizA(i)));
             end
             str = strcat(str,strsiz,'] A with [');
             sizS = size(op.S);
