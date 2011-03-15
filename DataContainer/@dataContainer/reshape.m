@@ -1,14 +1,21 @@
 function x = reshape(varargin)
 %RESHAPE    Reshape data container object to desired shape
 %
-%   reshape([DIM],X,N1,N2,...,N) reshapes data container A into the dimensions
-%   defined as [N1,N2,...,N]. Note that the number of elements must be
-%   conserved.
-%   
+%   reshape([DIM],X,N1,N2,...,N) reshapes data container X into the 
+%   dimensions defined as [N1,N2,...,N]. Note that the number of elements 
+%   must be conserved.
+%
 %   DIM specifies the distribution dimension you want your reshaped array
 %   to be 'glued' in. If unspecified, the original distribution dimension
 %   will be used.
 %
+%   Always keep in mind that reshape on distributed arrays always conserve
+%   the elements locally on the labs, ie. There will be no communication
+%   between labs. Therefore, the local parts size after reshaping has to be
+%   the same locally. This is generally not an issue if you preserve the
+%   size of the distributed dimension. Or some special symmetrical
+%   distribution scheme is used.
+%   
 %   See also: unvec, vec, double
 
 % Check and extract dim
@@ -38,11 +45,12 @@ if x.isdist
         % Setup local parts
         data = getLocalPart(data);
         part = codistributed.zeros(1,numlabs);
-        
+        dummy = codistributed.zeros(1,sizes(dim)); % Dummy to get default codist
+        dummy = getLocalPart(dummy);
         % Reshape
         if ~isempty(data)
         locsizes       = num2cell(sizes);
-        locsizes{dim}  = [];
+        locsizes{dim}  = length(dummy);
         data           = reshape(data,locsizes{:});
         part(labindex) = size(data,dim);
         end
@@ -61,4 +69,5 @@ end
 % Set variables
 x.perm = 1:length(sizes); % Old permutation is void
 x.dims = sizes;
+if isvector(x.data), x.veced = true; end
 setHistory(x);

@@ -1,11 +1,11 @@
 function x = unvec(x)
 %UNVEC  Reshapes the data container into its pre-vectorized form
 %
-%   unvec(A) reshapes data container A using its original dimensions at the
+%   unvec(X) reshapes data container X using its original dimensions at the
 %   time of vectorization. It goes back in history and fetches the correct
 %   dimensions and codistributor to do this. Hence, the number of elements
-%   and the distribution after vectorization must be conserved or unvec 
-%   will fail horribly.
+%   and before and the distribution after vectorization must be conserved 
+%   or unvec will fail horribly.
 %
 %   See also: vec, reshape, double
 

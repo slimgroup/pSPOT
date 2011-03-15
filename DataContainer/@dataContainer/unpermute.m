@@ -1,4 +1,14 @@
 function y = unpermute(x)
+%UNPERMUTE    Un-permutation for data container
+%
+%   unpermute(X) permutes the data container back into the original
+%   permutation as specified in the property, x.perm
+%
+%   If X is distributed, the distribution dimension will always be
+%   conserved relatively. ie. no redistribution or communication of
+%   elements happen under the hood.
+%
+%   See also: permute
 
 % Setup permutation order
 operm = x.perm;

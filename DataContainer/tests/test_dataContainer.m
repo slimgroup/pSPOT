@@ -8,14 +8,17 @@ x = dataContainer(x)
 x = distriCon(x,1)
 
 %% Test data reshape
-m = 5;
+m = 6;
 n = 4;
 o = 3;
 x = randn(m,n,o) + 1i*randn(m,n,o);
 x = distributed(x);
+spmd
+    x = redistribute(x,codistributor1d(1));
+end
 
 x = dataContainer(x)
-x = reshape(x,4,5,3)
+x = reshape(2,x,9,4,2)
 
 
 %% Test permute & unpermute

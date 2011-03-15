@@ -1,5 +1,24 @@
 function varargout = subsref(x,s)
 %SUBSREF   Subscripted reference.
+%
+%   X.<property> returns the value stored in that property: Currently the
+%   two properties that the user would be interested in is:
+%   X.data    - Returns the explicit data stored in the data container
+%   X.history - Returns a struct containing cell arrays of histories of the
+%               dimensions, permutations and codistributor of the data 
+%               container.
+%
+%   X(a,b,..) - where a,b,.. are indices returns the explicit 
+%               elements stored within the data container as if it is a
+%               Matlab array. Actually this level of subreferencing is
+%               absolutely transparent. So don't expect a data container to
+%               come out of this.
+%
+%   X(:)      - Returns a vectorized X. Note that doing this operation will
+%               explicitly change all references to this object, including
+%               the original, the copies and whatnot.
+%
+%   See also: vec, unvec, subsasgn
    
 %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
 %   See the file COPYING.txt for full copyright information.
@@ -45,6 +64,10 @@ switch s.type
       error('Cell-indexing is not supported.');
  
    case {'()'}
-       varargout{1} = subsref(x.data,s);
+       if strcmp(s.subs,':')
+           varargout{1} = vec(x);
+       else
+           varargout{1} = subsref(x.data,s);
+       end
 
 end

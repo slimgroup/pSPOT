@@ -1,8 +1,12 @@
 function x = permute(varargin)
 %PERMUTE    Permutation for data container
 %
-%   permute(x,N1,N2,...,N) permutes the data container according to the
+%   permute(X,N1,N2,...,N) permutes the data container according to the
 %   order of permutation [N1,N2,...,N]
+%
+%   If X is distributed, the distribution dimension will always be
+%   conserved relatively. ie. no redistribution or communication of
+%   elements happen under the hood.
 %
 %   See also: unpermute
 

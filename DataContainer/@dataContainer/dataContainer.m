@@ -28,7 +28,7 @@ classdef dataContainer < handle
 %   distriCon, reshape, vec, unvec, permute, unpermute, mtimes
 %
 %   overloaded Matlab methods:
-%   size, norm, isdistributed, norm, subsref, subsasgn
+%   size, norm, subsref, subsasgn
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
