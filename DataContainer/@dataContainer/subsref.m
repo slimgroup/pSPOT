@@ -26,6 +26,9 @@ function varargout = subsref(x,s)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
+% Remove implicit
+univec(x);
+
 if length(s) > 1
    result = x;
    for i=1:length(s)

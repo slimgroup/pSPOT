@@ -16,7 +16,7 @@ time = [];
 % Travel back in history
 for i = length(dimsHistory):-1:1
     if length(dimsHistory{i}) >= 2 && dimsHistory{i}(2) ~= 1
-        time = i;
+        time = i; % Time when dimension are last unvectorized
         break;
     end
 end
@@ -38,3 +38,6 @@ x = reshape(length(odims),x,odims);
 
 % Redistribute
 x = distriCon(x,ocod);
+
+% Set variables
+x.veced = isvector(x.data);

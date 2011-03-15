@@ -18,6 +18,9 @@ function x = subsasgn(x,s,b)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
+% Remove implicit
+univec(x);
+
 switch s.type
    case {'.'}
         % Set properties and flags

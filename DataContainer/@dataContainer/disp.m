@@ -14,10 +14,15 @@ end
 if x.veced, vec = 'yes';
 else vec = 'no'; end
 
+% Implicitly veced
+if x.ivec, ivec = 'yes';
+else ivec = 'no'; end
+
 % Display
 fprintf('[[Data Container]] \n');
 fprintf(['       Dimensions : [' num2str(size(x)) ']\n']);
 fprintf(['      Permutation : [' num2str(x.perm) ']\n']);
 fprintf(['       Vectorized : ' vec '\n']);
+fprintf([' Implicitly Veced : ' ivec '\n']);
 fprintf(['      Distributed : ' dist '\n']);
 %  fprintf('          History :\n'); disp(x.history);

@@ -47,6 +47,7 @@ spmd
 end
 x = dataContainer(x)
 x = vec(x)
+
 x = distriCon(x,1,[30 30]);
 x = distriCon(x,1,[40 20]);
 x = unvec(x)

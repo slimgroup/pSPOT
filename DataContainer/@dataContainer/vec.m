@@ -9,6 +9,9 @@ function x = vec(x)
 %
 %   See also: unvec, double, reshape
 
+% Remove implicit
+univec(x);
+
 % Setup variables
 if x.veced
     

@@ -1,4 +1,4 @@
-function x = reshape(varargin)
+ function x = reshape(varargin)
 %RESHAPE    Reshape data container object to desired shape
 %
 %   reshape([DIM],X,N1,N2,...,N) reshapes data container X into the 
@@ -28,8 +28,12 @@ end
 
 % Check and extract x and sizes
 x = varargin{1};
+varargin = varargin(2:end);
 assert(isa(x,'dataContainer'), 'X must be a data container')
-sizes = [varargin{2:end}];
+sizes = [varargin{:}];
+
+% Remove implicit
+univec(x);
 
 % Check for number of elements
 assert(numel(x.data) == prod(sizes),'Number of elements must be conserved')
@@ -45,12 +49,10 @@ if x.isdist
         % Setup local parts
         data = getLocalPart(data);
         part = codistributed.zeros(1,numlabs);
-        dummy = codistributed.zeros(1,sizes(dim)); % Dummy to get default codist
-        dummy = getLocalPart(dummy);
         % Reshape
         if ~isempty(data)
         locsizes       = num2cell(sizes);
-        locsizes{dim}  = length(dummy);
+        locsizes{dim}  = [];
         data           = reshape(data,locsizes{:});
         part(labindex) = size(data,dim);
         end

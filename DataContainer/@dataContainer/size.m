@@ -14,6 +14,12 @@ function d = size(x,dim)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
+if x.ivec
+    dims = [numel(x.data) 1];
+else
+    dims = x.dims;
+end
+
 if nargin == 0
    error('Not enough input arguments');
 
@@ -24,12 +30,12 @@ elseif nargin > 1 && ~isempty('dim')
     if nargout > 1
        error('Unknown command option.');
     end
-    if dim < 1 || dim > length(x.dims)
+    if dim < 1 || dim > length(dims)
        error('Dimension argument must be within the dimensions of x');
     else
-       d = x.dims(dim);
+       d = dims(dim);
     end
     
 else
-   d = x.dims; 
+   d = dims; 
 end

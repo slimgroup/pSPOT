@@ -11,8 +11,11 @@ function x = permute(varargin)
 %   See also: unpermute
 
 % Setup variables
-x     = varargin{1};
-perm  = [varargin{2:end}];
+x    = varargin{1};
+perm = [varargin{2:end}];
+
+% Remove implicit
+univec(x);
 
 % Check for x and distributed and permutation dimensions
 assert(isa(x,'dataContainer'),'X must be a data container')
@@ -42,14 +45,9 @@ if x.isdist
         
     spmd
         % Setup local parts and Permute and re-codistribute
-        data = getLocalPart(data);
-        data = permute(data,perm);
-        part = codistributed.zeros(1,numlabs);
-        part(labindex) = size(data,fdim);
-        cod  = codistributor1d(fdim,part,gsize);
-        data = codistributed.build(data,cod,'noCommunication');        
-        
+        [data,cod] = DataContainer.spmdPermute(data,perm,fdim,gsize);        
     end % spmd
+    
     x.data   = data;
     x.codist = cod{1};
     

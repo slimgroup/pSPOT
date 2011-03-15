@@ -4,17 +4,18 @@ end
 
 function test_oppKron_5D
 %% 
+clear('all')
+clc
 dims    = 5;
 lim     = 10;
 DIMDIST = 1;
-
 for i=1:dims       
-    m    = 3;
-    n    = 4;
+    m    = randi(lim);
+    n    = randi(lim);
     A{i} = opGaussian(m,n);
 end
 % Build oppKron
-K1 = oppKron(A{:},DIMDIST,1);
+K1 = oppKron(A{:});
 K2 = oppKron2Lo(opKron(A{1:end-1}),A{end},1);
 
 % Construct N-D array x
@@ -28,12 +29,13 @@ x = randn(xgsize{:});
 spmd
     x = codistributed(x,codistributor1d(DIMDIST));
 end
-x = x(:);
+dx = dataContainer(x);
+dx = ivec(dx);
 
+tic,y2 = K2*x(:);toc
+tic,y1 = K1*dx;toc
 
-y1 = K1*x;
-y2 = K2*x;
-
+y1 = double(vec(unDistriCon(y1)));
 assertElementsAlmostEqual(y1,y2);
 
 end

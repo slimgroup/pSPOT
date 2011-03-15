@@ -10,6 +10,9 @@ function y = unpermute(x)
 %
 %   See also: permute
 
+% Remove implicit
+univec(x);
+
 % Setup permutation order
 operm = x.perm;
 
