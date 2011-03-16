@@ -94,44 +94,81 @@ classdef oppKron < oppSpot
             assert(x.isdist,'X must be distributed');
             
             % Remove implicit vectorization
-            x = univec(x);
+            x     = univec(x);
             
             % Setup variables
-            ops = op.children;
+            ops   = op.children;
             
             % Reversing order of children for intuitive indexing
-            ops = fliplr(ops);
+            ops   = fliplr(ops);
+            nops  = length(ops);
             
             % Setup spmd variables
-            data  = x.data;            
-            perm  = 1:length(ops);
-            perm  = circshift(perm,[0 -1]);
+            data  = x.data;
+            perm  = circshift(1:nops,[0 -1]);
             ddims = x.codist.Dimension;
-            ddimsArray = 1:length(ops);
-            ddimsArray = fliplr(ddimsArray);
-            fdimsArray = circshift(ddimsArray,[0 +ddims-1]);
-            gsize = x.dims;
             
-            spmd                
+            % Quickfix for bordercases
+            temp  = ones(1,nops);
+            temp(1:length(x.dims)) = x.dims;
+            gsize = temp;
+            
+            spmd
+                % Setup local parts
+                dloc = getLocalPart(data);
+                
                 % Loop through the children
-                for i = 1:length(ops)
+                for i = 1:nops
                     
-                    % Update fdim
-                    fdim = fdimsArray(i);
-                    labBarrier;
+                    if i == ddims
+                        % Distributed dimension on first dimension
+                        % Rebuild and redistribute to second dimension
+                        part = codistributed.zeros(1,numlabs);
+                        if ~isempty(dloc)
+                            part(labindex) = size(dloc,1);
+                        end%,labBarrier, fprintf('A: '), size(dloc), part, gsize
+                        pcod = codistributor1d(1,part,gsize);
+                        dloc = codistributed.build(dloc,pcod,'noCommunication');
+                        dloc = redistribute(dloc,codistributor1d(2));
+                        dloc = getLocalPart(dloc);
+                    end
+                    
                     % Multiply
-                    %fprintf('before: '), disp(size(data))
-                    data = DataContainer.spmdMultiply(ops{i},data,mode);
-                    %fprintf('after : '), disp(size(data))
+                    if mode == 1
+                        OP = ops{i};
+                    else
+                        OP = ops{i}';
+                    end
+                    dloc = spot.utils.nDimsMultiply(OP,dloc);
+                    
                     % Update gsize
-                    gsize(1) = size(data,1);
+                    gsize(1) = size(OP,1);
+                    
+                    if i == ddims
+                       % Rebuild and redistribute back to first dimension
+                       part = codistributed.zeros(1,numlabs);
+                       if ~isempty(dloc)
+                            part(labindex) = size(dloc,2);
+                       end%,labBarrier, fprintf('B: '), size(dloc), part, gsize
+                       pcod = codistributor1d(2,part,gsize);
+                       dloc = codistributed.build(dloc,pcod,'noCommunication');
+                       dloc = redistribute(dloc,codistributor1d(1));
+                       dloc = getLocalPart(dloc);
+                    end                    
+                    
+                    % Permute & update gsize
+                    dloc  = permute(dloc,perm);
                     gsize = circshift(gsize,[0 -1]);
-                    %fprintf('gsize : '), disp(gsize)
-                    labBarrier;
-                    % Permute
-                    [data,cod] = DataContainer.spmdPermute(data,perm,fdim,gsize);
-                end
-            end
+                end % loop
+                
+                % Rebuild data
+                part = codistributed.zeros(1,numlabs);
+                if ~isempty(dloc)
+                    part(labindex) = size(dloc,ddims);
+                end%,labBarrier, fprintf('C: '), size(dloc), part, gsize
+                cod  = codistributor1d(ddims,part,gsize);
+                data = codistributed.build(dloc,cod,'noCommunication');
+            end % spmd
             
             % Setup the variables
             y = x;

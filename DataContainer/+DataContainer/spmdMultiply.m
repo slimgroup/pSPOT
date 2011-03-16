@@ -8,14 +8,15 @@ function x = spmdMultiply(A,x,mode)
 %   a numerical matrix.
 
 % Setup local parts
-xcod = getCodistributor(x);
+xcod  = getCodistributor(x);
+gsize = size(x);
 
 if xcod.Dimension == 1
     % Dimensional conflict
     % Redistribute to second dimension then redistribute back
-    x     = redistribute(x,codistributor1d(2));
+    ncod  = codistributor1d(2);
+    x     = redistribute(x,ncod);
     x     = getLocalPart(x);
-    part  = codistributed.zeros(1,numlabs);
     
     % Multiply
     if mode == 1
@@ -23,18 +24,16 @@ if xcod.Dimension == 1
     else
         x = spot.utils.nDimsMultiply(A',x);
     end
-    part(labindex) = size(x,2);
     
     % Rebuild and redistribute
-    gsize = size(x);
-    gsize(2) = sum(gather(part));
-    ncod  = codistributor1d(2,part,gsize);
-    x     = codistributed.build(x,ncod,'noCommunication');
-    x     = redistribute(x,codistributor1d(1));
+    gsize(1) = size(x,1);
+    ncod     = codistributor1d(2,ncod.Partition,gsize);
+    x        = codistributed.build(x,ncod,'noCommunication');
+    x        = redistribute(x,codistributor1d(1));
 else
     % No dimensional conflict, proceed with multiplication
-    part  = codistributed.zeros(1,numlabs);
     x     = getLocalPart(x);
+    ddims = xcod.Dimension;
     
     % Multiply
     if mode == 1
@@ -42,11 +41,10 @@ else
     else
         x = spot.utils.nDimsMultiply(A',x);
     end
-    part(labindex) = size(x,xcod.Dimension);
     
     % Rebuild
-    gsize = size(x);
-    gsize(xcod.Dimension) = sum(gather(part));
-    ncod  = codistributor1d(xcod.Dimension,part,gsize);
-    x     = codistributed.build(x,ncod,'noCommunication');
+    gsize(1)     = size(x,1);
+    ncod         = codistributor1d(ddims,xcod.Partition,gsize);
+    labBarrier;
+    x            = codistributed.build(x,ncod,'noCommunication');
 end
