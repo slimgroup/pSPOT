@@ -100,9 +100,7 @@ classdef oppKron < oppSpot
             ops = op.children;
             
             % Reversing order of children for intuitive indexing
-            ops{:}
             ops = fliplr(ops);
-            ops{:}
             
             % Setup spmd variables
             data  = x.data;            
@@ -112,6 +110,7 @@ classdef oppKron < oppSpot
             ddimsArray = 1:length(ops);
             ddimsArray = fliplr(ddimsArray);
             fdimsArray = circshift(ddimsArray,[0 +ddims-1]);
+            gsize = x.dims;
             
             spmd                
                 % Loop through the children
@@ -119,16 +118,16 @@ classdef oppKron < oppSpot
                     
                     % Update fdim
                     fdim = fdimsArray(i);
-                    
-                    % Multiply
-                    disp(i), disp(size(ops{i})), disp(size(data))
                     labBarrier;
+                    % Multiply
+                    %fprintf('before: '), disp(size(data))
                     data = DataContainer.spmdMultiply(ops{i},data,mode);
-                    
+                    %fprintf('after : '), disp(size(data))
                     % Update gsize
-                    gsize = size(data);
-                    gsize = circshift(gsize,[0 -1]); disp(size(data))
-                    
+                    gsize(1) = size(data,1);
+                    gsize = circshift(gsize,[0 -1]);
+                    %fprintf('gsize : '), disp(gsize)
+                    labBarrier;
                     % Permute
                     [data,cod] = DataContainer.spmdPermute(data,perm,fdim,gsize);
                 end

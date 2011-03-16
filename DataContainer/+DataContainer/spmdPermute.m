@@ -11,13 +11,7 @@ function [x,cod] = spmdPermute(x,perm,fdim,gsize)
 % Setup local parts and Permute and re-codistribute
 x    = getLocalPart(x);
 part = codistributed.zeros(1,numlabs);
-if ~isempty(x)
-    x    = permute(x,perm);
-    sizX = size(x);
-    if numel(sizX) == numel(gsize) - 1
-        sizX(end+1) = 1;
-    end
-    part(labindex) = sizX(fdim);
-end
+x    = permute(x,perm);
+part(labindex) = size(x,fdim);
 cod  = codistributor1d(fdim,part,gsize);
 x    = codistributed.build(x,cod,'noCommunication');

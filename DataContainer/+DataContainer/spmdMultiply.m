@@ -3,12 +3,13 @@ function x = spmdMultiply(A,x,mode)
 %   *This function must be called from within an spmd block
 %
 %   y = spmdMultiply(A,X) multiplies A with the the first and
-%   second dimensions (slice) of the n-Dimensional codistributed array x 
-%   across all dimensions 3 to N recursively. OP can be a Spot operator or 
+%   second dimensions (slice) of the n-Dimensional codistributed array x
+%   across all dimensions 3 to N recursively. OP can be a Spot operator or
 %   a numerical matrix.
 
 % Setup local parts
 xcod = getCodistributor(x);
+
 if xcod.Dimension == 1
     % Dimensional conflict
     % Redistribute to second dimension then redistribute back
@@ -22,9 +23,9 @@ if xcod.Dimension == 1
     else
         x = spot.utils.nDimsMultiply(A',x);
     end
+    part(labindex) = size(x,2);
     
     % Rebuild and redistribute
-    part(labindex) = size(x,2);
     gsize = size(x);
     gsize(2) = sum(gather(part));
     ncod  = codistributor1d(2,part,gsize);
@@ -41,9 +42,9 @@ else
     else
         x = spot.utils.nDimsMultiply(A',x);
     end
+    part(labindex) = size(x,xcod.Dimension);
     
     % Rebuild
-    part(labindex) = size(x,xcod.Dimension);
     gsize = size(x);
     gsize(xcod.Dimension) = sum(gather(part));
     ncod  = codistributor1d(xcod.Dimension,part,gsize);

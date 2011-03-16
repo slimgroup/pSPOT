@@ -3,27 +3,25 @@ initTestSuite;
 end
 
 function test_oppKron_5D
-%% 
-clear('all')
-clc
+%%
 dims    = 5;
-lim     = 10;
-DIMDIST = 1;
+lim     = 5;
+DIMDIST = 2;
 for i=1:dims       
-    m    = randi(lim);
-    n    = randi(lim);
+    m    = 1;
+    n    = 5;
     A{i} = opGaussian(m,n);
 end
 % Build oppKron
 K1 = oppKron(A{:});
-K2 = oppKron2Lo(opKron(A{1:end-1}),A{end},1);
+K2 = oppKron2Lo( opKron(A{1:end-1}),A{end},1);
 
 % Construct N-D array x
 xsize = cellfun(@size,K1.children,'UniformOutput',0);
 for i = 1:length(xsize)
     xgsize{i} = xsize{i}(2);
 end
-
+xgsize = fliplr(xgsize);
 x = randn(xgsize{:});
 
 spmd
@@ -32,8 +30,8 @@ end
 dx = dataContainer(x);
 dx = ivec(dx);
 
-tic,y2 = K2*x(:);toc
-tic,y1 = K1*dx;toc
+fprintf('oppKron2Lo: '),tic,y2 = K2*x(:);toc
+fprintf('oppKron   : '),tic,y1 = K1*dx;toc
 
 y1 = double(vec(unDistriCon(y1)));
 assertElementsAlmostEqual(y1,y2);
