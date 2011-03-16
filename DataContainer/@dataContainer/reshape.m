@@ -1,8 +1,8 @@
- function x = reshape(varargin)
+function x = reshape(varargin)
 %RESHAPE    Reshape data container object to desired shape
 %
-%   reshape([DIM],X,N1,N2,...,N) reshapes data container X into the 
-%   dimensions defined as [N1,N2,...,N]. Note that the number of elements 
+%   reshape([DIM],X,N1,N2,...,N) reshapes data container X into the
+%   dimensions defined as [N1,N2,...,N]. Note that the number of elements
 %   must be conserved.
 %
 %   DIM specifies the distribution dimension you want your reshaped array
@@ -15,7 +15,7 @@
 %   the same locally. This is generally not an issue if you preserve the
 %   size of the distributed dimension. Or some special symmetrical
 %   distribution scheme is used.
-%   
+%
 %   See also: unvec, vec, double
 
 % Check and extract dim
@@ -42,30 +42,49 @@ assert(numel(x.data) == prod(sizes),'Number of elements must be conserved')
 data = x.data;
 
 if x.isdist
-    data = x.data;
-    if ~dim, dim  = x.codist.Dimension; end
-    
-    spmd        
-        % Setup local parts
-        data = getLocalPart(data);
-        part = codistributed.zeros(1,numlabs);
-        % Reshape
-        if ~isempty(data)
-        locsizes       = num2cell(sizes);
-        locsizes{dim}  = [];
-        data           = reshape(data,locsizes{:});
-        part(labindex) = size(data,dim);
-        end
+%     if x.codist.Dimension > length(x.codist.Cached.GlobalSize)
+%         % Codistributor bugfix where last dimension is 1. =_=
+%         data = x.data;
+%         if ~dim, dim  = x.codist.Dimension; end
+%         spmd
+%             data = getLocalPart(data);
+%             part = codistributed.zeros(1,numlabs);
+%             if labindex == 1
+%                 data = reshape(data,sizes);
+%                 part(1) = 1;
+%             end
+%             cod = codistributor1d(dim,part,sizes);
+%             data = codistributed.build(data,cod,'noCommunication');
+%         end        
+%     else
+        data = x.data;
+        if ~dim, dim  = x.codist.Dimension; end
         
-        % Build codistributed
-        cod  = codistributor1d(dim,part,sizes);
-        data = codistributed.build(data,cod,'noCommunication');                
-    end
-    
-    x.data   = data;
-    x.codist = cod{1};
+        spmd
+            % Setup local parts
+            data = getLocalPart(data);
+            part = codistributed.zeros(1,numlabs);
+            % Reshape
+            if ~isempty(data)
+                locsizes       = num2cell(sizes);
+                locsizes{dim}  = [];
+                data           = reshape(data,locsizes{:});
+                part(labindex) = size(data,dim);
+            else
+                empty_size      = sizes;
+                empty_size(dim) = 0;
+                data = zeros(empty_size);
+            end
+            
+            % Build codistributed
+            cod  = codistributor1d(dim,part,sizes);
+            data = codistributed.build(data,cod,'noCommunication');
+        end
+%     end
+        x.data   = data;
+        x.codist = cod{1};
 else
-    x.data = reshape(data,varargin{:});    
+    x.data = reshape(data,varargin{:});
 end
 
 % Set variables

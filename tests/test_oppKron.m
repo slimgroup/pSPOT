@@ -4,8 +4,6 @@ end
 
 function test_oppKron_5D
 %%
-clear all
-clc
 
     dims    = 5;
     lim     = 10;
