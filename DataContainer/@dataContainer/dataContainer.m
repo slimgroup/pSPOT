@@ -37,6 +37,7 @@ classdef dataContainer < handle
         dims    = [];    % Current dimensions of data
         perm    = [];    % Permutation of data for the current dimensions
         veced   = false; % flag indicating if data is vectorized 
+        ivec    = false; % Whether datacon is implicitly veced
         isdist  = false; % If data is distributed
         codist  = [];    % Current codistributor
         data    = [];    % Actual data for the container
@@ -83,11 +84,7 @@ classdef dataContainer < handle
             setHistory(x);
             
         end % Constructor
-                                
-    end
-    
-    methods (Access = protected)
-        
+                                        
         function setHistory(x)
             c               = x.count;
             History         = x.history;

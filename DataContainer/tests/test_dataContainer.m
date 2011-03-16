@@ -20,6 +20,15 @@ end
 x = dataContainer(x)
 x = reshape(2,x,9,4,2)
 
+%% Test reshape last dimension 1
+x = randn(5,4,3,2,1);
+spmd
+    x = codistributed(x,codistributor1d(5));
+end
+
+xd = double(unDistriCon(vec(dataContainer(x))));
+
+assertEqual(xd,gather(x(:)));
 
 %% Test permute & unpermute
 m = 5;
@@ -47,6 +56,7 @@ spmd
 end
 x = dataContainer(x)
 x = vec(x)
+
 x = distriCon(x,1,[30 30]);
 x = distriCon(x,1,[40 20]);
 x = unvec(x)

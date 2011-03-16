@@ -15,6 +15,9 @@ function x = distriCon(x,varargin)
 %   GLOBAL_SIZE is the global size of distribution. If omitted, the default
 %               global size will be used.
 
+% Remove implicit
+univec(x);
+
 % Check and extract arguments
 dim   = length(x.dims);
 part  = [];

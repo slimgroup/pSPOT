@@ -1,15 +1,12 @@
 classdef oppKron < oppSpot
-    %OPPKRON    Kronecker tensor product to act on a distributed vector.
+    %OPPKRON    Kronecker tensor product to act on a data container.
     %   we need an oppKron that can be robust about the distribution
     %   dimension.
-    %   oppKron(OP1,OP2,...,OPN,DIMDIST,GATHER) Where OPi are Spot operators or
+    %   oppKron(OP1,OP2,...,OPN) Where OPi are Spot operators or
     %   numeric matrices. Note that the last operator is applied to x then
     %   the rest of the operators to the tranpose of the result, ans so x
     %   should be of dimensions [cols(OP1),cols(OP2),...,cols(OPN)], and
     %   vectorized after distribution.
-    %
-    %   You have to specify the dimension at which x is distributed via the
-    %   DIMDIST parameter.
     %
     %   Optional parameter gather specifies whether the output vector
     %   should be gathered to the local lab.
@@ -17,15 +14,13 @@ classdef oppKron < oppSpot
     %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
+    %
+    %   See also: oppKron2Lo
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    properties
-        dimdist; % The dimension at which x is distributed
-    end
-    
+        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Public methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,20 +37,11 @@ classdef oppKron < oppSpot
             end
             
             % Settin' up the variables
-            gather = 0;
-            
-            % Extract dimdist and gather
-            if isscalar(varargin{end-1}) && ~isa(varargin{end-1},'opSpot')
-                dimdist = varargin{end-1};
+            gather = 0;            
+            % Extract gather
+            if isscalar(varargin{end}) && ~isa(varargin{end},'opSpot')
                 gather = varargin{end};
-                varargin(end-1:end) = [];
-            else
-                if isscalar(varargin{end}) && ~isa(varargin{end},'opSpot')
-                    dimdist = varargin{end};
-                    varargin(end) = [];
-                else
-                    error('Distribution dimension has to be specified');
-                end
+                varargin(end) = [];
             end
             
             % Standard checking and setup sizes
@@ -65,12 +51,11 @@ classdef oppKron < oppSpot
             
             % Construct operator
             op = op@oppSpot('pKron', m, n);
-            op.cflag    = cflag;
-            op.linear   = linear;
-            op.children = opList;
-            op.sweepflag= true;
-            op.dimdist  = dimdist;
-            op.gather   = gather;
+            op.cflag     = cflag;
+            op.linear    = linear;
+            op.children  = opList;
+            op.sweepflag = true;
+            op.gather    = gather;
             
         end % constructor
         
@@ -103,117 +88,96 @@ classdef oppKron < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
             
-            % Check for distribution of x
-            if ~isdistributed(x)
-                error('x must be distributed');
-            end
+            % Check for dataconness of x
+            assert(isa(x,'dataContainer'),...
+                'X must be a data container')
+            assert(x.isdist,'X must be distributed');
             
-            % For the reshaping of x back into the correct size
-            % Fetch the global size of x
-            ops = op.children;
-            DIMDIST    = op.dimdist;
-            childsize  = cellfun(@size,ops,'UniformOutput',0);
+            % Remove implicit vectorization
+            x     = univec(x);
             
-            for i = 1:length(childsize)
-                if mode == 1
-                    xgsize{i} = childsize{i}(2);
-                else
-                    xgsize{i} = childsize{i}(1);
-                end
-            end
+            % Setup variables
+            ops   = op.children;
             
             % Reversing order of children for intuitive indexing
-            u = length(ops);
-            for v = 1:length(ops)
-                temp(v) = ops(u);
-                u = u - 1;
-            end
-            ops = temp;
+            ops   = fliplr(ops);
+            nops  = length(ops);
+            
+            % Setup spmd variables
+            data  = x.data;
+            perm  = circshift(1:nops,[0 -1]);
+            ddims = x.codist.Dimension;
+            
+            % Quickfix for bordercases
+            temp  = ones(1,nops);
+            temp(1:length(x.dims)) = x.dims;
+            gsize = temp;
             
             spmd
-                % Reshape and redistribute x into N-D array
-                xloc          = getLocalPart(x);
-                nd            = length(xgsize);
-                xlocsize      = xgsize;
-                xlocsize{end} = [];
-                xloc          = reshape(xloc,xlocsize{:});
-                
-                % Build codistributed N-D array distributed over last dim
-                xpart           = codistributed.zeros(1,numlabs);
-                xpart(labindex) = size(xloc,nd);
-                defcodist       = codistributor1d(nd,xpart,[xgsize{:}]);
-                x               = codistributed.build(xloc,defcodist,...
-                    'noCommunication');
-                
-                % Redistribute into desired dimension
-                x    = redistribute(x,codistributor1d(DIMDIST));
-                xloc = getLocalPart(x);
-                
-                % Setup dimensional sizes and indices
-                numops    = length(ops);
-                dimArray  = 1:numops; % Array dimension
-                permArray = circshift(dimArray,[0 -1]); % Permutation index
+                % Setup local parts
+                dloc = getLocalPart(data);
                 
                 % Loop through the children
-                for i = 1:numops
+                for i = 1:nops
+                    
+                    if i == ddims
+                        % Distributed dimension on first dimension
+                        % Rebuild and redistribute to second dimension
+                        part = codistributed.zeros(1,numlabs);
+                        if ~isempty(dloc)
+                            part(labindex) = size(dloc,1);
+                        end%,labBarrier, fprintf('A: '), size(dloc), part, gsize
+                        pcod = codistributor1d(1,part,gsize);
+                        dloc = codistributed.build(dloc,pcod,'noCommunication');
+                        dloc = redistribute(dloc,codistributor1d(2));
+                        dloc = getLocalPart(dloc);
+                    end
                     
                     % Multiply
-                    if i == DIMDIST % if distributed dimension
-                        % Rebuild and redistribute to the next dimension
-                        xpart(labindex) = size(xloc,1); % Partition
-                        xsize = size(xloc); % Global size
-                        xsize(1) = sum(gather(xpart));
-                        distcodist = codistributor1d(1,xpart,xsize);
-                        x = codistributed.build(xloc,distcodist,...
-                            'noCommunication');
-                        x = redistribute(x,codistributor1d(2));
-                        xloc = getLocalPart(x);
-                    end
-                    
-                    % Multiply recursively
                     if mode == 1
-                        xloc = spot.utils.nDimsMultiply(ops{i},xloc);
+                        OP = ops{i};
                     else
-                        xloc = spot.utils.nDimsMultiply(ops{i}',xloc);
+                        OP = ops{i}';
                     end
+                    dloc = spot.utils.nDimsMultiply(OP,dloc);
                     
-                    if i == DIMDIST
-                        % Redistribute back to the original distributed
-                        % dimension
-                        xpart(labindex) = size(xloc,2);
-                        xsize      = size(xloc);
-                        xsize(2) = sum(gather(xpart));
-                        nextcodist = codistributor1d(2,xpart,xsize);
-                        x    = codistributed.build(xloc,nextcodist,...
-                             'noCommunication');
-                        x    = redistribute(x,codistributor1d(1));
-                        xloc = getLocalPart(x);                        
-                    end
-                                        
-                    % Permute to the next dimension
-                    xloc = permute(xloc,permArray);
+                    % Update gsize
+                    gsize(1) = size(OP,1);
                     
-                end
-                % Re-distribute
-                xpart(labindex) = size(xloc,DIMDIST);
-                xgsize          = size(xloc);
-                xgsize(DIMDIST) = sum(gather(xpart));
-                xcodist         = codistributor1d(DIMDIST,xpart,xgsize);
-                x               = codistributed.build(xloc,xcodist,...
-                                'noCommunication');
-            end % spmd            
-            y = x(:);
+                    if i == ddims
+                       % Rebuild and redistribute back to first dimension
+                       part = codistributed.zeros(1,numlabs);
+                       if ~isempty(dloc)
+                            part(labindex) = size(dloc,2);
+                       end%,labBarrier, fprintf('B: '), size(dloc), part, gsize
+                       pcod = codistributor1d(2,part,gsize);
+                       dloc = codistributed.build(dloc,pcod,'noCommunication');
+                       dloc = redistribute(dloc,codistributor1d(1));
+                       dloc = getLocalPart(dloc);
+                    end                    
+                    
+                    % Permute & update gsize
+                    dloc  = permute(dloc,perm);
+                    gsize = circshift(gsize,[0 -1]);
+                end % loop
+                
+                % Rebuild data
+                part = codistributed.zeros(1,numlabs);
+                if ~isempty(dloc)
+                    part(labindex) = size(dloc,ddims);
+                end%,labBarrier, fprintf('C: '), size(dloc), part, gsize
+                cod  = codistributor1d(ddims,part,gsize);
+                data = codistributed.build(dloc,cod,'noCommunication');
+            end % spmd
             
-            % Gather
-            if mode == 1
-                if op.gather == 1 || op.gather == 2
-                    y = gather(y);
-                end
-            else % mode == 2
-                if op.gather == 1 || op.gather == 3
-                    y = gather(y);
-                end
-            end
+            % Setup the variables
+            y = x;
+            y.data   = data;
+            y.dims   = gsize{1};
+            y.codist = cod{1};
+            setHistory(y);
+            y = ivec(y);
+
         end % Multiply
         
     end % Methods
