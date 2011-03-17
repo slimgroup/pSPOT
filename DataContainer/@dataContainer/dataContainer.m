@@ -52,6 +52,11 @@ classdef dataContainer < handle
     methods
         function x = dataContainer(data)
             
+            if isa(data,'dataContainer')
+                x = data;
+                return;
+            end
+            
             % Setup history
             History.dims = {}; % History of dimensions
             History.perm = {}; % History of permutation
