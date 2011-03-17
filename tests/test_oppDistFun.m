@@ -23,7 +23,23 @@ end %
 
 function test_oppDistFun_numBlockDiag
 %% Testing a oppDistFun version of oppNumBlockDiag
+m = 500;
+n = 300;
+o = 5;
+A = distributed.randn(m,n,o);
+x = distributed.randn(n,o);
+F = @pSPOT.test.funBlockDiag;
+Q = oppDistFun(A,F);
+B = oppNumBlockDiag(A);
+x = x(:);
 
+% Multiply
+% fprintf('oppDistFun      :'); tic
+y1 = Q*x; % toc
+% fprintf('oppNumBlockDiag :'); tic
+y2 = B*x; % toc
+
+assertEqual(norm(y1-y2),0);
 
 end
 

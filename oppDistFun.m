@@ -67,10 +67,7 @@ classdef oppDistFun < oppSpot
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppDistFun(varargin)
-            
-            % Check for number of arguments
-            assert(nargin >= 3 ,'There must be at least 3 arguments');
-            
+                        
             if matlabpool('size') == 0 % Check for matlabpool
                 error('Matlabpool is not open');
             end
@@ -233,57 +230,16 @@ classdef oppDistFun < oppSpot
                 y = codistributed.build(y,ycod,'noCommunication');
                 
             end % spmd
-            
-%             spmd
-%                 % Setup local parts
-%                 Aloc = getLocalPart(A);
-%                 Sloc = getLocalPart(S);
-%                 xloc = getLocalPart(x);
-%                 % Setup the colon indexes
-%                 idA(1:ndims(A) - 1) = {':'};
-%                 idS(1:ndims(S) - 1) = {':'};
-%                 % Setup the sizes
-%                 sizA = size(Aloc);
-%                 sizS = size(Sloc);
-%                 
-%                 % Compensate for single slices
-%                 if ndims(Aloc) ~= ndims(A)
-%                     sizA(end+1) = 1;
-%                 end
-%                 
-%                 if ndims(Sloc) ~= ndims(S)
-%                     sizS(end+1) = 1;
-%                 end
-%                 
-%                 % Setup partition
-%                 ypart = codistributed.zeros(1,numlabs);
-%                                                 
-%                 % Apply function
-%                 i = 0;  j = 0;
-%                 for k = 1:sizA(end) % Iterate through the slices
-%                     y(i+1:i+sizA(1),1) = F(Aloc(idA{:},k),Sloc(idS{:},k),...
-%                         xloc(j+1:j+sizA(2),1),mode);
-%                     i = i+ sizA(1);
-%                     j = j + sizA(2);
-%                 end
-%                 ypart(labindex) = i; % set local partition
-%                 % Build distributed y
-%                 y = codistributed.build(y,codistributor1d(1,...
-%                     ypart,[sum(ypart) 1]),'noCommunication');
-%                 
-%             end % spmd
-%             
-%             % Gather
-%             if mode == 1
-%                 if op.gather == 1 || op.gather == 2
-%                     y = gather(y);
-%                 end
-%             else % mode == 2
-%                 if op.gather == 1 || op.gather == 3
-%                     y = gather(y);
-%                 end
-%             end
                 
+            if mode == 1
+                if op.gather == 1 || op.gather == 2
+                    y = gather(y);
+                end
+            else % mode == 2
+                if op.gather == 1 || op.gather == 3
+                    y = gather(y);
+                end
+            end % gather
         end % multiply
         
     end % Protected methods
