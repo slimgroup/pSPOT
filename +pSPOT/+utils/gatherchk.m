@@ -10,13 +10,13 @@ function y = gatherchk(tmpy,mode,gather)
 %   GATHER = 3 will gather only in backward (adjoint) mode.
 
 if mode == 1
-    if op.gather == 1 || op.gather == 2
+    if gather == 1 || gather == 2
         y = gather(tmpy);
     else
         y = tmpy;
     end
 else % mode == 2
-    if op.gather == 1 || op.gather == 3
+    if gather == 1 || gather == 3
         y = gather(tmpy);
     else
         y = tmpy;

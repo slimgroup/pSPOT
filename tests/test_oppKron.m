@@ -4,7 +4,7 @@ end
 
 function test_oppKron_5D
 %%
-
+    warning('off','dataCon:RedistributingX');
     dims    = 5;
     lim     = 10;
     DIMDIST = randi(dims);

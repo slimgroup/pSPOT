@@ -17,7 +17,8 @@ if ~x.veced
     if x.isdist
         ddim = x.codist.Dimension;
         if ddim ~= length(size(x))
-            warning('Redistributing x to the last dimension');
+            warning('dataCon:RedistributingX',...
+                'Redistributing x to the last dimension');
             x = distriCon(x);
         end
     end
