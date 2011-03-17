@@ -231,15 +231,9 @@ classdef oppDistFun < oppSpot
                 
             end % spmd
                 
-            if mode == 1
-                if op.gather == 1 || op.gather == 2
-                    y = gather(y);
-                end
-            else % mode == 2
-                if op.gather == 1 || op.gather == 3
-                    y = gather(y);
-                end
-            end % gather
+            % gather
+            y = pSPOT.utils.gatherchk(y,mode,op.gather);
+            
         end % multiply
         
     end % Protected methods
