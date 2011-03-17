@@ -38,6 +38,7 @@ classdef dataContainer < handle
         perm    = [];    % Permutation of data for the current dimensions
         veced   = false; % flag indicating if data is vectorized 
         ivec    = false; % Whether datacon is implicitly veced
+        compos  = false; % Flag indicating if data is composite
         isdist  = false; % If data is distributed
         codist  = [];    % Current codistributor
         data    = [];    % Actual data for the container

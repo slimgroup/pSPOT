@@ -2,7 +2,7 @@ function y = funfun(varargin)
 %% Function for testing
 if nargin == 1 && varargin{1} == 0
     y = [500 300 1 1];
-    return;
+    
 else % Multiply
     A = varargin{1};
     S = varargin{2};

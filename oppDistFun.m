@@ -1,10 +1,10 @@
 classdef oppDistFun < oppSpot
     %OPPDISTFUN     Becuz u noe dis'fun!
     %
-    %   Q = oppDistFun(A1,A2,...,AN,F,GATHER), where A1,A2,...,AN are data
-    %   containers and F is a function handle that takes in local parts of 
-    %   A1,A2,...,AN and gives a local part of the final answer. The 
-    %   arguments of F has to be standardized as: 
+    %   Q = oppDistFun(A1,A2,...,AN,F,GATHER), where A1,A2,...,AN are 
+    %   distributed arrays and F is a function handle that takes in local 
+    %   parts of A1,A2,...,AN and gives a local part of the final answer. 
+    %   The arguments of F has to be standardized as: 
     %   y = F(a1,a2,...,an,x,mode), where a1,a2,...,an corresponds to
     %   the local parts of A1,A2,...,AN, and x is the distributed vector 
     %   that the operator is applied on.
@@ -45,11 +45,11 @@ classdef oppDistFun < oppSpot
     %     A distributed over last dim (2)
     %     s distributed over last dim (1)
     % 
-    % 
     %     want P to do
     % 
     %     for each A(:,k), s(k), k = 1:n distributed
     %        y(k) = F(A(:,k),s(k),x(k))
+    
     %     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,7 +57,6 @@ classdef oppDistFun < oppSpot
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties
         fun;
-        AS;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,6 +74,7 @@ classdef oppDistFun < oppSpot
             if matlabpool('size') == 0 % Check for matlabpool
                 error('Matlabpool is not open');
             end
+            
             % Setup and extract variables
             opgather = 0;
             if isscalar(varargin{end}) && isnumeric(varargin{end})
@@ -90,10 +90,43 @@ classdef oppDistFun < oppSpot
             F             = varargin{end};
             varargin(end) = [];
             
-            % Check for data containers
-            assert(all(cellfun(@(p) isa(p,'dataContainer'),varargin)),...
-                'A1,A2,...,AN must be data containers');
-                        
+            % Turn off stupid warning
+            warning('off','distcomp:codistributed:InvalidNumberOfLabs');
+            
+            % Store all ops as codistributed arrays inside cells
+            ops = cell(1,length(varargin));
+            for i = 1:length(varargin)
+               d = varargin{i};
+               spmd, ops{i} = d; end
+            end
+            opss = ops{1};
+            % clear('varargin');
+            
+            % Check for stuffs
+            c = opss{1};
+            lastdim  = size(c);
+            lastdim  = lastdim(end);
+            lastpart = getCodistributor(c);
+            lastpart = lastpart.Partition;
+            for i = 2:length(opss)
+                % Check for the consistency of the last dimension
+                sc = size(opss{i});
+                assert(sc(end) == lastdim,...
+                  'The last dimension must be of the same length')
+                
+                % Check for isdistributed
+                assert(iscodistributed(opss{i}),'A must be distributed')
+                
+                % Check for the distributed dimension
+                cc = getCodistributor(opss{i});
+                assert(length(sc) == cc.Dimension,...
+                    'A must be distributed along the last dimension')
+                
+                % Check for partition
+                assert(all(cc.Partition == lastpart),...
+                    'Partition of distributed dimension must be the same')                
+            end
+                                    
             % Extract parameters from function
             bleh = F(0);
             m = bleh(1); n = bleh(2); cflag = bleh(3); linflag = bleh(4);
@@ -103,13 +136,14 @@ classdef oppDistFun < oppSpot
             end
             
             % Setup sizes
-            sizA = size(varargin{1});
+            sizA = size(opss{1});
             m    = m*sizA(end);
             n    = n*sizA(end);
+            clear opss;
                         
             % Construct oppCompositexun
             op           = op@oppSpot('DistFun', m, n);
-            op.AS        = varargin;
+            op.children  = ops;
             op.fun       = F;
             op.cflag     = cflag;
             op.linear    = linflag;
@@ -122,20 +156,7 @@ classdef oppDistFun < oppSpot
         % Display
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
-            % Initialize
-            str=strcat(char(op.fun),' of [');
-            sizA = size(op.A);
-            strsiz = int2str(sizA(1));
-            for i=2:length(sizA)
-                strsiz = strcat(strsiz,'x',int2str(sizA(i)));
-            end
-            str = strcat(str,strsiz,'] A with [');
-            sizS = size(op.S);
-            strsiz = int2str(sizS(1));
-            for i=2:length(sizS)
-                strsiz = strcat(strsiz,'-by-',int2str(sizS(i)));
-            end
-            str = strcat(str,strsiz,'] S');
+           str = 'bleh';
             
         end % Display
         
@@ -167,14 +188,52 @@ classdef oppDistFun < oppSpot
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
-            y=0;
-%             if ~isdistributed(x)
-%                 error('x must be distributed');
-%             end
-%             
-%             A = op.A;
-%             S = op.S;
-%             F = op.fun;
+            % Setup variables
+            ops = op.children;
+            F   = op.fun;
+            
+            % Check for the distribution of x
+            assert(isdistributed(x),'X must be distributed')
+                                                
+            spmd
+                % Setup local parts
+                xloc = getLocalPart(x);
+                for i = 1:length(ops)
+                   ops{i} = getLocalPart(ops{i}); 
+                end
+                
+                % Setup y
+                sizeA = size(ops{1});
+                y     = cell(1,sizeA(end));
+                % Setup x size
+                bleh  = F(0);
+                xsize = bleh(2);
+                
+                % Loop over the slices and apply F
+                n = 0;
+                for i=1:sizeA(end)
+                    for j = 1:length(ops) % Get last-dimensional slice
+                       slice{j} = pSPOT.utils.ldind(ops{j},i); 
+                    end
+                    
+                    % Get x slice
+                    xslice = xloc(1 + n : xsize + n);
+                    y{i} = F(slice{:},xslice,mode);
+                    n = n + xsize;
+                end
+                
+                % Stack y together
+                y = vertcat(y{:});
+                
+                % Build y
+                ypart = codistributed.zeros(1,numlabs);
+                ypart(labindex) = size(y,1);
+                ygsize = [sum(gather(ypart)) 1];
+                ycod = codistributor1d(1,ypart,ygsize);
+                y = codistributed.build(y,ycod,'noCommunication');
+                
+            end % spmd
+            
 %             spmd
 %                 % Setup local parts
 %                 Aloc = getLocalPart(A);

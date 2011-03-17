@@ -7,20 +7,26 @@ end
 function test_oppDistFun_fun
 %% Testing oppDistFun with a fun
 % Solving the problem of indexing over last dimension
-nlabs = matlabpool('size');
+
 m  = 500;
 n  = 300;
 o  = 5;
-A1 = dataContainer(distributed.randn(m,n,o));
-A2 = dataContainer(distributed.randn(m,n,o));
-A3 = dataContainer(distributed.randn(m,n,o));
+A1 = distributed.randn(m,n,o);
+A2 = distributed.randn(m,o);
 x  = distributed.randn(n,o);
-F  = @funfun;
-Q  = oppDistFun(A1,A2,A3,F);
+F  = @pSPOT.test.funfun;
+Q  = oppDistFun(A1,A2,F);
 x  = x(:);
-%y = Q*x;
+y = Q*x;
 
 end %
+
+function test_oppDistFun_numBlockDiag
+%% Testing a oppDistFun version of oppNumBlockDiag
+
+
+end
+
 
 
 %% Ingenious code that will forever solve the problem of last-dimension
