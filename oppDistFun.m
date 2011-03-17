@@ -113,13 +113,13 @@ classdef oppDistFun < oppSpot
                         
             % Construct oppCompositexun
             op = op@oppSpot('DistFun', m, n);
-            op.A = A;
-            op.S = S;
-            op.fun = F;
-            op.cflag = cflag;
-            op.linear = linflag;
+            op.A         = A;
+            op.S         = S;
+            op.fun       = F;
+            op.cflag     = cflag;
+            op.linear    = linflag;
             op.sweepflag = true;
-            op.gather = opgather;
+            op.gather    = opgather;
             
         end % constructor
         

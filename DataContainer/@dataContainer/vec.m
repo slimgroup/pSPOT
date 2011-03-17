@@ -13,9 +13,7 @@ function x = vec(x)
 univec(x);
 
 % Setup variables
-if x.veced
-    
-else
+if ~x.veced
     if x.isdist
         ddim = x.codist.Dimension;
         if ddim ~= length(size(x))

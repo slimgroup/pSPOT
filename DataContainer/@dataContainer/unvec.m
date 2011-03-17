@@ -9,6 +9,9 @@ function x = unvec(x)
 %
 %   See also: vec, reshape, double
 
+% un-implicitize
+univec(x);
+
 % Setup variables
 dimsHistory = x.history.dims;
 codHistory  = x.history.cod;
