@@ -31,8 +31,10 @@ function test_oppKron_5D
     dx = dataContainer(x);
     dx = ivec(dx);
     
-    fprintf('oppKron2Lo : '),tic,y2 = K2*x(:);toc
-    fprintf('oppKron    : '),tic,y1 = K1*dx;toc
+    % fprintf('oppKron2Lo : '),tic,
+    y2 = K2*x(:); % toc
+    % fprintf('oppKron    : '),tic,
+    y1 = K1*dx; % toc
     
     y1 = double(unDistriCon(vec(y1)));
     assertElementsAlmostEqual(y1,y2);
