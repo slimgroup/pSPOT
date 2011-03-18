@@ -38,7 +38,6 @@ classdef dataContainer < handle
         perm    = [];    % Permutation of data for the current dimensions
         veced   = false; % flag indicating if data is vectorized 
         ivec    = false; % Whether datacon is implicitly veced
-        compos  = false; % Flag indicating if data is composite
         isdist  = false; % If data is distributed
         codist  = [];    % Current codistributor
         data    = [];    % Actual data for the container
@@ -71,9 +70,9 @@ classdef dataContainer < handle
                 
                 % Extract distribution dimension
                 spmd
-                    cod      = getCodistributor(data);
+                    cod  = getCodistributor(data);
                 end
-                x.codist     = cod{1};
+                x.codist = cod{1};
             else
                 assert( isnumeric(data),...
                     'DataContainer can only be created with numeric data')
