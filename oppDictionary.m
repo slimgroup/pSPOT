@@ -170,58 +170,61 @@ classdef oppDictionary < oppSpot
                 ncols = Ncols;
             end
             
-            % Transpose mode
-            if isa(A, 'oppCTranspose') || isa(A, 'oppTranspose')
-                A = A.children{1}; % Extract actual operator
-                % Dictionary transpose does not have distributed drandn
-                m = A.m;
-                if isreal(A)
-                    x = randn(m,ncols);
-                else
-                    x = randn(m,ncols) + 1i*randn(m,ncols);
+            % Forward mode
+            children = A.children;
+            opchildren = distributed(children);
+            
+            spmd, chicodist = getCodistributor(opchildren); end
+            
+            chicodist = chicodist{1};
+            chipart = chicodist.Partition;
+            childnum = 0;
+            for i=1:matlabpool('size')
+                xpart(i) = 0;
+                for j=childnum+1:childnum+chipart(i)
+                    child = A.children{j};
+                    xpart(i) = xpart(i) + child.n;
+                end
+                childnum = childnum + chipart(i);
+            end
+            xgsize = [A.n ncols];
+            
+            n = A.n;
+            if isreal(A)
+                spmd
+                    xcodist = codistributor1d(1,xpart,xgsize);
+                    x = codistributed.randn(n,ncols,codistributor1d(1));
+                    x = redistribute(x,xcodist);
                 end
             else
-                
-                % Forward mode
-                children = A.children; 
-                opchildren = distributed(children);
-                
-                spmd, chicodist = getCodistributor(opchildren); end
-                
-                chicodist = chicodist{1};
-                chipart = chicodist.Partition;
-                childnum = 0;
-                for i=1:matlabpool('size')
-                    xpart(i) = 0;
-                    for j=childnum+1:childnum+chipart(i)
-                        child = A.children{j};
-                        xpart(i) = xpart(i) + child.n;
-                    end
-                    childnum = childnum + chipart(i);
-                end
-                xgsize = [A.n ncols];
-                
-                n = A.n;
-                if isreal(A)
-                    spmd
-                        xcodist = codistributor1d(1,xpart,xgsize);
-                        x = codistributed.randn(n,ncols,codistributor1d(1));
-                        x = redistribute(x,xcodist);
-                    end
-                else
-                    spmd
-                        xcodist = codistributor1d(1,xpart,xgsize);
-                        x = codistributed.randn(n,ncols,codistributor1d(1)) +...
-                            1i*codistributed.randn(n,ncols,codistributor1d(1));
-                        x = redistribute(x,xcodist);
-                    end
+                spmd
+                    xcodist = codistributor1d(1,xpart,xgsize);
+                    x = codistributed.randn(n,ncols,codistributor1d(1)) +...
+                        1i*codistributed.randn(n,ncols,codistributor1d(1));
+                    x = redistribute(x,xcodist);
                 end
             end
             
         end % drandn
         
-    end % Methods
-    
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Rrandn
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = rrandn(A,Ncols)
+            ncols = 1;
+            if nargin == 2 % for easy multivectoring
+                ncols = Ncols;
+            end
+            
+            m = A.m;
+            if isreal(A)
+                x = randn(m,ncols);
+            else
+                x = randn(m,ncols) + 1i*randn(m,ncols);
+            end            
+        end % rrandn
+        
+    end % Methods    
     
     methods ( Access = protected )
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -231,8 +234,8 @@ classdef oppDictionary < oppSpot
             
             if mode == 2 % Use oppStack, since a transpose of dictionary is
                 % equivalent to a stack with transposed operators
-                opchildren = op.children; 
-                tchild = cell(1,length(opchildren)); 
+                opchildren = op.children;
+                tchild = cell(1,length(opchildren));
                 for i = 1:length(opchildren)
                     child = opchildren{i};
                     tchild{i} = child';
