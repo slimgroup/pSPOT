@@ -52,6 +52,10 @@ classdef dataContainer < handle
     methods
         function x = dataContainer(data)
             
+            if nargin == 0
+               data = []; 
+            end
+            
             if isa(data,'dataContainer')
                 x = data;
                 return;
@@ -100,6 +104,15 @@ classdef dataContainer < handle
             x.count         = c + 1;
             
         end % setHistory
+        
+        function clearHistory(x)
+            
+            History.dims = {[]};
+            History.perm = {[]};
+            History.cod  = {[]};
+            x.history    = History;
+            x.count      = 1;
+        end % clearHistory
                 
     end % Protected
     
