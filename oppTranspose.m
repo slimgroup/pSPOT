@@ -84,6 +84,30 @@ classdef oppTranspose < oppSpot
        function opOut = transpose(op)
           opOut = op.children{1};
        end % function transpose
+       
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       % Drandn
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function x = drandn(A,Ncols)
+           ncols = 1;
+           if nargin == 2 % for easy multivectoring
+               ncols = Ncols;
+           end
+           A = A.children{1};
+           x = rrandn(A,ncols);
+       end
+       
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       % Rrandn
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function x = rrandn(A,Ncols)
+           ncols = 1;
+           if nargin == 2 % for easy multivectoring
+               ncols = Ncols;
+           end
+           A = A.children{1};
+           x = drandn(A,ncols);
+       end
     
     end % methods - public
 

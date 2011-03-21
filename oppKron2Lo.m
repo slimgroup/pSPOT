@@ -1,18 +1,18 @@
-classdef oppKron2Lo < opKron
+classdef oppKron2Lo < oppSpot
     %oppKron2Lo  kronecker tensor product to act on a distributed vector.
     %
-    %   oppKron2Lo(A,B, gather)A and B are Spot operators or numeric matrices.
-    %   Optional param gather specifies whether the output vector should be
-    %   gathered to local lab.
+    %   oppKron2Lo(A,B, gather)A and B are Spot operators or numeric 
+    %   matrices. Optional param gather specifies whether the output vector
+    %   should be gathered to local lab.
     %   GATHER = 0 will not gather
     %   GATHER = 1 will gather the results of forwards or adjoint
     %   multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backwards (adjoint) mode.
     %
-    %       %% Example: Defining seperable sparsity transforms over different
-    %       axes. Here we define a sparsity transform S that performs Wavelet
-    %       analysis on the first dimension
+    %       %% Example: Defining seperable sparsity transforms over 
+    %       different axes. Here we define a sparsity transform S that 
+    %       performs Wavelet analysis on the first dimension
     %       and a 2D Curvelet analysis on the second & third dimension
     %             dim=[64,32,32];
     %             C = opCurvelet(dim(2),dim(3));
@@ -22,18 +22,18 @@ classdef oppKron2Lo < opKron
     %       % Make a random 3d data-array
     %       D = distributed.randn(dim(1),prod(dim(2:end)));
     %
-    %       % Check to see if the analysis followed by synthesis returns the
-    %       original signal
+    %       % Check to see if the analysis followed by synthesis returns 
+    %       the original signal
     %       norm(D(:)-S'*S*D(:))
     %
     %   note that the second operator is applied to x and then the first
     %   operator to the transpose of the result, and so x should be of
-    %   dimemsions [cols(op2),cols(op1)], and vectorized after distribution so
-    %   it is distributed along the columns evenly.
+    %   dimemsions [cols(op2),cols(op1)], and vectorized after distribution
+    %   so it is distributed along the columns evenly.
     %
     %   *Now oppKron2Lo also supports local x vectors and distributes them
-    %   before calculation( this distribution will be faster than using matlabs
-    %   (:) function).
+    %   before calculation( this distribution will be faster than using 
+    %   matlabs (:) function).
     %
     
     
@@ -43,7 +43,9 @@ classdef oppKron2Lo < opKron
     
     properties
         tflag = 0;
-        gather = 0;
+        permutation; %Permutation vector of intergers defining the order to
+        %use when the operators (children) of the Kronecker product are
+        %applied to a data vector.
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -56,11 +58,43 @@ classdef oppKron2Lo < opKron
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppKron2Lo(varargin)
-            op= op@opKron(varargin(1:2));
-            if nargin > 2
-                op.gather = varargin{end};
+            
+            % Setup and extract gather
+            gat = 0;
+            if isscalar(varargin{end})
+                assert(any(varargin{end} == [0 1 2 3]),...
+                    'Gather must be 0 1 2 or 3')
+                gat = varargin{end};
+                varargin(end) = [];
             end
-            op.sweepflag = true;
+            
+            % Check for number of operators
+            if length(varargin) ~= 2
+                error('Must specify only 2 operators!')
+            end
+            
+            % Standard pSpot Check
+            [opList,m,n,cflag,linear] = ...
+                pSPOT.utils.stdpspotchk(varargin{:});
+            m = prod(m);
+            n = prod(n);
+            clear varargin;
+            
+            % Construct operator
+            op = op@oppSpot('pKron', m, n);
+            op.cflag       = cflag;
+            op.linear      = linear;
+            op.sweepflag   = true;
+            op.children    = opList;
+            op.gather      = gat;
+            op.permutation = (1:length(opList));
+            
+            %Evaluate the best permutation to use when a multiplication is
+            %applied
+            if ~ (m == 0 || n == 0)
+                op.permutation = op.best_permutation();
+            end
+            
         end % Constructor
         
         
@@ -92,14 +126,14 @@ classdef oppKron2Lo < opKron
             try
                 y = mtimes(x,op,'swap');
             catch
-            
+                
                 if ~isa(op,'oppKron2Lo')
                     error('Left multiplication not taken in account')
                 elseif ~isa(x,'oppKron2Lo')
                     assert( isvector(x) , 'Please use vectorized matrix')
                     op.counter.plus1(op.tflag + 1 );
-                    y=op.multiply(x, 1 ); %use tflag to determine mode within
-                elseif isa(x,'opSpot')    %multiply
+                    y=op.multiply(x, 1 ); % use tflag to determine mode
+                elseif isa(x,'opSpot')    % within multiply
                     y = opFoG(op,x);
                 else
                     error(['unsupported data type: ' class(x)]);
@@ -131,8 +165,8 @@ classdef oppKron2Lo < opKron
         function y = double(op, enable)
             if nargin < 2 || ~enable
                 error(['oppKron2Lo is intended for large applications.' ...
-                    ' The explicit representation will likely be very large,'...
-                    ' use     double(x,1)  to proceed anyway']);
+                    ' The explicit representation will likely be very '...
+                    ' large, \nuse double(x,1)  to proceed anyway']);
             end
             y = double(kron(op.children{1},op.children{2}));
         end
@@ -223,9 +257,9 @@ classdef oppKron2Lo < opKron
                         y=getLocalPart(x);
                         local_width=length(y)/cB;
                         assert( mod(local_width,1) == 0, ...
-                            ' x must be distributed along columns before vec')
-                        y = reshape(y,cB,local_width);%reshape to local matrices
-                        partition(labindex) = local_width;
+                            ' x must be distributed along cols before vec')
+                        y = reshape(y,cB,local_width); % reshape to local 
+                        partition(labindex) = local_width; % matrices
                     else
                         y = reshape(x,cB,cA);
                         y = codistributed(y);
@@ -270,12 +304,12 @@ classdef oppKron2Lo < opKron
                         y=getLocalPart(x);
                         local_width=length(y)/cB;
                         assert( mod(local_width,1) == 0, ...
-                            'x must be distributed along columns before vec')
-                        y = reshape(y,cB,local_width);%reshape to local matrices
-                        partition(labindex) = local_width;
+                            'x must be distributed along cols before vec')
+                        y = reshape(y,cB,local_width); % reshape to local 
+                        partition(labindex) = local_width; % matrices
                         
                         if ~skipA
-                            y=y.'; %transpose since we're gonna apply A first
+                            y=y.'; % transpose since A is applied first
                             % Build y distributed across rows
                             y = codistributed.build(y, codistributor1d...
                                 (1,partition,[cA,cB]));
@@ -304,8 +338,8 @@ classdef oppKron2Lo < opKron
                     end
                     
                     if ~skipB
-                        y = B*y;%apply B to local matrices, no need to transpose
-                    end
+                        y = B*y;% apply B to local matrices, no need to 
+                    end         % transpose
                     
                     %now vectorize y
                     local_size = numel(y);
@@ -327,13 +361,86 @@ classdef oppKron2Lo < opKron
             end % gather
         end % Multiply
     end %Protected methods
+    
+    methods (Access = private)
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % best_permutation
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        %Returns the best permutation associated to this Kronecker product
+        function perm=best_permutation(op)
+            list=op.children; %List of 'op''s children
+            cost=zeros(1,length(list)); %Computational costs of the
+            %operators (children of 'op'). This is simply a numeric
+            %representation of theirs shapes, which will affect computation
+            %time. Operators with low computational costs should be applied
+            %first.
+            for i=1:length(list)
+                %Cost = (nbr_rows-nbr_columns) / (size of the operator)
+                cost(1,i)=(size(list{i},1)-size(list{i},2))/...
+                    (size(list{i},1)*size(list{i},2));
+            end
+            
+            perm=op.quicksort(cost,1,length(cost),op.permutation);
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % quick_sort
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        %Function doing a quick sort on the vector containing the
+        %computational costs associated to the operators of the Kronecker
+        %product. The corresponding permutation 'perm' is returned as an
+        %output. It contains the indices of the operators which have to be
+        %successively applied to the data vector. These laters are
+        %bracketed from left to right.
+        
+        %n: permutation enabling to follow the transpositions during the
+        %recursive application of the quick sort function.
+        %n initialy rates [1,2,..,n] where n is the number of operators in
+        %the Kronecker product.
+        
+        %start and stop: indices of the sort area in the cost vector.
+        
+        function perm=quicksort(op,cost,start,stop,n)
+            
+            if start<stop
+                left=start;
+                right=stop;
+                pivot=cost(start);
+                
+                while 1
+                    while cost(right)>pivot,right=right-1;
+                    end
+                    if cost(right)==pivot && right>start
+                        right=right-1;
+                    end
+                    while cost(left)<pivot,left=left+1;
+                    end
+                    
+                    if(left<right)
+                        temp=cost(left);
+                        cost(left)=cost(right);
+                        cost(right)=temp;
+                        
+                        temp=n(left);
+                        n(left)=n(right);
+                        n(right)=temp;
+                    else break
+                    end
+                end
+                n=op.quicksort(cost, start, right,n);
+                n=op.quicksort(cost, right+1, stop,n);
+            end
+            perm=n;
+        end
+        
+    end % Private methods
 end % Classdef
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Helper Functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % distrandnvec helper funtion to create a vectorized distributed
 % normal random matrix
 function y = distrandnvec( sz )
@@ -363,3 +470,4 @@ spmd
         [sz(1)*sz(2),1]));
 end
 end
+

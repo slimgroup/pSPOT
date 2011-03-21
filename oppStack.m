@@ -4,13 +4,13 @@ classdef oppStack < oppSpot
     %   oppStack([WEIGHTS], OP1, OP2, ...OPn,GATHER) creates a stacked operator
     %   consisting of the vertical concatenation of all operators. When applied
     %   the operators are divided amongst the labs and applied locally on each
-    %   lab. 
+    %   lab.
     %
     %   GATHER specifies whether to gather the results to a local array
     %   or leave them distributed, default is 0.
     %   GATHER = 0 will leave them distributed.
     %   GATHER = 1 will gather the results.
-    %   
+    %
     %   Optional WEIGHTS vector:
     %
     %               [WEIGHT1*OP1
@@ -28,10 +28,10 @@ classdef oppStack < oppSpot
     %   operators act in parallel already, and cannot be used with
     %   oppDictionary.
     %
-    %   **Note - As of now the operators will be distributed according to 
-    %   the Matlab default codistribution scheme. 
-    %   for more info, type 'help codistributor1d' 
-    %   
+    %   **Note - As of now the operators will be distributed according to
+    %   the Matlab default codistribution scheme.
+    %   for more info, type 'help codistributor1d'
+    %
     %   See also oppBlockDiag, oppNumBlockDiag, oppDictionary
     
     %   Nameet Kumar - Oct 2010
@@ -159,6 +159,65 @@ classdef oppStack < oppSpot
             
         end % double
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Drandn
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = drandn(A,Ncols)
+            ncols = 1;
+            if nargin == 2 % for easy multivectoring
+                ncols = Ncols;
+            end
+            
+            % Transpose mode
+            if isa(A, 'oppCTranspose') || isa(A, 'oppTranspose')
+                A = A.children{1}; % Extract actual operator
+                children = A.children;
+                opchildren = distributed(children);
+                
+                spmd, chicodist = getCodistributor(opchildren); end
+                
+                chicodist = chicodist{1};
+                chipart = chicodist.Partition;
+                childnum = 0;
+                for i=1:matlabpool('size')
+                    xpart(i) = 0;
+                    for j=childnum+1:childnum+chipart(i)
+                        child = A.children{j};
+                        xpart(i) = xpart(i) + child.m;
+                    end
+                    childnum = childnum + chipart(i);
+                end
+                xgsize = [A.m ncols];
+                
+                m = A.m;
+                if isreal(A)
+                    spmd
+                        xcodist = codistributor1d(1,xpart,xgsize);
+                        x = codistributed.randn(m,ncols,codistributor1d(1));
+                        x = redistribute(x,xcodist);
+                    end
+                else
+                    spmd
+                        xcodist = codistributor1d(1,xpart,xgsize);
+                        x = codistributed.randn(m,ncols,codistributor1d(1)) +...
+                            1i*codistributed.randn(m,ncols,codistributor1d(1));
+                        x = redistribute(x,xcodist);
+                    end
+                end
+                
+                return;
+            end
+            
+            % Forward mode
+            n = A.n;
+            if isreal(A)
+                x = randn(n,ncols);
+            else
+                x = randn(n,ncols) + 1i*randn(n,ncols);
+            end
+            
+        end % drandn
+        
     end % Methods
     
     
@@ -172,8 +231,8 @@ classdef oppStack < oppSpot
                 
                 opchildren = op.children; % equivalent to a dictionary with
                 tchild = cell(1,length(opchildren)); % transposed operators
-                for i = 1:length(opchildren) 
-                    child = opchildren{i}; 
+                for i = 1:length(opchildren)
+                    child = opchildren{i};
                     tchild{i} = child';
                 end
                 
@@ -205,7 +264,7 @@ classdef oppStack < oppSpot
             opchildren = distributed(op.children); % This "renaming" is
             opm = op.m; opn = op.n;   % required to avoid
             opweights = op.weights;   % passing in the whole op, which for
-                                      % some weird reason stalls spmd
+            % some weird reason stalls spmd
             spmd
                 % Setting up local parts
                 local_children = getLocalPart(opchildren);
@@ -215,8 +274,8 @@ classdef oppStack < oppSpot
                 % Setting up weights
                 codist = getCodistributor(opchildren);
                 wind = globalIndices(codist,2);
-                local_weights = opweights(wind);                
-                                
+                local_weights = opweights(wind);
+                
                 if ~isempty(local_children)
                     % Setup partition size
                     localm = 0;
@@ -244,7 +303,7 @@ classdef oppStack < oppSpot
             end %spmd
             
             if op.gather
-                y = gather(y); 
+                y = gather(y);
             end    %if we gathered, the data is on master client
             
         end % Multiply

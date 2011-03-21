@@ -39,6 +39,8 @@ function test_oppKron_5D
     y1 = double(unDistriCon(vec(y1)));
     assertElementsAlmostEqual(y1,y2);
     
+    warning('on','dataCon:RedistributingX');
+    
 end
 
 
