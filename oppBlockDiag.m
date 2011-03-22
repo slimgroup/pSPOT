@@ -93,7 +93,7 @@ classdef oppBlockDiag < oppSpot
             end
             
             % Standard checking and setup sizes
-            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             m = sum(m);     n = sum(n);
             
             % Construct operator
@@ -127,8 +127,97 @@ classdef oppBlockDiag < oppSpot
             str = [str(1:end-2), ')'];
         end % Display
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Drandn
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = drandn(A,Ncols)
+            ncols = 1;
+            if nargin == 2 % for easy multivectoring
+                ncols = Ncols;
+            end
+            
+            % Distribute children
+            opchildren = distributed(A.children);
+            
+            spmd, chicodist = getCodistributor(opchildren); end
+            
+            chicodist = chicodist{1};
+            chipart = chicodist.Partition;
+            childnum = 0;
+            for i=1:matlabpool('size')
+                xpart(i) = 0;
+                for j=childnum+1:childnum+chipart(i)
+                    child = A.children{j};
+                    xpart(i) = xpart(i) + child.n;
+                end
+                childnum = childnum + chipart(i);
+            end
+            xgsize = [A.n ncols];
+            
+            n = A.n;
+            if isreal(A)
+                spmd
+                    xcodist = codistributor1d(1,xpart,xgsize);
+                    x = codistributed.randn(n,ncols,codistributor1d(1));
+                    x = redistribute(x,xcodist);
+                end
+            else
+                spmd
+                    xcodist = codistributor1d(1,xpart,xgsize);
+                    x = codistributed.randn(n,ncols,codistributor1d(1)) +...
+                        1i*codistributed.randn(n,ncols,codistributor1d(1));
+                    x = redistribute(x,xcodist);
+                end
+            end
+            
+        end % drandn
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Rrandn
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = rrandn(A,Ncols)
+            ncols = 1;
+            if nargin == 2 % for easy multivectoring
+                ncols = Ncols;
+            end
+            
+            opchildren = distributed(A.children);
+                        
+            spmd, chicodist = getCodistributor(opchildren); end
+            
+            chicodist = chicodist{1};
+            chipart = chicodist.Partition;
+            childnum = 0;
+            for i=1:matlabpool('size')
+                xpart(i) = 0;
+                for j=childnum+1:childnum+chipart(i)
+                    child = A.children{j};
+                    xpart(i) = xpart(i) + child.m;
+                end
+                childnum = childnum + chipart(i);
+            end
+            xgsize = [A.m ncols];
+            
+            m = A.m;
+            
+            if isreal(A)
+                spmd
+                    xcodist = codistributor1d(1,xpart,xgsize);
+                    x = codistributed.randn(m,ncols,codistributor1d(1));
+                    x = redistribute(x,xcodist);
+                end
+            else
+                spmd
+                    xcodist = codistributor1d(1,xpart,xgsize);
+                    x = codistributed.randn(m,ncols,codistributor1d(1)) +...
+                        1i*codistributed.randn(m,ncols,codistributor1d(1));
+                    x = redistribute(x,xcodist);
+                end
+            end
+            
+        end % rrandn
+        
     end % Methods
-    
     
     methods ( Access = protected )
         
@@ -177,16 +266,16 @@ classdef oppBlockDiag < oppSpot
                     end
                 end
                 childnum = childnum + chipart(i);
-            end     
+            end
             
             
             % Setting up the variables
             opweights = op.weights;
             gather = op.gather;
             opm = op.m;   opn = op.n;
-            % This "renaming" is required to avoid passing in the whole op, 
+            % This "renaming" is required to avoid passing in the whole op,
             % which for some weird reason stalls spmd
-                        
+            
             spmd
                 % Setting up the local parts
                 codist = getCodistributor(opchildren);
@@ -236,7 +325,7 @@ classdef oppBlockDiag < oppSpot
             
             % Gather
             if mode == 1 % The gather function does not work for some weird
-                         % reason
+                % reason
                 if op.gather == 1 || op.gather == 2
                     y = cat(1,tmpy{:});
                 end
@@ -299,7 +388,7 @@ classdef oppBlockDiag < oppSpot
                     end
                 end
                 childnum = childnum + chipart(i);
-            end     
+            end
             
             spmd
                 % Setting up the local parts
@@ -389,44 +478,3 @@ classdef oppBlockDiag < oppSpot
     end % Protected Methods
     
 end % Classdef
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,0 +1,1 @@
+function y = nDimsMultiply(A,x)

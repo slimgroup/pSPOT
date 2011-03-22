@@ -4,8 +4,8 @@ end
     
 function test_oppKron2Lo_builtin
 %% Built-in unit tests for oppKron2Lo
-m = randi(100);
-n = randi(100);
+m = randi([2,100]);
+n = randi([2,100]);
 A = opDCT(m);
 B = opDFT(n);
 K = oppKron2Lo(B,A);
