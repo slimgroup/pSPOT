@@ -52,10 +52,6 @@ classdef dataContainer < handle
     methods
         function x = dataContainer(data)
             
-            if nargin == 0
-               data = []; 
-            end
-            
             if isa(data,'dataContainer')
                 x = data;
                 return;
