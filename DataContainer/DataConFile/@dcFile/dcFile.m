@@ -16,6 +16,7 @@ classdef dcFile < dataContainer
        fdims   = []; % Out of core dimensions for output
        iSlice  = 0;  % Index of out-of-core slice currently loaded into 
                      % memory, 0 for unloaded.
+       inCore  = []; % Data that is being loaded in memory
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

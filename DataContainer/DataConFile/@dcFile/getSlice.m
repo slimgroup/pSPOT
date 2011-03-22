@@ -1,4 +1,4 @@
-function y = getSlice(x,ind,prec,skippy)
+function y = getSlice(x,ind,precision,skip)
 %GETSLICE   Brings a slice of the file into the core
 %
 %   y = getSlice(X,ISLICE,[PRECISION],[SKIP]) returns the ith slice of the 
@@ -9,12 +9,11 @@ function y = getSlice(x,ind,prec,skippy)
 %   accessed as a Matlab matrix.
 
 % Process input
-precision = 'double';
-skip      = 0;
-if nargin > 2
-    precision = prec;
-elseif nargin > 3
-    skip      = skippy; 
+if nargin < 4
+    skip      = 0;
+end
+if nargin < 3
+    precision = 'double';
 end
 
 % Open file
@@ -38,7 +37,6 @@ shapesize = num2cell(dims(1:end-1));
 y         = reshape(y,shapesize{:});
 
 % Setup variables
-x.data    = y;
+x.inCore  = y;
 x.dims    = size(y);
 x.iSlice  = ind;
-setHistory(x);

@@ -12,9 +12,6 @@ end
 [fid,msg] = fopen(x.outname,'a');
 assert(fid > 0, msg);
 
-% Setup variables
-dims      = x.fdims;
-
 % Write data
-y         = fwrite(fid,y,precision,skip);
+fwrite(fid,y,precision,skip);
 fclose(fid);
