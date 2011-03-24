@@ -3,5 +3,5 @@ function y = ldind(x,i)
 %
 %   ldind(x,i) will return the last-dimensional-slice of x
 
-ind(1:ndims(x)-1) = {':'};
+ind(1:length(size(x))-1) = {':'};
 y = x(ind{:},i);

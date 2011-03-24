@@ -109,12 +109,35 @@ classdef dataContainer < handle
             x.history    = History;
             x.count      = 1;
         end % clearHistory
-        
-%         function delete(x)
-%             fprintf('\nDESTRRROYIN DATACON!!!~~~\n\n');
-%         end
                 
     end % Public methods
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Methods - Static
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    methods (Static)
+        
+        % Randn function
+        function x = randn(varargin)
+            x = dataContainer(randn(varargin{:}));
+        end
+        
+        % Distributed randn
+        function x = distrandn(varargin)
+           x = dataContainer(distributed.randn(varargin{:})); 
+        end
+        
+        % Zeros function
+        function x = zeros(varargin)
+           x = dataContainer(zeros(varargin{:})); 
+        end
+        
+        % Distributed zeros
+        function x = distzeros(varargin)
+           x = dataContainer(distributed.zeros(varargin{:})); 
+        end
+        
+    end % Static methods
     
     
 end

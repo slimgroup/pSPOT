@@ -42,7 +42,9 @@ classdef dcFile < dataContainer
             fclose(fid);
                         
             % Construct data container and update dimensions
-            x         = x@dataContainer([]);
+            s         = num2cell(dims);
+            s{end}    = 0;
+            x         = x@dataContainer(zeros(s{:}));
             x.odims   = dims;
             x.perm    = 1:length(dims);
             x.fname   = filename;

@@ -10,10 +10,10 @@ classdef mdCon < dataContainer
     %   PROPERTIES
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (Access = protected)
-        filename  = '';
-        format    = 'double';
-        istemp    = false;
-        odims     = [];
+        dirname  = '';
+        format   = 'double';
+        istemp   = false;
+        odims    = [];
         
     end
     
@@ -21,11 +21,14 @@ classdef mdCon < dataContainer
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function x = mdCon(f,s,varargin)
+        function x = mdCon(f,varargin)
             
             % Check arguments size
             assert(rem(length(varargin), 2) == 0,...
                 'Param/value pairs must come in pairs.')
+            
+            % Read the header files and extract details
+            
             
             % Extract sizes
             assert(isnumeric(s),'Sizes must be numeric')
@@ -37,8 +40,8 @@ classdef mdCon < dataContainer
             x.odims = s;
             
             % Extract filename
-            assert(ischar(f),'Filename must be a string')
-            x.filename = f;
+            assert(ischar(f),'Directory name must be a string')
+            x.dirname = f;
                         
             % Parse param-value pairs
             for i = 1:2:length(varargin)
@@ -61,10 +64,15 @@ classdef mdCon < dataContainer
         
         function delete(x)
             if x.istemp
-               delete(x.filename); 
+               rmdir(x.dirname); 
             end
         end % delete
         
     end % public methods
+    
+    methods(Static)
+        
+        
+    end % Static methods
     
 end % classdef

@@ -20,7 +20,7 @@ else ivec = 'no'; end
 
 % Display
 fprintf('[[Data Container]] \n');
-fprintf(['       Dimensions : [' num2str(size(x)) ']\n']);
+fprintf(['InCore Dimensions : [' num2str(size(x)) ']\n']);
 fprintf(['      Permutation : [' num2str(x.perm) ']\n']);
 fprintf(['       Vectorized : ' vec '\n']);
 fprintf([' Implicitly Veced : ' ivec '\n']);
