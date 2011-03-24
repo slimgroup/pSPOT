@@ -109,8 +109,12 @@ classdef dataContainer < handle
             x.history    = History;
             x.count      = 1;
         end % clearHistory
+        
+%         function delete(x)
+%             fprintf('\nDESTRRROYIN DATACON!!!~~~\n\n');
+%         end
                 
-    end % Protected
+    end % Public methods
     
     
 end

@@ -11,8 +11,8 @@ M = memmapfile('A','format',{'double' [10 10] 'x'},...
 %%
 spmd
    if labindex == 1
-       M.data.x(:,1:5) = opDFT(10)*M.data.x(:,1:5)
+       M.data.x(:,1:5) = opGaussian(10,10)*M.data.x(:,1:5)
    else
-       M.data.x(:,6:10) = opDFT(10)*M.data.x(:,6:10)
+       M.data.x(:,6:10) = opGaussian(10,10)*M.data.x(:,6:10)
    end
 end
