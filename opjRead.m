@@ -23,7 +23,7 @@ classdef opjRead
             
             %Constructor
             function op = opjRead(filename)
-                javaaddpath([pwd, '/jstest.jar'])
+                %javaaddpath([pwd, '/jstest.jar'])
                 javaaddpath([pwd, '/beta_javaseis.jar'])
                 javaaddpath([pwd,'/edu_mines_jtk.jar'])
                 import('beta.javaseis.array.ElementType.*');

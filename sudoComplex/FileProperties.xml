@@ -1,0 +1,62 @@
+<parset name="JavaSeis Metadata">
+  <parset name="FileProperties">
+    <par name="Comments" type="string"> "www.javaseis.org - JavaSeis File Properties 2006.3" </par>
+    <par name="JavaSeisVersion" type="string"> 2006.3 </par>
+    <par name="DataType" type="string"> CUSTOM </par>
+    <par name="TraceFormat" type="string"> FLOAT </par>
+    <par name="ByteOrder" type="string"> LITTLE_ENDIAN </par>
+    <par name="Mapped" type="boolean"> false </par>
+    <par name="DataDimensions" type="int"> 4 </par>
+    <par name="AxisLabels" type="string">
+      TIME
+      OFFSET
+      CROSSLINE
+      INLINE
+    </par>
+    <par name="AxisUnits" type="string">
+      milliseconds
+      meters
+      meters
+      meters
+    </par>
+    <par name="AxisDomains" type="string">
+      time
+      space
+      space
+      space
+    </par>
+    <par name="AxisLengths" type="long">
+      20
+      10
+      10
+      1
+    </par>
+    <par name="LogicalOrigins" type="long">
+      0
+      1
+      1
+      1
+    </par>
+    <par name="LogicalDeltas" type="long">
+      4
+      4
+      1
+      2
+    </par>
+    <par name="PhysicalOrigins" type="double">
+      0.0
+      0.0
+      0.0
+      0.0
+    </par>
+    <par name="PhysicalDeltas" type="double">
+      10.0
+      4.0
+      25.0
+      50.0
+    </par>
+    <par name="HeaderLengthBytes" type="int"> 0 </par>
+  </parset>
+  <parset name="TraceProperties">
+  </parset>
+</parset>
