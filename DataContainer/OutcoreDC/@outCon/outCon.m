@@ -62,6 +62,7 @@ classdef outCon < dataContainer
             
         end % constructor
         
+        % delete function
         function delete(x)
             if x.istemp
                 rmdir(x.dirname);
