@@ -24,14 +24,10 @@ function y = mtimes(A,B)
 % 5) C*C, either of which can be a foreign class (including opSpot)
 
 % dataContainer preprocessing
-try
-    if isa(B,'dataContainer')
-        y = mtimes(B,A,'swap');
-    else
-        error('Lets get on with life');
-    end
-catch
-%     
+if isa(B,'dataContainer')
+    y = mtimes(B,A,'swap');
+else
+    
 % if nargin == 3 && strcmp(swap,'swap')
 %     tmp = A;    A = B;      B = tmp;    clear tmp;
 % end

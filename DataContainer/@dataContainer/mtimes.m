@@ -31,7 +31,7 @@ if ~isa(A,'dataContainer') % Right multiply
         end
     end
     
-    % Check if the cumulative product of the dimension matches A.m
+    % Check if the cumulative product of the dimension matches A.n
     s = 1;
     for j = 1:length(unreshaped_dimension)
         s = s*unreshaped_dimension(j);
