@@ -89,7 +89,7 @@ classdef dataContainer < handle
             setHistory(x);
             
         end % Constructor
-                                        
+                                                
         function setHistory(x)
             c               = x.count;
             History         = x.history;
