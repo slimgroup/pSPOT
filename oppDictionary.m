@@ -198,6 +198,9 @@ classdef oppDictionary < oppSpot
                 return;
             end % Mode 2
             
+            % X must be distributed
+            assert(isdistributed(x),'X must be distributed');
+            
             % Checking size of x
             opchildren = distributed(op.children);
             spmd

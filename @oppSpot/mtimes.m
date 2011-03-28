@@ -1,4 +1,4 @@
-function y = mtimes(A,B,swap)
+function y = mtimes(A,B)
 %*   Product of two operators.
 %
 %   A*B  returns an operator that is the product of two operators.
@@ -23,9 +23,18 @@ function y = mtimes(A,B,swap)
 % 4) C*s
 % 5) C*C, either of which can be a foreign class (including opSpot)
 
-if nargin == 3 && strcmp(swap,'swap')
-    tmp = A;    A = B;      B = tmp;    clear tmp;
-end
+% dataContainer preprocessing
+try
+    if isa(B,'dataContainer')
+        y = mtimes(B,A,'swap');
+    else
+        error('Lets get on with life');
+    end
+catch
+%     
+% if nargin == 3 && strcmp(swap,'swap')
+%     tmp = A;    A = B;      B = tmp;    clear tmp;
+% end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Mode 1: M*C
@@ -85,3 +94,4 @@ elseif ~isa(B,'opSpot')
 else
     y = opFoG(A,B);
 end
+end % catch
