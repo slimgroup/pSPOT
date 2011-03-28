@@ -18,6 +18,7 @@ if ~isa(A,'dataContainer') % Right multiply
     dimsHistory = D.history.dims;
     
     % Travel back in history
+    unreshaped_dimension = dimsHistory{end};
     for i = (length(dimsHistory) - 1):-1:1
         if numel(dimsHistory{i}) > numel(dimsHistory{i + 1})
             unreshaped_dimension = dimsHistory{i}; % Time when dimension is
