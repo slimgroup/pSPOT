@@ -94,13 +94,13 @@ classdef dataContainer
     end % Public methods
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Pure Virtual Methods
+    % Pure Protected Virtual Methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods ( Abstract, Access = protected)
         
         % Left Multiply
         y = lmultiply(x,op,mode);
-        
+                
     end % Pure virtual methods
     
     

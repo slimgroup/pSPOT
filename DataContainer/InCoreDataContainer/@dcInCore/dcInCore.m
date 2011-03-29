@@ -25,6 +25,16 @@ classdef dcInCore < dataContainer
     end % Public methods
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Static Methods
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    methods ( Static )
+        x = randn(varargin);
+        x = zeros(varargin);
+        x = empty(varargin);
+        
+    end % Static methods
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Protected Methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods ( Access = protected )
@@ -34,6 +44,6 @@ classdef dcInCore < dataContainer
             
         end % Multiply
         
-    end % Public methods
+    end % Protected methods
 
 end % classdef
