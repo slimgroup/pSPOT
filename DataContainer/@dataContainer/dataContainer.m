@@ -1,4 +1,4 @@
-classdef dataContainer < handle
+classdef dataContainer
 %DATACONTAINER  The Data Container Mother Class
 %
 %   x = dataContainer(DATA) returns a data container object containing the
@@ -19,11 +19,6 @@ classdef dataContainer < handle
 %   any changes made to this data by itself is not monitored by the data
 %   container and thus may break its history.
 %
-%   x.history returns a struct of the history of this data container,
-%   including informations such as dimensions, permutations and
-%   codistributors. History is written everytime a modifying function is
-%   called on x. (ie. reshape, permute, distriCon)
-%
 %   data container methods: 
 %   distriCon, reshape, vec, unvec, permute, unpermute, mtimes
 %
@@ -34,110 +29,79 @@ classdef dataContainer < handle
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = protected)
-        dims    = [];    % Current dimensions of data
-        perm    = [];    % Permutation of data for the current dimensions
-        veced   = false; % flag indicating if data is vectorized 
-        ivec    = false; % Whether datacon is implicitly veced
-        isdist  = false; % If data is distributed
-        codist  = [];    % Current codistributor
-        data    = [];    % Actual data for the container
-        history = [];    % History of data container
-        count   = 1;     % Counter for history
+        exdims = []; % Explicit dimensions of data
+        imdims = []; % Implicit dimensions of data
+        type   = ''; % Type of data container
+        
     end
     
-    
+    properties ( Access = protected )
+        data   = []; % Actual data for the container
+    end
+        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Methods
+    % Public Methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods
-        function x = dataContainer(data)
+        
+        % DataCon Constructor
+        function x = dataContainer(type,exdims,imdims)
             
-            if isa(data,'dataContainer')
-                x = data;
-                return;
-            end
+            % Check number of arguments
+            assert(nargin == 3,'There must be exactly 3 input arguments')
             
-            % Setup history
-            History.dims = {}; % History of dimensions
-            History.perm = {}; % History of permutation
-            History.cod  = {}; % History of codistributors
-            x.history    = History;
-            
-            if isdistributed(data)
-                assert( strcmp(classUnderlying(data),'double'),...
-                'DataContainer can only be created with numeric data' )
-                x.isdist = true;
-                
-                % Extract distribution dimension
-                spmd
-                    cod  = getCodistributor(data);
-                end
-                x.codist = cod{1};
-            else
-                assert( isnumeric(data),...
-                    'DataContainer can only be created with numeric data')
-            end
-            
-            % Check vectorization
-            if isvector(data), x.veced  = true; end
-            
-            x.data = data;
-            x.dims = size(data);
-            x.perm = 1:length(x.dims);
-            
-            % Set history
-            setHistory(x);
+            % Set attributes
+            x.type   = type;
+            x.exdims = exdims;
+            x.imdims = imdims;                     
             
         end % Constructor
-                                                
-        function setHistory(x)
-            c               = x.count;
-            History         = x.history;
-            History.dims{c} = x.dims;
-            History.perm{c} = x.perm;
-            History.cod{c}  = x.codist;
-            x.history       = History;
-            x.count         = c + 1;
-            
-        end % setHistory
         
-        function clearHistory(x)
-            
-            History.dims = {[]};
-            History.perm = {[]};
-            History.cod  = {[]};
-            x.history    = History;
-            x.count      = 1;
-        end % clearHistory
+        % Access Methods
+        function value = get.type(x)
+            value = x.type;
+        end
+        
+        function value = get.exdims(x)
+            value = x.exdims;
+        end
+        
+        function value = get.imdims(x)
+            value = x.imdims;
+        end
+        
+        function value = get.data(x)
+            value = x.data;
+        end
+        
+        % Set Methods
+        function x = set.type(x,value)
+            x.type   = value;
+        end
+        
+        function x = set.exdims(x,value)
+            x.exdims = value;
+        end
+        
+        function x = set.imdims(x,value)
+            x.imdims = value;
+        end
+        
+        function x = set.data(x,value)
+            x.data   = value;
+        end
                 
     end % Public methods
-    
+        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Methods - Static
+    % Pure Virtual Methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    methods (Static)
+    methods ( Abstract, Access = protected)
         
-        % Randn function
-        function x = randn(varargin)
-            x = dataContainer(randn(varargin{:}));
-        end
+        % Left Multiply
+        y = lmultiply(x,op,mode);
         
-        % Distributed randn
-        function x = distrandn(varargin)
-           x = dataContainer(distributed.randn(varargin{:})); 
-        end
-        
-        % Zeros function
-        function x = zeros(varargin)
-           x = dataContainer(zeros(varargin{:})); 
-        end
-        
-        % Distributed zeros
-        function x = distzeros(varargin)
-           x = dataContainer(distributed.zeros(varargin{:})); 
-        end
-        
-    end % Static methods
+    end % Pure virtual methods
     
     
 end
