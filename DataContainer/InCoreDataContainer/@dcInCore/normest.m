@@ -11,34 +11,6 @@ function [e,cnt] = normest(S,tol)
 %
 %   See also NORM, COND, RCOND, CONDEST.
 
-if nargin < 2, tol = 1.0e-6; end
-maxiter = 100;
-[m,n] = size(S);
-cnt = 0;
+if nargin == 1, tol = 1e-6; end
 
-% Compute an "estimate" of the ab-val column sums.
-v = ones(m,1);
-v(randn(m,1) < 0) = -1;
-x = abs(S'*v);
-
-e = norm(x);
-if e == 0, return, end
-x = x/e;
-e0 = 0;
-while abs(e-e0) > tol*e
-   e0 = e;
-   Sx = S*x;
-   if nnz(Sx) == 0
-      Sx = rand(size(Sx));
-   end
-   x = S'*Sx;
-   normx = norm(x);
-   e = normx/norm(Sx);
-   x = x/normx;
-   cnt = cnt+1;
-   if cnt > maxiter
-      warning('SPOT:normest:notconverge', '%s%d%s%g', ...
-              'NORMEST did not converge for ', maxiter, ' iterations with tolerance ', tol);
-      break;
-   end
-end
+[e,cnt] = normest(S.data,tol);

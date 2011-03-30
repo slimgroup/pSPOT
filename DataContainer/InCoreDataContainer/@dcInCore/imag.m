@@ -1,4 +1,4 @@
-function A = imag(A)
+function y = imag(x)
 %IMAG  Complex imaginary part.
 %
 %   imag(A) returns a new operator comprised of imaginary part of A.
@@ -11,10 +11,4 @@ function A = imag(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-   if isreal(A)
-      [m,n] = size(A);
-      A = opZeros(m,n);
-   else
-      A =  opImag(A);
-   end
-end % function imag
+y = dcInCore(imag(x.data));

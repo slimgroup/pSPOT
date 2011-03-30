@@ -1,4 +1,4 @@
-function d = diag(A)
+function d = diag(x)
 %DIAG  Diagonal operator and diagonals of an operator.
 %
 %   diag(OP) is the main diagonal of the Spot operator OP.
@@ -11,11 +11,4 @@ function d = diag(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-   [m,n] = size(A);
-   k = min(m,n);
-   d = zeros(k,1);
-   for i=1:k
-       v = zeros(n,1); v(i) = 1;
-       w = A*v;
-       d(i) = w(i);
-   end
+   d = diag(x.data);

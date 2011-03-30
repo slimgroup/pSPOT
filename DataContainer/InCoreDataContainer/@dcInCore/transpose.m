@@ -1,4 +1,4 @@
-function result = transpose(A)
+function result = transpose(x)
 %.'   Operator tranpose.
 %   A.' is the (non-conjugate) transpose of A.
 %
@@ -12,4 +12,11 @@ function result = transpose(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-result = opTranspose(A);
+% Check for ndims
+assert(ndims(x) == 2, 'x must be 2D')
+
+% Transpose
+result        = x;
+result.data   = transpose(x.data);
+result.exdims = fliplr(x.exdims);
+result.imdims = circshift(x.imdims,[0 DataContainer.collapsedDim(x) - 1]);

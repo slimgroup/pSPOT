@@ -1,4 +1,4 @@
-function y = inv(A)
+function y = inv(x)
 %INV   Inverse of a linear operator.
 %
 %   inv(A) returns the operator inverse of A. This routine is
@@ -12,4 +12,4 @@ function y = inv(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-y = opInverse(A);
+y = dcInCore(inv(x.data));

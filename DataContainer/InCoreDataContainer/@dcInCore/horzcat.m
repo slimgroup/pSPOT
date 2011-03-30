@@ -11,4 +11,5 @@ function y = horzcat(varargin)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-y = opDictionary(varargin{:});
+varargin = cellfun(@double,varargin,'UniformOutput',false');
+y = dcInCore(horzcat(varargin{:}));

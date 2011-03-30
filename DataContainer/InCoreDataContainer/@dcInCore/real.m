@@ -1,4 +1,4 @@
-function A = real(A)
+function y = real(x)
 %REAL  Complex real part.
 %
 %   opReal(A) returns an operator comprised of the real part of A.
@@ -11,10 +11,4 @@ function A = real(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-   if isreal(A)
-      % relax
-   else
-      A = opReal(A);
-   end
-   
-end % function real
+   y = dcInCore(real(x.data));

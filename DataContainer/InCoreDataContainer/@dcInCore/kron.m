@@ -16,6 +16,8 @@ function y = kron(varargin)
 if nargin < 2
     error('At least two operators must be specified.')
 end
-y = opKron(varargin{:});
+
+varargin = cellfun(@double,varargin,'UniformOutput',false');
+y = dcInCore(kron(varargin{:}));
 
 end % function kron

@@ -11,7 +11,7 @@ function x = rrandn(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-m = A.m;
+m = size(A,1);
 
 if isreal(A)
    x = randn(m,1);

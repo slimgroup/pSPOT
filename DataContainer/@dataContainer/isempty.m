@@ -1,7 +1,9 @@
-function result = isscalar(A)
-%ISSCALAR  True if operator is a scalar.
+function result = isempty(A)
+%ISEMPTY  True for empty operator.
 %
-%   isscalar(A) returns true if A is a 1-by-1 operator.
+%   isempty(A) returns true if A is an empty operator.
+%
+%   See also opEmpty.
 
 %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
 %   See the file COPYING.txt for full copyright information.
@@ -9,7 +11,7 @@ function result = isscalar(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-if (A.m == 1) && (A.n == 1)
+if any(size(A) == 0)
    result = true;
 else
    result = false;

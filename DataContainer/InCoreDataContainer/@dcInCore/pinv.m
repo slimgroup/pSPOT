@@ -11,4 +11,4 @@ function y = pinv(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-y = opPInverse(A);
+y = dcInCore(pinv(A.data));

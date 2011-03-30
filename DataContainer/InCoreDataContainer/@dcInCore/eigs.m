@@ -26,29 +26,5 @@ function varargout = eigs(varargin)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-   A = varargin{1};
-   n = size(A,2);
-   if nargin < 3
-      sigma = [];
-   else
-      sigma = varargin{3};
-   end      
-   if isempty(sigma) || (ischar(sigma) && ~strcmpi(sigma,'sm'))
-      Aprod = @(x)A*x;
-   else
-      if strcmpi(sigma,'sm') || sigma == 0
-         Aprod = @(x)A\x;
-      else
-         Aprod = @(x)(A-sigma*opEye(n))\x;
-      end
-   end
-   if nargin < 1 || nargin > 4
-      error('Unsupported number of input arguments');
-   end
-   if nargout > 3
-      error('Unsupported number of output arguments');
-   end
-
-   varargout = cell(1,max(1,nargout));
-   [varargout{:}] = eigs(Aprod,n,varargin{2:end});
-end % function eigs
+   varargin{1} = varargin{1}.data;
+   varargout{:} = eigs(varargin{:});

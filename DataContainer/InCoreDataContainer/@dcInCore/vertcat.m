@@ -11,4 +11,5 @@ function y = vertcat(varargin)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-y = opStack(varargin{:});
+varargin = cellfun(@double,varargin,'UniformOutput',false');
+y = dcInCore(vertcat(varargin{:}));

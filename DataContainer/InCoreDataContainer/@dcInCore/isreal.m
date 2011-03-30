@@ -12,4 +12,4 @@ function result = isreal(A)
 %   http://www.cs.ubc.ca/labs/scl/spot
 
 % Get size information
-result = ~A.cflag;
+result = isreal(A.data);
