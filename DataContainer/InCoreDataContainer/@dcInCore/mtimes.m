@@ -14,15 +14,7 @@ if ~isa(A,'dataContainer') % Right multiply
     % Extract collapsed dimensions
     if length(D.imdims) > length(y.imdims)
         
-        collapsed_dims = 1;
-        ind = 2;
-        for i = 1:length(D.imdims)
-            collapsed_dims = collapsed_dims * D.imdims(i);
-            if collapsed_dims == size(A,2)
-                ind = i + 1;
-               break; 
-            end
-        end
+        ind = DataContainer.collapsedDim(D);
         y.imdims = [y.imdims(1) D.imdims(ind:end)];
     end
             
