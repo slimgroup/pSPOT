@@ -33,7 +33,13 @@ else
             y = nDimsInfNorm(x,@min);
                         
         case {1,2}
+            warning(['You are implicitly doing norm '...
+                'on a vectorized N-D array, '...
+                'Please use norm(x,"fro")' ]);
             y = nDimsPNorm(x,p)^(1/p);
+            
+        case 'fro'
+            y = nDimsPNorm(x,2)^(1/2);
             
         otherwise
         error('Unsupported norm type');

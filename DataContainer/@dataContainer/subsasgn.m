@@ -24,7 +24,7 @@ switch s.type
         x.(s.subs) = b;  
 
    case {'{}'}
-      error('Cell-index access is read-only.');
+      error('Cell-index access is not supported.');
  
    case {'()'}
        x.data = subsasgn(x.data,s,b);

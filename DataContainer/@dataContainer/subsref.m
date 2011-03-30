@@ -3,7 +3,6 @@ function varargout = subsref(x,s)
 %
 %   X.<property> returns the value stored in that property: Currently the
 %   two properties that the user would be interested in is:
-%   X.data    - Returns the explicit data stored in the data container
 %
 %   X(a,b,..) - where a,b,.. are indices returns the explicit 
 %               elements stored within the data container as if it is a
@@ -61,10 +60,6 @@ switch s.type
       error('Cell-indexing is not supported.');
  
    case {'()'}
-       if strcmp(s.subs,':')
-           varargout{1} = vec(x);
-       else
-           varargout{1} = subsref(x.data,s);
-       end
+      varargout{1} = subsref(x.data,s);
 
 end
