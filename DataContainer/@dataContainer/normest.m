@@ -1,9 +1,9 @@
-function [e,cnt] = normest(S,tol)
+function [e,cnt] = normest(x,tol)
 %NORMEST Estimate the matrix 2-norm.
 %
-%   normest(S) is an estimate of the 2-norm of the matrix S.
+%   normest(x) is an estimate of the 2-norm of the matrix S.
 %
-%   normest(S,tol) uses relative error tol instead of 1e-6.
+%   normest(x,tol) uses relative error tol instead of 1e-6.
 %
 %   [nrm,cnt] = normest(..) also gives the number of iterations used.
 %
@@ -13,4 +13,4 @@ function [e,cnt] = normest(S,tol)
 
 if nargin == 1, tol = 1e-6; end
 
-[e,cnt] = normest(S.data,tol);
+[e,cnt] = normest(double(x),tol);

@@ -11,4 +11,4 @@ function A = conj(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-A.data = conj(A.data);
+A.data = conj(double(A));

@@ -11,4 +11,4 @@ function y = real(x)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-   y = dcInCore(real(x.data));
+   y = real(double(x));

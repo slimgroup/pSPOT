@@ -1,3 +1,3 @@
 function y = full(x)
 
-y = full(x.data);
+y = full(double(x));

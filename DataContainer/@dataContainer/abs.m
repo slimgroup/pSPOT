@@ -3,4 +3,4 @@ function y = abs(x)
 %   X is complex, ABS(X) is the complex modulus (magnitude) of
 %   the elements of X.
 
-y = abs(x.data);
+y = abs(double(x));

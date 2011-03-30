@@ -11,6 +11,8 @@ function x = rrandn(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
+assert(ndims(A) == 2,'A must be 2D')
+
 m = size(A,1);
 
 if isreal(A)

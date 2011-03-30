@@ -1,9 +1,9 @@
-function d = diag(x)
-%DIAG  Diagonal operator and diagonals of an operator.
+function result = isreal(x)
+%ISREAL  True for real operator.
 %
-%   diag(OP) is the main diagonal of the Spot operator OP.
+%   isreal(A) returns true if A is a real operator.
 %
-%   See also opDiag.
+%   See also opSpot.real.
 
 %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
 %   See the file COPYING.txt for full copyright information.
@@ -11,4 +11,5 @@ function d = diag(x)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-   d = diag(x.data);
+% Get size information
+result = isreal(double(x));

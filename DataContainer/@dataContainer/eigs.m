@@ -26,5 +26,5 @@ function varargout = eigs(varargin)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-   varargin{1} = varargin{1}.data;
+   varargin{1} = double(varargin{1});
    varargout{:} = eigs(varargin{:});

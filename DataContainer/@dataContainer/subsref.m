@@ -60,6 +60,6 @@ switch s.type
       error('Cell-indexing is not supported.');
  
    case {'()'}
-      varargout{1} = subsref(x.data,s);
+      varargout{1} = subsref(double(x),s);
 
 end

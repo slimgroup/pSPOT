@@ -11,4 +11,4 @@ function y = imag(x)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-y = dcInCore(imag(x.data));
+y = imag(double(x));
