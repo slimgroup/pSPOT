@@ -12,11 +12,7 @@ if ~isa(A,'dataContainer') % Right multiply
     y = dcInCore(A*double(D));
     
     % Extract collapsed dimensions
-    if length(D.imdims) > length(y.imdims)
-        
-        ind = DataContainer.collapsedDim(D);
-        y.imdims = [y.imdims(1) D.imdims(ind:end)];
-    end
+    y.imdims = { y.imdims{1} D.imdims{2} };
             
 elseif ~isa(D,'dataContainer') % Left multiply
     y = dcInCore(double(A)*D);

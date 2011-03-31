@@ -30,7 +30,7 @@ classdef dataContainer
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = protected)
         exdims = []; % Explicit dimensions of data
-        imdims = []; % Implicit dimensions of data
+        imdims = {}; % Implicit dimensions of data
         type   = ''; % Type of data container
         strict = false; % Strict flag for elementary operations
     end

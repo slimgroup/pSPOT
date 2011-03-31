@@ -1,4 +1,4 @@
-function [e,cnt] = normest(x,tol)
+function [e,cnt] = normest(x,varargin)
 %NORMEST Estimate the matrix 2-norm.
 %
 %   normest(x) is an estimate of the 2-norm of the matrix S.
@@ -11,6 +11,4 @@ function [e,cnt] = normest(x,tol)
 %
 %   See also NORM, COND, RCOND, CONDEST.
 
-if nargin == 1, tol = 1e-6; end
-
-[e,cnt] = normest(double(x),tol);
+[e,cnt] = normest(double(x),varargin{:});

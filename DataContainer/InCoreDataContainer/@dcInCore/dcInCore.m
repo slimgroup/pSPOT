@@ -18,7 +18,7 @@ classdef dcInCore < dataContainer
             dims = size(data);
             
             % Construct class
-            x = x@dataContainer('InCore',dims,dims);
+            x = x@dataContainer('InCore',dims,num2cell(dims));
             x.data = data;
         end
         

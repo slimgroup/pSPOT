@@ -17,6 +17,6 @@ assert(ndims(x) == 2, 'x must be 2D')
 
 % Transpose
 result        = x;
-result.data   = ctranspose(x.data);
+result.data   = ctranspose(double(x));
 result.exdims = fliplr(x.exdims);
-result.imdims = circshift(x.imdims,[0 DataContainer.collapsedDim(x) - 1]);
+result.imdims = fliplr(x.imdims);
