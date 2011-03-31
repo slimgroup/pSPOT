@@ -1,9 +1,9 @@
-function y = pinv(A)
-%PINV   Pseudo-inverse of an operator
+function y = real(x)
+%REAL  Complex real part.
 %
-%   pinv(A) returns the operator pseudo-inverse of A.
+%   opReal(A) returns an operator comprised of the real part of A.
 %
-%   See also opSpot.inv, opPInverse, opInverse.
+%   See also opReal, opSpot.imag.
 
 %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
 %   See the file COPYING.txt for full copyright information.
@@ -11,4 +11,5 @@ function y = pinv(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-y = dcInCore(pinv(A.data));
+   y = dcInCore(real(double(x)));
+   y.imdims = x.imdims;

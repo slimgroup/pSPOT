@@ -24,3 +24,16 @@ disp('Transpose')
 x = x'
 disp('Reshape again: ')
 x = reshape(x,n3,n4,n1,n2)
+
+%% plus
+clc
+x = dcInCore.randn(5,4);
+A = opGaussian(5,4);
+y = A + x
+
+%% bsxfun
+clear, clc
+x = dcInCore.randn(5,4);
+y = randn(5,1);
+z = bsxfun(@minus,x,y)
+a = bsxfun(@minus,y,x)
