@@ -10,7 +10,7 @@ function [ A ] = funWindow1DfdBck( n, p, h )
 %   OUTPUT:
 %      A = 'inverse' operator
 
-    [ m ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+    [ m os ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
 
     A=sparse(n,m);
     for w=1:p

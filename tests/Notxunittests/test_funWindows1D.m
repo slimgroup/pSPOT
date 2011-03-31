@@ -14,7 +14,7 @@ for n=N(1):N(2):N(3)
         for h=0:H
     
             try
-                [ m ysf xsf ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+                [ m osf ysf xsf ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
                 %fprintf('\ttest: n=%d p=%d h=%d\n',n,p,h);
             catch pr
                 %fprintf('invalid shape: n=%d p=%d h=%d\n',n,p,h);
