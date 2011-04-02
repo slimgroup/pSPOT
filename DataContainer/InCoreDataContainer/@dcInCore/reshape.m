@@ -16,26 +16,14 @@ function y = reshape(x,varargin)
 
 % Check for the collapsibility of reshape
 % Do the calculation
-imdims  = x.imdims;
-exdims  = [varargin{:}];
-result1 = -1;
-collapsed_dims = 1;
+imdims = cell2mat(x.imdims);
+redims = [varargin{:}];
+result = -1;
+collapsed_dims = {1};
 for i = 1:length(imdims)
     collapsed_dims = collapsed_dims * imdims(i);
     if  collapsed_dims == exdims(1)
         result1 = i + 1;
-        break;
-    end
-end
-
-exdims  = x.imdims;
-imdims  = [varargin{:}];
-result2 = -1;
-collapsed_dims = 1;
-for i = 1:length(imdims)
-    collapsed_dims = collapsed_dims * imdims(i);
-    if  collapsed_dims == exdims(1)
-        result2 = i + 1;
         break;
     end
 end
