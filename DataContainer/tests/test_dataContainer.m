@@ -1,3 +1,8 @@
+function test_suite = test_dataContainer
+initTestSuite;
+end
+
+function test_dataContainer_dcInCore
 %% Test for dcInCore
 clc
 
@@ -18,22 +23,43 @@ for l = 1:n4
 end
 
 disp(x)
-disp('First reshape: ')
-x = reshape(x,n1*n2,n3*n4)
-disp('Transpose')
-x = x'
-disp('Reshape again: ')
-x = reshape(x,n3,n4,n1,n2)
+% disp('First reshape: ')
+x = reshape(x,n1*n2,n3*n4);
+% disp('Transpose')
+x = x';
+% disp('Reshape again: ')
+x = reshape(x,n3,n4,n1,n2);
+end
 
+function test_dataContainer_plus
 %% plus
 clc
 x = dcInCore.randn(5,4);
 A = opGaussian(5,4);
-y = A + x
+y = A + x;
+end
 
+function test_dataContainer_bsxfun
 %% bsxfun
 clear, clc
 x = dcInCore.randn(5,4);
 y = randn(5,1);
-z = bsxfun(@minus,x,y)
-a = bsxfun(@minus,y,x)
+z = bsxfun(@minus,x,y);
+a = bsxfun(@minus,y,x);
+end
+
+function test_dataContainer_dcInCore_reshape
+%% Testing intelligent reshape function
+n1 = randi(10);
+n2 = randi(10);
+n3 = randi(10);
+n4 = randi(10);
+
+x = dcInCore.randn(n1,n2,n3,n4);
+x = reshape(x,n1*n2,n3*n4);
+cell2mat(isize(x))
+y = vec(x);
+cell2mat(isize(y))
+z = reshape(y,n1,n2,n3,n4);
+
+end

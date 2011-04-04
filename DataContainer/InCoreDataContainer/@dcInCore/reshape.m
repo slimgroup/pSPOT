@@ -16,24 +16,21 @@ function y = reshape(x,varargin)
 
 % Check for the collapsibility of reshape
 % Do the calculation
-imdims = cell2mat(x.imdims);
-redims = [varargin{:}];
-result = -1;
-collapsed_dims = {1};
+imdims  = [x.imdims{:}];
+redims  = [varargin{:}];
+j       = 1;
+collapsed_chunk = [];
 for i = 1:length(imdims)
-    collapsed_dims = collapsed_dims * imdims(i);
-    if  collapsed_dims == exdims(1)
-        result1 = i + 1;
-        break;
+    collapsed_chunk = [collapsed_chunk imdims(i)];
+    if  prod(collapsed_chunk) == redims(j)
+        collapsed_dims{j} = collapsed_chunk;
+        j = j + 1;
+        collapsed_chunk = [];
+    elseif prod(collapsed_chunk) > redims(j)
+        error('Reshape dimensions must be collapsed or multiples of implicit dimension');
     end
 end
 
-% Boolean
-result = result1 > 0 || result2 > 0;
-
-assert(result, ...
-    'Reshape dimensions must be collapesed or multiples of implicit dimension')
-
 % Reshape
 y = dcInCore(reshape(x.data,varargin{:}));
-y.imdims = x.imdims;
+y.imdims = collapsed_dims;
