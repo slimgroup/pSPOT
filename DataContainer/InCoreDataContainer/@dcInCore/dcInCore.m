@@ -20,6 +20,7 @@ classdef dcInCore < dataContainer
             % Construct class
             x = x@dataContainer('InCore',dims,num2cell(dims));
             x.data = data;
+            x.perm = 1:length(size(data));
         end
         
     end % Public methods

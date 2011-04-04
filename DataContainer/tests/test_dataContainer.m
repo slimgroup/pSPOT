@@ -63,3 +63,13 @@ cell2mat(isize(y))
 z = reshape(y,n1,n2,n3,n4);
 
 end
+
+function test_dataContainer_dcInCore_permute
+%% Testing permute and unpermute
+n1 = randi([2,10]);
+n2 = randi([2,10]);
+n3 = randi([2,10]);
+x = dcInCore.randn(n1,n2,n3);
+x = permute(x,3,2,1);
+x = unpermute(x);
+end
