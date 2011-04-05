@@ -1,4 +1,4 @@
-classdef dcInCore < dataContainer
+classdef iCon < dataContainer
 %DCINCORE   The In-Core Data Container Class
 %
 %
@@ -8,11 +8,16 @@ classdef dcInCore < dataContainer
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods
         
-        % dcInCore Constructor
-        function x = dcInCore(data)
+        % iCon Constructor
+        function x = iCon(data)
             
             % Check for data
-            assert(isnumeric(data),'Input data must be numeric')
+            if isdistributed(data)
+                assert(strcmp(classUnderlying(data),'double'),...
+                    'Input data must be numeric')
+            else
+                assert(isnumeric(data),'Input data must be numeric')
+            end
             
             % Get sizes
             dims = size(data);
@@ -29,22 +34,16 @@ classdef dcInCore < dataContainer
     % Static Methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods ( Static )
+        
+        % randn
         x = randn(varargin);
+        
+        % zeros
         x = zeros(varargin);
+        
+        % empty
         x = empty(varargin);
         
     end % Static methods
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Protected Methods
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    methods ( Access = protected )
         
-        % Left Multiply
-        function y = lmultiply(x,op,mode)
-            
-        end % Multiply
-        
-    end % Protected methods
-
 end % classdef

@@ -46,7 +46,7 @@ function y = bsxfun(fun,A,B)
 %     A = bsxfun(@minus, A, mean(A));
 
 
-y = dcInCore(bsxfun(fun,double(A),double(B)));
+y = iCon(bsxfun(fun,double(A),double(B)));
 
 if prod(size(A)) > prod(size(B))
     y.imdims = A.imdims;

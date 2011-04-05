@@ -2,8 +2,8 @@ function test_suite = test_dataContainer
 initTestSuite;
 end
 
-function test_dataContainer_dcInCore
-%% Test for dcInCore
+function test_dataContainer_iCon
+%% Test for iCon
 n1 = 3;
 n2 = 3;
 n3 = 3;
@@ -30,39 +30,39 @@ end
 
 function test_dataContainer_plus
 %% plus
-x = dcInCore.randn(5,4);
+x = iCon.randn(5,4);
 A = opGaussian(5,4);
 y = A + x;
 end
 
 function test_dataContainer_bsxfun
 %% bsxfun
-x = dcInCore.randn(5,4);
+x = iCon.randn(5,4);
 y = randn(5,1);
 z = bsxfun(@minus,x,y);
 a = bsxfun(@minus,y,x);
 end
 
-function test_dataContainer_dcInCore_reshape
+function test_dataContainer_iCon_reshape
 %% Testing intelligent reshape function
 n1 = randi(10);
 n2 = randi(10);
 n3 = randi(10);
 n4 = randi(10);
 
-x = dcInCore.randn(n1,n2,n3,n4);
+x = iCon.randn(n1,n2,n3,n4);
 x = reshape(x,n1*n2,n3*n4);
 y = vec(x);
 z = reshape(y,n1,n2,n3,n4);
 
 end
 
-function test_dataContainer_dcInCore_permute
+function test_dataContainer_iCon_permute
 %% Testing permute and unpermute
 n1 = randi([2,10]);
 n2 = randi([2,10]);
 n3 = randi([2,10]);
-x = dcInCore.randn(n1,n2,n3);
+x = iCon.randn(n1,n2,n3);
 x = permute(x,[3 2 1]);
 x = unpermute(x);
 end

@@ -9,7 +9,7 @@ function y = power(A,B)
 %
 %   See also MPOWER
 
-y = dcInCore(power(double(A),double(B)));
+y = iCon(power(double(A),double(B)));
 
 if isa(A,'dataContainer')
     y.imdims = A.imdims;

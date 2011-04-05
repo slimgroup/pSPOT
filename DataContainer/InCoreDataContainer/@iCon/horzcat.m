@@ -1,9 +1,9 @@
-function y = vertcat(varargin)
-%VERTCAT  Vertical concatenation.
+function y = horzcat(varargin)
+%HORZCAT  Horizontal concatenation.
 %
-%   [A; B] is the vertical concatenation of the operators A and B.
+%   [A B] is the horizonal concatenation of operators A and B.
 %
-%   See also opSpot.horzcat, opStack.
+%   See also opSpot.vertcat, opDictionary.
 
 %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
 %   See the file COPYING.txt for full copyright information.
@@ -12,4 +12,4 @@ function y = vertcat(varargin)
 %   http://www.cs.ubc.ca/labs/scl/spot
 
 varargin = cellfun(@double,varargin,'UniformOutput',false');
-y = dcInCore(vertcat(varargin{:}));
+y = iCon(horzcat(varargin{:}));

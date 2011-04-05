@@ -26,7 +26,7 @@ for  i = 1:length(perm) % Find new dimension of distribution
     toperm(i)  = operm(perm(i));
 end
 
-y = dcInCore(permute(x.data,perm));
+y = iCon(permute(x.data,perm));
 
 y.perm   = toperm;
 y.exdims = tgsize;

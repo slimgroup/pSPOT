@@ -1,4 +1,4 @@
-function A = conj(A)
+function y = conj(x)
 %CONJ  Elementwise conjugate of operator.
 %
 %   conj(OP) is the elementwise conjugate of the Spot operator OP.
@@ -11,4 +11,5 @@ function A = conj(A)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-A.data = conj(double(A));
+y = x;
+y.data = conj(double(x));

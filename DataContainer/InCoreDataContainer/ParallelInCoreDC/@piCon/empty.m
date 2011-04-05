@@ -4,4 +4,4 @@ if numel(varargin{1}) > 1
     varargin = num2cell(varargin{1});
 end
 varargin( end ) = {0};
-x = dcInCore(zeros(varargin{:}));
+x = piCon(distributed.zeros(varargin{:}));

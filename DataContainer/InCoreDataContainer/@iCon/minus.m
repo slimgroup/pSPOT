@@ -1,4 +1,4 @@
-function y = plus(A,B,swp)
+function y = minus(A,B,swp)
 %+   Sum of two operators.
 %
 %   See also opSum, opSpot.minus.
@@ -17,24 +17,24 @@ if nargin == 3 && strcmp(swp,'swap')
 end
 
 if isscalar(A)
-   A = dcInCore(A*ones(size(B)));
+   A = iCon(A*ones(size(B)));
 end
 if isscalar(B)
-   B = dcInCore(B*ones(size(A)));
+   B = iCon(B*ones(size(A)));
 end
 
 if ~isa(A,'dataContainer') % Right multiply
-    y = dcInCore(double(A + double(B)));
+    y = iCon(double(A - double(B)));
     
     y.imdims = B.imdims;
             
 elseif ~isa(B,'dataContainer') % Left multiply
-    y = dcInCore(double(double(A) + B));
+    y = iCon(double(double(A) - B));
     
     y.imdims = A.imdims;
     
 else % Both data containers
-    y = dcInCore(double(A) + double(B));
+    y = iCon(double(A) - double(B));
     
     % Check for strict flag
     if A.strict || B.strict

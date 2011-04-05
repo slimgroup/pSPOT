@@ -32,5 +32,5 @@ for i = 1:length(imdims)
 end
 
 % Reshape
-y = dcInCore(reshape(x.data,varargin{:}));
+y = iCon(reshape(x.data,varargin{:}));
 y.imdims = collapsed_dims;

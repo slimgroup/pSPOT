@@ -9,7 +9,7 @@ function y = rdivide(A,B)
 %
 %   See also LDIVIDE
 
-y = dcInCore(rdivide(double(A),double(B)));
+y = iCon(rdivide(double(A),double(B)));
 
 if isa(A,'dataContainer')
     y.imdims = A.imdims;

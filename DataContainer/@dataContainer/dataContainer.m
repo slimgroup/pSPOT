@@ -95,14 +95,54 @@ classdef dataContainer
     end % Public methods
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Pure Protected Virtual Methods
+    % Abstract Public Methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    methods ( Abstract, Access = protected)
+    methods ( Abstract )
         
-        % Left Multiply
-        y = lmultiply(x,op,mode);
+        % double
+        y = double(x)
+        
+        % subsref
+        varargout = subsref(x,s)
+        
+        % subsasgn
+        x = subsasgn(x,s,b)
+        
+        % plus
+        y = plus(A,B,swp)
+        
+        % minus
+        y = minus(A,B,swp)
+        
+        % mtimes
+        y = mtimes(A,B,swp)
+        
+        % ldivide
+        y = ldivide(A,B)
+        
+        % rdivide
+        y = rdivide(A,B)
+        
+        % power
+        y = power(A,B)
                 
-    end % Pure virtual methods
+    end % Public Abstract methods
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Abstract Static Methods
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    methods ( Abstract, Static )
+        
+        % randn
+        x = randn(varargin);
+        
+        % zeros
+        x = zeros(varargin);
+        
+        % empty
+        x = empty(varargin);
+        
+    end % Abstract static methods
     
     
 end

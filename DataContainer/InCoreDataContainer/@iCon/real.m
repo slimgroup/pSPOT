@@ -1,9 +1,9 @@
-function y = imag(x)
-%IMAG  Complex imaginary part.
+function y = real(x)
+%REAL  Complex real part.
 %
-%   imag(A) returns a new operator comprised of imaginary part of A.
+%   opReal(A) returns an operator comprised of the real part of A.
 %
-%   See also opSpot.real, opImag.
+%   See also opReal, opSpot.imag.
 
 %   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
 %   See the file COPYING.txt for full copyright information.
@@ -11,5 +11,5 @@ function y = imag(x)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-y = dcInCore(imag(double(x)));
-y.imdims = x.imdims;
+   y = iCon(real(double(x)));
+   y.imdims = x.imdims;
