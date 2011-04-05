@@ -25,7 +25,7 @@ for n=N(1):N(2):N(3)
             try
                 A=oplWindow1Dfd(n,p,h);
                 try
-                    A.utest();
+                    A.utest(1);
                 catch xy
                     fprintf('FD: n=%d m=%d p=%d h=%d\n',n,m,p,h);
                     disp(xy.message);
@@ -41,7 +41,7 @@ for n=N(1):N(2):N(3)
             try
                 A=oplWindow1Dtpr(n,p,h);
                 try
-                    A.utest();
+                    A.utest(1);
                 catch xy
                     fprintf('TPR: n=%d m=%d p=%d h=%d\n',n,m,p,h);
                     disp(xy.message);

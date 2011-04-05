@@ -2,11 +2,12 @@ function [opList,m,n,cflag,linear] = stdpspotchk(varargin)
 %STDCHK    Performs the standard checking and data extraction routine
 %          in pSpot.
 %
-%   Returns:
-%   opList: List of Spot operators in a cell array
-%   [m,n]: The array of the sizes of the operators
-%   cflag: Complexity of the operators
-%   linear: Linearity of the operators
+%   [opList,m,n,cflag,linear] = stdpspotchk(LIST) takes in a cell array of
+%   Spot operators or numerical matrices and returns:
+%       opList: List of Spot operators in a cell array
+%       [m,n] : The array of the sizes of the operators
+%       cflag : 1 if complex, 0 if not.
+%       linear: 1 if linear, 0 if not.
 
 % Check for empty operators and remove them
 ops = ~cellfun(@isempty,varargin);

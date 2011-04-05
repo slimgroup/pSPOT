@@ -27,11 +27,11 @@ end
 
 function test_oppBlockDiag_repeat
 %%
-    n = randi(10);
-    A = opMatrix(randn(n,n));
-    D = oppBlockDiag(3,A,1);
-    E = opBlockDiag(3,A);
-    x = drandn(D,2);
+    n  = randi([2,10]);
+    A  = opMatrix(randn(n,n));
+    D  = oppBlockDiag(3,A,1);
+    E  = opBlockDiag(3,A);
+    x  = drandn(D,2);
     x2 = gather(x);    
     assertElementsAlmostEqual( D*x, E*x2 )
     assertElementsAlmostEqual( D'*x, E'*x2 )

@@ -77,6 +77,30 @@ classdef oppCTranspose < oppSpot
           opOut = conj(op.children{1});
        end
        
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       % Drandn
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function x = drandn(A,Ncols)
+           ncols = 1;
+           if nargin == 2 % for easy multivectoring
+               ncols = Ncols;
+           end
+           A = A.children{1};
+           x = rrandn(A,ncols);
+       end
+       
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       % Rrandn
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function x = rrandn(A,Ncols)
+           ncols = 1;
+           if nargin == 2 % for easy multivectoring
+               ncols = Ncols;
+           end
+           A = A.children{1};
+           x = drandn(A,ncols);
+       end
+       
     end % methods - public
 
     methods( Access = protected )
