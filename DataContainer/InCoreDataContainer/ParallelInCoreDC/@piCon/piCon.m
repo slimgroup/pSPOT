@@ -4,7 +4,8 @@ classdef piCon < iCon
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = protected)
-        codist; % Codistributor of data
+        excod; % Explicit codistributor of data
+        imcod; % Implicit codistributor of data
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -27,7 +28,8 @@ classdef piCon < iCon
             
             % Construct iCon
             x = x@iCon(data);
-            x.codist = cod{1};
+            x.excod = cod{1};
+            x.imcod = cod{1};
             
         end % Constructor
         
@@ -39,13 +41,16 @@ classdef piCon < iCon
     methods ( Static )
         
         % randn
-        x = randn(varargin);
+        x = randn(varargin)
         
         % zeros
-        x = zeros(varargin);
+        x = zeros(varargin)
         
         % empty
-        x = empty(varargin);
+        x = empty(varargin)
+        
+        % Serial to distributed converter
+        x = distributed(data)
         
     end % Static methods
     
