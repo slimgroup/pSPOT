@@ -7,9 +7,9 @@ function test_piCon_reshape
 n1 = randi(5);
 n2 = randi(5);
 n3 = randi(5);
-x = piCon.randn(n1,n2,n3);
-x = reshape(x,n1,n2*n3);
-x = reform(x);
+x  = piCon.randn(n1,n2,n3);
+x  = reshape(x,n1,n2*n3);
+x  = reform(x);
 end % reshape
 
 function test_piCon_redistribute
@@ -17,8 +17,19 @@ function test_piCon_redistribute
 n1 = randi(5);
 n2 = randi(5);
 n3 = randi(5);
-x = piCon.randn(n1,n2,n3);
+x  = piCon.randn(n1,n2,n3);
+% x.codistInfo;
+x  = redistribute(x,2);
+% x.codistInfo;
+end % redistribute
+
+function test_piCon_permute
+%% Testing piCon permute
+n1 = randi(5);
+n2 = randi(5);
+n3 = randi(5);
+x  = piCon.randn(n1,n2,n3);
 x.codistInfo;
-x = redistribute(x,2);
+x  = permute(x,2,3,1);
 x.codistInfo;
-end % reshape
+end % permute
