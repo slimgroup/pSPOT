@@ -1,3 +1,3 @@
 function y = reform(x)
 
-y = reshape(x.imcod.Dimension,x,x.imdims{:});
+y = reshape(x.imcoddims,x,x.imdims{:});

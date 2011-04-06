@@ -54,7 +54,7 @@ assert(numel(x.data) == prod(sizes),'Number of elements must be conserved')
 
 % Setup variables
 data = x.data;
-if ~dim, dim  = x.excod.Dimension; end
+if ~dim, dim  = x.excoddims; end
 
 % Pick the smallest dimension
 dim = min(dim,length(sizes));
@@ -84,10 +84,12 @@ end
 
 % Set variables
 y = x;
-y.data   = data;
-y.excod  = cod{1};
-y.imdims = collapsed_dims;
+y.data      = data;
+cod         = cod{1};
+y.excoddims = cod.Dimension;
+y.excodpart = cod.Partition;
+y.imdims    = collapsed_dims;
 
 % Set variables
-y.perm   = 1:length(sizes); % Old permutation is void
-y.exdims = sizes;
+y.perm      = 1:length(sizes); % Old permutation is void
+y.exdims    = sizes;

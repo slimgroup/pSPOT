@@ -4,8 +4,10 @@ classdef piCon < iCon
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = protected)
-        excod; % Explicit codistributor of data
-        imcod; % Implicit codistributor of data
+        excoddims; % Explicit codistributed dimension of data
+        excodpart; % Explicit codistributed partition of data
+        imcoddims; % Implicit codistributed dimension of data
+        imcodpart; % Implicit codistributed partition of data
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,8 +30,11 @@ classdef piCon < iCon
             
             % Construct iCon
             x = x@iCon(data);
-            x.excod = cod{1};
-            x.imcod = cod{1};
+            cod = cod{1};
+            x.excoddims = cod.Dimension;
+            x.excodpart = cod.Partition;
+            x.imcoddims = cod.Dimension;
+            x.imcodpart = cod.Partition;
             
         end % Constructor
         
