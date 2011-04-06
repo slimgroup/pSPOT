@@ -88,8 +88,8 @@ y.data      = data;
 cod         = cod{1};
 y.excoddims = cod.Dimension;
 y.excodpart = cod.Partition;
+y.imcoddims = cod.Dimension; % Old distribution is obsolete
+y.imcodpart = cod.Partition; % Old distribution is obsolete
 y.imdims    = collapsed_dims;
-
-% Set variables
-y.perm      = 1:length(sizes); % Old permutation is void
+y.perm      = 1:length(sizes); % Old permutation is obsolete
 y.exdims    = sizes;

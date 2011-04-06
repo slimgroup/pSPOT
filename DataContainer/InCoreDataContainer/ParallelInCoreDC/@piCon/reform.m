@@ -1,3 +1,3 @@
 function y = reform(x)
 
-y = reshape(x.imcoddims,x,x.imdims{:});
+y = reshape(length([x.imdims{:}]),x,x.imdims{:});
