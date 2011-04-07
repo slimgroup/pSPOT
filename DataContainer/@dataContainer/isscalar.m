@@ -9,8 +9,4 @@ function result = isscalar(x)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-if (size(x,1) == 1) && (size(x,2) == 1)
-   result = true;
-else
-   result = false;
-end
+result = isscalar(double(x));

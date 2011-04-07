@@ -1,4 +1,4 @@
 function y = uminus(x)
 
-y = iCon(uminus(double(x)));
-y.imdims = x.imdims;
+y      = x;
+y.data = uminus(double(x));

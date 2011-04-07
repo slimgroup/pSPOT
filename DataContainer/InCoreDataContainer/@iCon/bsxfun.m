@@ -48,8 +48,8 @@ function y = bsxfun(fun,A,B)
 
 y = iCon(bsxfun(fun,double(A),double(B)));
 
-if prod(size(A)) > prod(size(B))
+if isa(A,'iCon')
     y.imdims = A.imdims;
-else
+elseif isa(B,'iCon')
     y.imdims = B.imdims;
 end

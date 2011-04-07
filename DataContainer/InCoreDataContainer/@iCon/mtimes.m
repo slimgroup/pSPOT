@@ -9,19 +9,25 @@ end
 
 % Multiply
 if ~isa(A,'dataContainer') % Right multiply
-    y = iCon(A*double(B));
+    y        = B;
+    y.data   = A*double(B);
+    y.exdims = size(y.data);
     
     % Extract collapsed dimensions
-    y.imdims = { y.imdims{1} B.imdims{2} };
+    y.imdims = { size(A,1) B.imdims{2} };
             
 elseif ~isa(B,'dataContainer') % Left multiply
-    y = iCon(double(A)*B);
+    y        = A;
+    y.data   = double(A)*B;
+    y.exdims = size(y.data);
     
     % Extract collapsed dimensions
-    y.imdims = { A.imdims{1} y.imdims{2} };
+    y.imdims = { A.imdims{1} size(B,2) };
     
 else % Both data containers
-    y = iCon(double(A)*double(B));
+    y        = A;
+    y.data   = double(A)*double(B);
+    y.exdims = size(y.data);
     
     % Extract collapsed dimensions
     y.imdims = { A.imdims{1} B.imdims{2} };

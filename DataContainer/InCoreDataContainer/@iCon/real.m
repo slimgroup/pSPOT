@@ -11,5 +11,5 @@ function y = real(x)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-   y = iCon(real(double(x)));
-   y.imdims = x.imdims;
+y = x;
+y.data = real(double(x));

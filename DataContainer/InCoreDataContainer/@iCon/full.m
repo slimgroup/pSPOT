@@ -1,4 +1,4 @@
 function y = full(x)
 
-y = iCon(full(double(x)));
-y.imdims = x.imdims;
+y      = x;
+y.data = full(double(x));

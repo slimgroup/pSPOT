@@ -60,6 +60,11 @@ function out = datacontests(varargin)
 %   Steven L. Eddins
 %   Copyright 2009 The MathWorks, Inc.
 
+% Make sure matlabpool is open
+if matlabpool('size') == 0
+    error('Matlab pool is not on!');
+end
+
 % Make sure that xUnit is on the path.
 if exist('TestSuite','file')
    % Relax. Found it.

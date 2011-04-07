@@ -16,30 +16,35 @@ if nargin == 3 && strcmp(swp,'swap')
    clear temp;
 end
 
-if isscalar(A)
-   A = iCon(A*ones(size(B)));
-end
-if isscalar(B)
-   B = iCon(B*ones(size(A)));
+% Case for both scalars
+if isscalar(A) && isscalar(B)
+    y = double(A) + double(B);
+    return;
 end
 
-if ~isa(A,'dataContainer') % Right multiply
-    y = iCon(double(A + double(B)));
-    
-    y.imdims = B.imdims;
+% Else
+if isscalar(A)
+    A = A*ones(size(B));
+end
+if isscalar(B)
+    B = B*ones(size(A));
+end
+
+if ~isa(A,'iCon') % Right plus
+    y      = B;
+    y.data = double(A + double(B));
             
-elseif ~isa(B,'dataContainer') % Left multiply
-    y = iCon(double(double(A) + B));
-    
-    y.imdims = A.imdims;
+elseif ~isa(B,'iCon') % Left plus
+    y      = A;
+    y.data = double(double(A) + B);
     
 else % Both data containers
-    y = iCon(double(A) + double(B));
+    y      = A;
+    y.data = double(A) + double(B);
     
     % Check for strict flag
     if A.strict || B.strict
        assert(all(A.imdims == B.imdims),...
            'Strict flag enforced. Implicit dimensions much match.')
     end
-    y.imdims = A.imdims;
 end
