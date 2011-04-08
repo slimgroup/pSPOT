@@ -55,3 +55,13 @@ y     = C*x;
 x_est = C \ y;
 x_est = reform(x_est);
 size(x_est)
+
+%% Permutation
+n1    = 128;
+n2    = 64;
+n3    = 32;
+x     = iCon.randn(n1,n2,n3);
+x = permute(x,[3,2,1]);
+size(x)
+x = unpermute(x);
+size(x)
