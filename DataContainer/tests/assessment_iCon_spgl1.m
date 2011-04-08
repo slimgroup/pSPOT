@@ -7,8 +7,7 @@ b = A*x;
 tic, y1 = spgl1(A,b); toc
 tic, y2 = spgl1(A,iCon(b)); toc
 
-norm(y1-x)
-norm(y2-x)
+assertEqual(norm(y1-x), norm(y2-x));
 
 
 end
@@ -22,8 +21,7 @@ b = A*x;
 tic, y1 = lsqr(A,b); toc
 tic, y2 = lsqr(A,iCon(b)); toc
 
-norm(y1-x)
-norm(y2-x)
+assertEqual(norm(y1-x), norm(y2-x));
 end
 
 function test_iCon_spot_lsqr
@@ -42,6 +40,5 @@ tic,
 y2 = spot.solvers.lsqr(m,n,A,iCon(b), ...
     opts.cgdamp,opts.cgtol,opts.cgtol,opts.conlim,maxits,opts.cgshow); toc
 
-norm(y1-x)
-norm(y2-x)
+assertEqual(norm(y1-x), norm(y2-x));
 end

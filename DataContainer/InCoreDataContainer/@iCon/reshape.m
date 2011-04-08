@@ -17,6 +17,9 @@ function y = reshape(x,varargin)
 % Check for the collapsibility of reshape
 % Do the calculation
 imdims  = [x.imdims{:}];
+while(imdims(end) == 1) % Strip singleton dimensions
+    imdims(end) = [];
+end
 redims  = [varargin{:}];
 j       = 1;
 collapsed_chunk = [];
@@ -31,6 +34,11 @@ for i = 1:length(imdims)
     end
 end
 
+% Compensate for 1D case
+if length(collapsed_dims) == 1
+    collapsed_dims{end + 1} = 1;
+end
+
 % Reshape
-y = iCon(reshape(x.data,varargin{:}));
+y        = iCon(reshape(x.data,redims));
 y.imdims = collapsed_dims;

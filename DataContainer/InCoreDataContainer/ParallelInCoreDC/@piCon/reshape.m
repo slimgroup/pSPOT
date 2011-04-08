@@ -35,6 +35,9 @@ sizes = [varargin{:}];
 % Check for the collapsibility of reshape
 % Do the calculation
 imdims  = [x.imdims{:}];
+while(imdims(end) == 1) % Strip singleton dimensions
+    imdims(end) = [];
+end
 redims  = [varargin{:}];
 j       = 1;
 collapsed_chunk = [];
@@ -83,6 +86,10 @@ spmd
 end
 
 % Set variables
+% Compensate for 1D case
+if length(collapsed_dims) == 1
+    collapsed_dims{end + 1} = 1;
+end
 y = x;
 y.data      = data;
 cod         = cod{1};

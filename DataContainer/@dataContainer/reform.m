@@ -1,3 +1,7 @@
 function y = reform(x)
 
-y = reshape(x,x.imdims{:});
+redims = [x.imdims{:}];
+while(redims(end) == 1) % Strip singleton dimensions
+    redims(end) = [];
+end
+y      = reshape(x,redims);
