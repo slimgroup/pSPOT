@@ -79,3 +79,18 @@ y2 = K2*x;
 
 assertEqual(y1,y2);
 end % dirac
+
+function test_oppKron2Lo_dirac_special
+%% Dirac special
+% Strange case encountered by Tristan
+A  = randn(10,51);
+K1 = opKron(opDirac(4),opKron(A,opDirac(101)));
+K2 = oppKron2Lo(opDirac(4),opKron(A,opDirac(101)),1);
+x1 = randn(5151,4);
+x2 = distributed(x1);
+y1 = K1*x1(:);
+y2 = K2*x2(:);
+
+assertEqual(y1,y2);
+
+end % dirac special
