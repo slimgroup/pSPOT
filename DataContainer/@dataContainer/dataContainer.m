@@ -138,10 +138,7 @@ classdef dataContainer
         
         % zeros
         x = zeros(varargin);
-        
-        % empty
-        x = empty(varargin);
-        
+                
     end % Abstract static methods
     
     
