@@ -230,7 +230,7 @@ classdef oppKron2Lo < oppSpot
             %Operators
             A=op.children{1};
             B=op.children{2};
-            
+                        
             %we could have been called through opSpot.applyMultiply, then
             %we need to pay attention to mode.
             if mode == 2 && ~op.tflag || mode ==1 && op.tflag
@@ -285,10 +285,10 @@ classdef oppKron2Lo < oppSpot
                             codistributor1d.unsetPartition,[rB,rA]));
                         % Redistribute y across columns
                         y=redistribute(y,codistributor1d(2));
+                        y = getLocalPart(y);
                     end
                     
                     % now vectorize y
-                    y = getLocalPart(y);
                     local_size = numel(y);
                     partition(labindex) = local_size;
                     y = y(:);
