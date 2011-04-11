@@ -1,4 +1,4 @@
-function y = reform(x)
+function y = invec(x)
 
 redims = [x.imdims{:}];
 while(redims(end) == 1) % Strip singleton dimensions

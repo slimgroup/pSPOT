@@ -8,7 +8,7 @@ function y = setImDims(x,varargin)
 %
 %   Also, your IMPLICIT_SIZE argument has to be a cell array, this gives
 %   you freedom to specify which dimensions are actually collapsed in
-%   relation to the explicit sizes, ie. {{2 3} 4} is collapsed version of
+%   relation to the explicit sizes, ie. {[2 3] 4} is collapsed version of
 %   [6 4]
 
 % Un-cell varargin
