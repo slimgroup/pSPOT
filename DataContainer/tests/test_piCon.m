@@ -21,17 +21,6 @@ B  = piCon(A);
 assertEqual(A',double(B'));
 end % ctranspose
 
-function test_piCon_empty
-%% empty
-n1 = randi(10);
-n2 = randi(10);
-n3 = randi(10);
-A  = zeros(n1,n2,0);
-A  = distributed(A);  
-B  = piCon.empty(n1,n2,n3);
-assertEqual(A,double( B ));
-end % empty
-
 function test_piCon_horzcat
 %% horzcat
 n1 = randi(10);
@@ -74,7 +63,7 @@ n2 = randi(5);
 n3 = randi(5);
 x  = piCon.randn(n1,n2,n3);
 x  = reshape(x,n1,n2*n3);
-x  = reform(x);
+x  = invec(x);
 end % reshape
 
 function test_piCon_redistribute

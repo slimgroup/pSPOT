@@ -57,8 +57,8 @@ function test_dataConMethods_piCon_norm(x)
     norm(x,'fro');
 end
 
-function test_dataConMethods_piCon_reform(x)
-    reform(x);
+function test_dataConMethods_piCon_invec(x)
+    invec(x);
 end
 
 function test_dataConMethods_piCon_setImDims(x)

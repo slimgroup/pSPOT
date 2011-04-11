@@ -19,16 +19,6 @@ B  = iCon(A);
 assertEqual(A',double(B'));
 end % ctranspose
 
-function test_iCon_empty
-%% empty
-n1 = randi(10);
-n2 = randi(10);
-n3 = randi(10);
-A  = zeros(n1,n2,0);
-B  = iCon.empty(n1,n2,n3);
-assertEqual(A,double( B ));
-end % empty
-
 function test_iCon_horzcat
 %% horzcat
 n1 = randi(10);

@@ -57,8 +57,8 @@ function test_dataConMethods_iCon_norm(x)
     norm(x,'fro');
 end
 
-function test_dataConMethods_iCon_reform(x)
-    reform(x);
+function test_dataConMethods_iCon_invec(x)
+    invec(x);
 end
 
 function test_dataConMethods_iCon_setImDims(x)
