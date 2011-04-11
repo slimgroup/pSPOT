@@ -54,7 +54,7 @@ n2 = randi(10);
 A  = randn(n1,n2) + 1i*randn(n1,n2);
 B  = randn(n1,n2) + 1i*randn(n1,n2);
 C  = A .\ B;
-assertEqual( double( iCon(A) .\ opMatrix(B) ), C);
+assertEqual( double( iCon(A) .\ B ), C);
 assertEqual( double( A .\ iCon(B) ), C);
 assertEqual( double( iCon(A) .\ iCon(B) ), C);
 end % ldivide
@@ -66,9 +66,9 @@ n2 = 1;
 A  = randn(n1,n2) + 1i*randn(n1,n2);
 B  = randn(n1,n2) + 1i*randn(n1,n2);
 C  = A - B;
-assertEqual( double( iCon(A) - opMatrix(B) ), C);
-% assertEqual( double( opMatrix(A) - iCon(B) ), C);
-% assertEqual( double( iCon(A) - iCon(B) ), C);
+assertEqual( double( iCon(A) - B ), C);
+assertEqual( double( A - iCon(B) ), C);
+assertEqual( double( iCon(A) - iCon(B) ), C);
 end % ldivide
 
 function test_iCon_plus
