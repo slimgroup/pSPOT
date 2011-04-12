@@ -1,4 +1,4 @@
-classdef piCon < iCon
+classdef (InferiorClasses = {?distributed,?codistributed}) piCon < iCon
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
@@ -16,6 +16,9 @@ classdef piCon < iCon
     methods
         
         function x = piCon(data)
+            
+            % Distribute data if not distributed
+            if ~isdistributed(data), data = distributed(data); end
             
             % Check for input data type
             assert( isdistributed(data) && ...

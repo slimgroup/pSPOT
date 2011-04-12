@@ -7,9 +7,10 @@ initTestSuite;
 end
 
 function x = setup
-n1 = randi(5);
-n2 = randi(5);
-n3 = randi(5);
+%% Setup
+n1 = randi([2 5]);
+n2 = randi([2 5]);
+n3 = randi([2 5]);
 
 x = iCon.randn(n1,n2,n3);
 
@@ -62,6 +63,7 @@ function test_dataConMethods_iCon_invec(x)
 end
 
 function test_dataConMethods_iCon_setImDims(x)
+%% setImDims
     setImDims(x,isize(x));
 end
 

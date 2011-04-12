@@ -7,9 +7,9 @@ initTestSuite;
 end
 
 function x = setup
-n1 = randi(5);
-n2 = randi(5);
-n3 = randi(5);
+n1 = randi([2 5]);
+n2 = randi([2 5]);
+n3 = randi([2 5]);
 
 x = piCon.randn(n1,n2,n3);
 
