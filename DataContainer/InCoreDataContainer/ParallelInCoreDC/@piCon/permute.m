@@ -1,4 +1,4 @@
-function y = permute(varargin)
+function y = permute(x,varargin)
 %PERMUTE    Permutation for data container
 %
 %   permute(X,N1,N2,...,N) permutes the data container according to the
@@ -11,13 +11,11 @@ function y = permute(varargin)
 %   See also: unpermute
 
 % Setup variables
-x    = varargin{1};
-perm = [varargin{2:end}];
+perm = [varargin{:}];
 
 % Check for x and distributed and permutation dimensions
 assert(isa(x,'piCon'),'X must be a parallel data container')
 assert(length(perm) == length(x.perm),'Permutation dimensions mismatch')
-assert(sum(perm) == sum(x.perm),'Permutation dimensions mismatch')
 
 % Setup future variables
 % Find final distributed dimension and setup global size at the same time

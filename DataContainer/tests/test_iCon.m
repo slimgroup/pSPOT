@@ -98,5 +98,5 @@ n2 = randi([2,10]);
 n3 = randi([2,10]);
 x = iCon.randn(n1,n2,n3);
 x = permute(x,[3 2 1]);
-x = unpermute(x);
+x = invpermute(x);
 end

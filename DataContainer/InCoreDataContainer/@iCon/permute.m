@@ -27,6 +27,7 @@ end
 
 y = iCon(permute(x.data,perm));
 
+% Set variables
 y.perm   = toperm;
 y.exdims = tgsize;
 y.imdims = tgisize;

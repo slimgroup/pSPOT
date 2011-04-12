@@ -58,7 +58,7 @@ function test_dataConMethods_iCon_norm(x)
 end
 
 function test_dataConMethods_iCon_invec(x)
-    invec(x);
+    invvec(x);
 end
 
 function test_dataConMethods_iCon_setImDims(x)
@@ -70,7 +70,7 @@ function test_dataConMethods_iCon_size(x)
 end
 
 function test_dataConMethods_iCon_unpermute(x)
-    unpermute(x);
+    invpermute(x);
 end
 
 function test_dataConMethods_iCon_vec(x)

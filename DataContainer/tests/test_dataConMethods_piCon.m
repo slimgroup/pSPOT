@@ -70,7 +70,7 @@ function test_dataConMethods_piCon_size(x)
 end
 
 function test_dataConMethods_piCon_unpermute(x)
-    unpermute(x);
+    invpermute(x);
 end
 
 function test_dataConMethods_piCon_vec(x)
