@@ -17,20 +17,26 @@ function y = reshape(x,varargin)
 % Check for the collapsibility of reshape
 % Do the calculation
 imdims  = [x.imdims{:}];
+perm    = [x.perm{:}];
 while(imdims(end) == 1) % Strip singleton dimensions
     imdims(end) = [];
 end
-redims  = [varargin{:}];
-j       = 1;
+redims          = [varargin{:}];
+j               = 1;
 collapsed_chunk = [];
+collapsed_perm  = [];
 for i = 1:length(imdims)
     collapsed_chunk = [collapsed_chunk imdims(i)];
+    collapsed_perm  = [collapsed_perm perm(i)];
     if  prod(collapsed_chunk) == redims(j)
-        collapsed_dims{j} = collapsed_chunk;
+        collapsed_dims{j}  = collapsed_chunk;
+        collapsed_perms{j} = collapsed_perm;
         j = j + 1;
         collapsed_chunk = [];
+        collapsed_perm  = [];
     elseif prod(collapsed_chunk) > redims(j)
-        error('Reshape dimensions must be collapsed or multiples of implicit dimension');
+        error(['Reshape dimensions must be collapsed '...
+            'or multiples of implicit dimension']);
     end
 end
 
@@ -42,3 +48,4 @@ end
 % Reshape
 y        = iCon(reshape(x.data,redims));
 y.imdims = collapsed_dims;
+y.perm   = collapsed_perms;

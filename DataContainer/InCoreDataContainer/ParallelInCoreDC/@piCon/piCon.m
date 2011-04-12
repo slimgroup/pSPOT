@@ -50,10 +50,7 @@ classdef piCon < iCon
         
         % zeros
         x = zeros(varargin)
-        
-        % empty
-        x = empty(varargin)
-        
+                
         % Serial to distributed converter
         x = distributed(data)
         

@@ -12,11 +12,9 @@ function result = transpose(x)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-% Check for ndims
-assert(ndims(x) == 2, 'x must be 2D')
-
 % Transpose
 result        = x;
 result.data   = transpose(double(x));
 result.exdims = fliplr(x.exdims);
 result.imdims = fliplr(x.imdims);
+result.perm   = fliplr(x.perm);

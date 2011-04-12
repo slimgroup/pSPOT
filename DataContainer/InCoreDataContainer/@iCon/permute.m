@@ -11,7 +11,6 @@ perm = [varargin{:}];
 
 % Check for permutation dimensions
 assert(length(perm) == length(x.perm),'Permutation dimensions mismatch')
-assert(sum(perm) == sum(x.perm),'Permutation dimensions mismatch')
 
 % Setup future variables
 % Find final distributed dimension and setup global size at the same

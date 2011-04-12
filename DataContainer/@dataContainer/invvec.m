@@ -1,4 +1,4 @@
-function y = invec(x)
+function y = invvec(x)
 
 redims = [x.imdims{:}];
 while(redims(end) == 1 && length(redims) > 2) % Strip singleton dimensions

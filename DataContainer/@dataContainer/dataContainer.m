@@ -31,7 +31,7 @@ classdef dataContainer
     properties (SetAccess = protected)
         exdims = []; % Explicit dimensions of data
         imdims = {}; % Implicit dimensions of data
-        perm   = []; % Permutation of data (since original construction)
+        perm   = {}; % Permutation of data (since original construction)
         type   = ''; % Type of data container
         strict = false; % Strict flag for elementary operations
     end

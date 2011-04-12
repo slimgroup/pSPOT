@@ -24,8 +24,8 @@ classdef iCon < dataContainer
             
             % Construct class
             x = x@dataContainer('InCore',dims,num2cell(dims));
-            x.data = data;
-            x.perm = 1:length(size(data));
+            x.data    = data;
+            x.perm{1} = 1:length(size(data));
         end
         
     end % Public methods
@@ -40,9 +40,6 @@ classdef iCon < dataContainer
         
         % zeros
         x = zeros(varargin);
-        
-        % empty
-        x = empty(varargin);
         
     end % Static methods
         
