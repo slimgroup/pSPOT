@@ -116,7 +116,7 @@ assertEqual(double(opMatrix(iCon(A))), A);
 end % opMatrix
 
 function test_iCon_permute
-%% Testing permute and unpermute
+%% Testing permute and invpermute
 n1 = randi([2,10]);
 n2 = randi([2,10]);
 n3 = randi([2,10]);

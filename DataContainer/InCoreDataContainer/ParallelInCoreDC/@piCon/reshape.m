@@ -24,7 +24,7 @@ if isa(varargin{2},'piCon')
     dim = varargin{1};
     varargin = varargin(2:end);
 else
-    dim = length(varargin{2});
+    dim = length([varargin{2:end}]);
 end
 
 % Check and extract x and sizes

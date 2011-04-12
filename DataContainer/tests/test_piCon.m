@@ -109,7 +109,7 @@ assertEqual( gather(double( piCon(A) * piCon(B) )), C);
 end % mtimes
 
 function test_piCon_permute
-%% Testing permute and unpermute
+%% Testing permute and invpermute
 n1 = randi([2,10]);
 n2 = randi([2,10]);
 n3 = randi([2,10]);
@@ -166,9 +166,10 @@ function test_piCon_reshape
 n1 = randi(5);
 n2 = randi(5);
 n3 = randi(5);
-x  = piCon.randn(n1,n2,n3);
-x  = reshape(x,n1,n2*n3);
-x  = invec(x);
+n4 = randi(5);
+x  = randn(n1,n2,n3,n4);
+assertEqual( gather( double(reshape(piCon(x),n1*n2,n3*n4)) ),...
+    reshape(x,n1*n2,n3*n4) );
 end % reshape
 
 function test_piCon_sign
