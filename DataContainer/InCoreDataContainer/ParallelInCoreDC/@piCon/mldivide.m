@@ -35,7 +35,7 @@ if isscalar(A)
     y = A .\ B;
     
 elseif ~isa(A,'iCon')
-    y = iCon(A \ double(B));
+    y = piCon(A \ double(B));
     
     % Extract collapsed dimensions
     y.imdims = { size(A,2) B.imdims{2} };
@@ -46,7 +46,7 @@ elseif ~isa(A,'iCon')
     end
     
 elseif ~isa(B,'iCon')
-    y = iCon(double(A) \ B);
+    y = piCon(double(A) \ B);
     
     % Extract collapsed dimensions
     y.imdims = { A.imdims{2} size(B,2) };
@@ -57,7 +57,7 @@ elseif ~isa(B,'iCon')
     end
     
 else % Both data containers
-    y = iCon(double(A) \ double(B));
+    y = piCon(double(A) \ double(B));
     
     % Extract collapsed dimensions
     y.imdims = { A.imdims{2} B.imdims{2} };

@@ -13,8 +13,9 @@ if ~isa(A,'dataContainer') % Right multiply
     y.data   = A*double(B);
     y.exdims = size(y.data);
     
-    % Extract collapsed dimensions
+    % Extract collapsed dimensions & permutation
     y.imdims = { size(A,1) B.imdims{2} };
+    y.perm   = B.perm;
     
     % Check for spot ms and ns
     if isa(A,'opSpot')
@@ -26,8 +27,9 @@ elseif ~isa(B,'dataContainer') % Left multiply
     y.data   = double(A)*B;
     y.exdims = size(y.data);
     
-    % Extract collapsed dimensions
+    % Extract collapsed dimensions & permutation
     y.imdims = { A.imdims{1} size(B,2) };
+    y.perm   = A.perm;
     
     % Check for spot ms and ns
     if isa(A,'opSpot')

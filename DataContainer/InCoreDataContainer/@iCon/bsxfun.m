@@ -50,6 +50,8 @@ y = iCon(bsxfun(fun,double(A),double(B)));
 
 if isa(A,'iCon')
     y.imdims = A.imdims;
+    y.perm   = A.perm;
 elseif isa(B,'iCon')
     y.imdims = B.imdims;
+    y.perm   = B.perm;
 end

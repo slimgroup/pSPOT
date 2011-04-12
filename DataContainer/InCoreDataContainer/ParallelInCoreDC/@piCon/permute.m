@@ -50,12 +50,7 @@ spmd
 end % spmd
 
 % Set variables
-y           = x;
-y.data      = data;
-cod         = cod{1};
-y.excoddims = cod.Dimension;
-y.excodpart = cod.Partition;
+y           = piCon(data);
 y.imcoddims = fidim;
 y.perm      = toperm;
-y.exdims    = tgsize;
 y.imdims    = tgisize;
