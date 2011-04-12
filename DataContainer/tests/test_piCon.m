@@ -247,32 +247,18 @@ assertEqual( double(x), double(invvec(x1)) );
 end % vec invvec
 
 function test_piCon_redistribute
-%% Testing piCon reshape
-n1 = randi(5);
-n2 = randi(5);
-n3 = randi(5);
-x  = piCon.randn(n1,n2,n3);
-% x.codistInfo;
-x  = redistribute(x,2);
-% x.codistInfo;
+%% Testing piCon redistribute
+n1     = randi(5);
+n2     = randi(5);
+n3     = randi(5);
+A      = distributed.randn(n1,n2,n3);
+B      = piCon(A);
+B      = redistribute(B,2);
+B_data = double(B);
+spmd
+    A = redistribute(A,codistributor1d(2));
+    A_part = getLocalPart(A);
+    B_part = getLocalPart(B_data);
+    assertEqual(A_part,B_part);
+end
 end % redistribute
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -239,15 +239,9 @@ n2 = randi(10);
 assertEqual( double(iCon.zeros(n1,n2)), zeros(n1,n2) );
 end % zeros
 
-function test_iCon_vec_invvec
+function test_iCon_invvec
 %% vec invvec
 x  = iCon.randn(randi(10),randi(10),randi(10));
 x1 = vec(x);
 assertEqual( double(x), double(invvec(x1)) );
 end % vec invvec
-
-
-
-
-
-
