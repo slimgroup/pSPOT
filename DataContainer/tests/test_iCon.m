@@ -39,7 +39,7 @@ assertEqual( [A A], double([B B]) );
 end % horzcat
 
 function test_iCon_imag
-%% horzcat
+%% imag
 n1 = randi(10);
 n2 = randi(10);
 A  = randn(n1,n2) + 1i*randn(n1,n2);
@@ -178,3 +178,76 @@ x  = randn(n1,n2,n3,n4);
 assertEqual( double(reshape(iCon(x),n1*n2,n3*n4)), reshape(x,n1*n2,n3*n4) );
 
 end
+
+function test_iCon_sign
+%% sign
+n1 = randi(10);
+n2 = randi(10);
+A  = randn(n1,n2) + 1i*randn(n1,n2);
+assertEqual( double(sign(iCon(A))), sign(A) );
+end % sign
+
+function test_iCon_times
+%% times
+n1 = randi(10);
+n2 = randi(10);
+A  = randn(n1,n2) + 1i*randn(n1,n2);
+B  = randn(n1,n2) + 1i*randn(n1,n2);
+C  = A .* B;
+assertEqual( double( iCon(A) .* B ), C);
+assertEqual( double( A .* iCon(B) ), C);
+assertEqual( double( iCon(A) .* iCon(B) ), C);
+end % times
+
+function test_iCon_transpose
+%% transpose
+n1 = randi(10);
+n2 = randi(10);
+A  = randn(n1,n2) + 1i*randn(n1,n2);
+assertEqual( double(iCon(A).'), A.' );
+end % transpose
+
+function test_iCon_uminus
+%% uminus
+n1 = randi(10);
+n2 = randi(10);
+A  = randn(n1,n2) + 1i*randn(n1,n2);
+assertEqual( double( -iCon(A) ), -A );
+end % uminus
+
+function test_iCon_uplus
+%% uplus
+n1 = randi(10);
+n2 = randi(10);
+A  = randn(n1,n2) + 1i*randn(n1,n2);
+assertEqual( double( +iCon(A) ), +A );
+end % uplus
+
+function test_iCon_vertcat
+%% vertcat
+n1 = randi(10);
+n2 = randi(10);
+A  = randn(n1,n2) + 1i*randn(n1,n2);
+B  = iCon(A);
+assertEqual( [A; A], double([B; B]) );
+end % vertcat
+
+function test_iCon_zeros
+%% zeros
+n1 = randi(10);
+n2 = randi(10);
+assertEqual( double(iCon.zeros(n1,n2)), zeros(n1,n2) );
+end % zeros
+
+function test_iCon_vec_invvec
+%% vec invvec
+x  = iCon.randn(randi(10),randi(10),randi(10));
+x1 = vec(x);
+assertEqual( double(x), double(invvec(x1)) );
+end % vec invvec
+
+
+
+
+
+

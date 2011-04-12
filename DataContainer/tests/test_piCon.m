@@ -171,6 +171,81 @@ x  = reshape(x,n1,n2*n3);
 x  = invec(x);
 end % reshape
 
+function test_piCon_sign
+%% sign
+n1 = randi(10);
+n2 = randi(10);
+A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+assertEqual( double(sign(piCon(A))), sign(A) );
+end % sign
+
+function test_piCon_times
+%% rdivide
+n1 = randi(10);
+n2 = randi(10);
+A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+B  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+C  = A .* B;
+assertEqual( double( piCon(A) .* B ), C);
+assertEqual( double( A .* piCon(B) ), C);
+assertEqual( double( iCon(A) .* piCon(B) ), C);
+end % times
+
+function test_piCon_transpose
+%% transpose
+n1 = randi(10);
+n2 = randi(10);
+A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+assertEqual( double( piCon(A).' ), A.' );
+end % transpose
+
+function test_piCon_uminus
+%% uminus
+n1 = randi(10);
+n2 = randi(10);
+A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+assertEqual( double( -piCon(A) ), -A );
+end % uminus
+
+function test_piCon_uplus
+%% uplus
+n1 = randi(10);
+n2 = randi(10);
+A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+assertEqual( double( +piCon(A) ), +A );
+end % uplus
+
+function test_piCon_vertcat
+%% vertcat
+n1 = randi(10);
+n2 = randi(10);
+A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+B  = piCon(A);
+assertEqual( [A; A], double([B; B]) );
+end % vertcat
+
+function test_piCon_zeros
+%% zeros
+n1 = randi(10);
+n2 = randi(10);
+assertEqual( double(piCon.zeros(n1,n2)), distributed.zeros(n1,n2) );
+end % zeros
+
+function test_piCon_gather
+%% gather
+n1 = randi(10);
+n2 = randi(10);
+A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+assertEqual( gather(A), double(gather(piCon(A))) );
+end % gather
+
+function test_piCon_vec_invvec
+%% vec invvec
+x  = piCon.randn(randi(10),randi(10),randi(10));
+x1 = vec(x);
+assertEqual( double(x), double(invvec(x1)) );
+end % vec invvec
+
 function test_piCon_redistribute
 %% Testing piCon reshape
 n1 = randi(5);
@@ -181,3 +256,23 @@ x  = piCon.randn(n1,n2,n3);
 x  = redistribute(x,2);
 % x.codistInfo;
 end % redistribute
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

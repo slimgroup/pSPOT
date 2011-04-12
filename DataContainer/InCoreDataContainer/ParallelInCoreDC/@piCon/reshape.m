@@ -6,8 +6,8 @@ function y = reshape(varargin)
 %   must be conserved.
 %
 %   DIM specifies the distribution dimension you want your reshaped array
-%   to be 'glued' in. If unspecified, the original distribution dimension
-%   will be used.
+%   to be 'glued' in. If unspecified, the default will be the last
+%   dimension of the new reshaped dimensions.
 %
 %   Always keep in mind that reshape on distributed arrays always conserve
 %   the elements locally on the labs, ie. There will be no communication
@@ -19,18 +19,18 @@ function y = reshape(varargin)
 %   See also: unvec, vec, double
 
 % Check and extract dim
-dim = 0;
 if isa(varargin{2},'piCon')
     assert( isscalar(varargin{1}), 'Distributed dimension must be positive scalar')
     dim = varargin{1};
     varargin = varargin(2:end);
+else
+    dim = length(varargin{2});
 end
 
 % Check and extract x and sizes
 x = varargin{1};
-varargin = varargin(2:end);
 assert(isa(x,'piCon'), 'X must be a parallel data container')
-sizes = [varargin{:}];
+sizes   = [varargin{2:end}];
 
 % Check for the collapsibility of reshape
 % Do the calculation
@@ -39,7 +39,7 @@ perm    = [x.perm{:}];
 while(imdims(end) == 1) % Strip singleton dimensions
     imdims(end) = [];
 end
-redims  = [varargin{:}];
+redims  = [varargin{2:end}];
 j       = 1;
 collapsed_chunk = [];
 collapsed_perm  = [];

@@ -26,8 +26,8 @@ x_convolved = C * vec(x);
 size(x_convolved)
 
 % Reform!!!
-x_reformed = reform(x_convolved);
-size(x_reformed)
+x_invveced = invvec(x_convolved);
+size(x_invveced)
 
 %% 2D Curvelet
 % Setup 2D data
@@ -39,7 +39,7 @@ size(x) % size of vectorized x
 C     = opCurvelet(n1,n2);
 y     = C*x; % Multiply
 x_est = C \ y; % Inverse
-x_est = reform(x_est); % Reform into original dimensions
+x_est = invvec(x_est); % Reform into original dimensions
 size(x_est)
 
 %% 3D Curvelet
@@ -53,7 +53,7 @@ size(x) % size of vectorized x
 C     = opCurvelet3d(n1,n2,n3);
 y     = C*x;
 x_est = C \ y;
-x_est = reform(x_est);
+x_est = invvec(x_est);
 size(x_est)
 
 %% Permutation
@@ -63,5 +63,5 @@ n3    = 32;
 x     = iCon.randn(n1,n2,n3);
 x = permute(x,[3,2,1]);
 size(x)
-x = unpermute(x);
+x = invpermute(x);
 size(x)
