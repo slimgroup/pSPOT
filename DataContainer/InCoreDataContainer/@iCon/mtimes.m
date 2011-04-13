@@ -10,7 +10,7 @@ end
 % Multiply
 if ~isa(A,'dataContainer') % Right multiply
     y        = B;
-    y.data   = A*double(B);
+    y.data   = double( A*double(B) );
     y.exdims = size(y.data);
     
     % Extract collapsed dimensions & permutation
@@ -24,7 +24,7 @@ if ~isa(A,'dataContainer') % Right multiply
     
 elseif ~isa(B,'dataContainer') % Left multiply
     y        = A;
-    y.data   = double(A)*B;
+    y.data   = double( double(A)*B );
     y.exdims = size(y.data);
     
     % Extract collapsed dimensions & permutation

@@ -5,6 +5,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dat = setup
+%% setup
    A  = iCon.randn(2,2) + 1i*iCon.randn(2,2);
    B  = opMatrix(A);
    c  = iCon.randn(1,1) + 1i*iCon.randn(1,1);
@@ -129,6 +130,7 @@ function test_coremethods_image(dat)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function test_coremethods_conj(dat)
+%% conj
    A = dat.A; B = dat.B; x = dat.x; xr = real(x); xi = imag(x);
    c = 1i*iCon.randn;
    assertElementsAlmostEqual(conj(A)*x,...

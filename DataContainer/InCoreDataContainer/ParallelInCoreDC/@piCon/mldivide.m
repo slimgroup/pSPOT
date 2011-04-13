@@ -35,10 +35,13 @@ if isscalar(A)
     y = A .\ B;
     
 elseif ~isa(A,'iCon')
-    y = piCon(A \ double(B));
+    y        = B;
+    y.data   = double( A \ double(B) );
+    y.exdims = size(y.data);
     
-    % Extract collapsed dimensions
+    % Extract collapsed dimensions & permutation
     y.imdims = { size(A,2) B.imdims{2} };
+    y.perm   = B.perm;
     
     % Check for spot ms and ns
     if isa(A,'opSpot')
@@ -46,10 +49,13 @@ elseif ~isa(A,'iCon')
     end
     
 elseif ~isa(B,'iCon')
-    y = piCon(double(A) \ B);
+    y        = A;
+    y.data   = double( double(A) \ B );
+    y.exdims = size(y.data);
     
-    % Extract collapsed dimensions
+    % Extract collapsed dimensions & permutation
     y.imdims = { A.imdims{2} size(B,2) };
+    y.perm   = A.perm;
     
     % Check for spot ms and ns
     if isa(A,'opSpot')
@@ -57,10 +63,13 @@ elseif ~isa(B,'iCon')
     end
     
 else % Both data containers
-    y = piCon(double(A) \ double(B));
+    y        = A;
+    y.data   = double(A) \ double(B);
+    y.exdims = size(y.data);
     
     % Extract collapsed dimensions
     y.imdims = { A.imdims{2} B.imdims{2} };
+    y.perm   = A.perm;
 end
 
 end % mldivide
