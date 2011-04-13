@@ -298,6 +298,12 @@ classdef oppStack < oppSpot
                     y = zeros(0,size(x,2));
                 end
                 
+                % Check for sparsity
+                aresparse = codistributed.zeros(1,numlabs);
+                aresparse(labindex) = issparse(y);
+                % labBarrier;
+                if any(aresparse), y = sparse(y); end;
+                
                 % Concatenating the results and distribute
                 finpart = gather(finpart);
                 fincodist = codistributor1d(1,finpart,fingsize);

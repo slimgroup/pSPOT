@@ -131,6 +131,12 @@ classdef oppSweep < oppSpot
                 
                 local_y = reshape(local_y,size_y);
                 
+                % Check for sparsity
+                aresparse = codistributed.zeros(1,numlabs);
+                aresparse(labindex) = issparse(local_y);
+                % labBarrier;
+                if any(aresparse), local_y = sparse(local_y); end;
+                
                 fincodist = codistributor1d(length(size_x),finpart,fingsize);
                 
                 % Build codistributed y
