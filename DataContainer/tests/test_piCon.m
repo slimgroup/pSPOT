@@ -41,6 +41,14 @@ B  = piCon(A);
 assertEqual( imag(A), double( imag(B) ) );
 end % horzcat
 
+% function test_piCon_inv
+% %% inv
+% n1 = randi(10);
+% n2 = n1;
+% A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+% assertEqual( inv(piCon(A)), inv(A) );
+% end % inv not supported in distributed
+
 function dtest_piCon_ldivide
 %% ldivide
 n1 = randi(10);
@@ -94,6 +102,18 @@ assertElementsAlmostEqual( gather(double( piCon(y') / A' )'), x);
 assertElementsAlmostEqual( gather(double( y' / piCon(A') )'), x);
 assertElementsAlmostEqual( gather(double( piCon(y') / piCon(A') )'), x);
 end % mrdivide
+
+% function test_piCon_mpower
+% %% mpower
+% n1 = randi(10);
+% n2 = n1;
+% A  = distributed( randn(n1,n2) + 1i*randn(n1,n2) );
+% n  = randi(10);
+% y  = A^n;
+% assertEqual( piCon(A) ^ n, y );
+% assertEqual( A ^ piCon(n), y );
+% assertEqual( piCon(A) ^ piCon(n), y );
+% end % mpower not supported by distributed
 
 function test_piCon_mtimes
 %% mtimes

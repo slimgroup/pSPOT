@@ -47,6 +47,14 @@ B  = iCon(A);
 assertEqual( imag(A), double( imag(B) ) );
 end % horzcat
 
+function test_iCon_inv
+%% inv
+n1 = randi(10);
+n2 = n1;
+A  = randn(n1,n2) + 1i*randn(n1,n2);
+assertEqual( inv(iCon(A)), inv(A) );
+end % inv
+
 function test_iCon_ldivide
 %% ldivide
 n1 = randi(10);
@@ -94,6 +102,18 @@ assertElementsAlmostEqual( double( iCon(y')/A' )', x);
 assertElementsAlmostEqual( double( y'/iCon(A') )', x);
 assertElementsAlmostEqual( double( iCon(y')/iCon(A') )', x);
 end % mrdivide
+
+function test_iCon_mpower
+%% mpower
+n1 = randi(10);
+n2 = n1;
+A  = randn(n1,n2) + 1i*randn(n1,n2);
+n  = randi(10);
+y  = A^n;
+assertEqual( iCon(A) ^ n, y );
+assertEqual( A ^ iCon(n), y );
+assertEqual( iCon(A) ^ iCon(n), y );
+end % mpower
 
 function test_iCon_mtimes
 %% mtimes
