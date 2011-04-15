@@ -5,17 +5,17 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seed = setup
-   seed = iCon.randn('state');
+   seed = randn('state');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 function test_mvopBernoulli_mode01_against_rand(seed)
    m = 10; n = 5;
 
-   iCon.randn('state',seed);  A1 = 2*(iCon.randn(m,n)<0)-1;
-   iCon.randn('state',seed);  A2 = opBernoulli(m,n);
-   iCon.randn('state',seed);  A3 = opBernoulli(m,n,0); % explicit
-   iCon.randn('state',seed);  A4 = opBernoulli(m,n,1); % implicit
+   randn('state',seed);  A1 = 2*(iCon.randn(m,n)<0)-1;
+   randn('state',seed);  A2 = opBernoulli(m,n);
+   randn('state',seed);  A3 = opBernoulli(m,n,0); % explicit
+   randn('state',seed);  A4 = opBernoulli(m,n,1); % implicit
 
    x = iCon.randn(n,2);
    y = A1 *x;
@@ -39,8 +39,8 @@ end
 function test_mvopBernoulli_mode23(seed)
    m = 10; n = 5;
 
-   iCon.randn('state',seed);  A1 = opBernoulli(m,n,2); % explicit
-   iCon.randn('state',seed);  A2 = opBernoulli(m,n,3); % implicit
+   randn('state',seed);  A1 = opBernoulli(m,n,2); % explicit
+   randn('state',seed);  A2 = opBernoulli(m,n,3); % implicit
 
    assertElementsAlmostEqual( double(A1), double(A2) );
 end

@@ -17,8 +17,8 @@ classdef oppKron2Lo < oppSpot
     %             dim=[64,32,32];
     %             C = opCurvelet(dim(2),dim(3));
     %             W = opWavelet(dim(1),1);
-    %             S = oppKron2Lo(C,W',1);
-    %       %%
+    %             S = oppKron2Lo(C,W,1);
+    %
     %       % Make a random 3d data-array
     %       D = distributed.randn(dim(1),prod(dim(2:end)));
     %

@@ -5,7 +5,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dat = setup
-   iCon.randn('state',0); rand('state',0);
+   randn('state',0); rand('state',0);
    A  = iCon.randn(2,2) + 1i*iCon.randn(2,2);
    B  = opMatrix(A);
    c  = iCon.randn(1,1) + 1i*iCon.randn(1,1);

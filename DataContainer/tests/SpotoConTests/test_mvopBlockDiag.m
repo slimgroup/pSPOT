@@ -5,7 +5,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seed = setup
-   iCon.randn('state',0);
+   randn('state',0);
    rand('state',0);
    seed = [];
 end

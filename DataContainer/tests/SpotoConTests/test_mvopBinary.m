@@ -6,17 +6,17 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seed = setup
-   seed = iCon.randn('state');
+   seed = randn('state');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-function test_mvopBinary_against_iCon.randn(seed)
+function test_mvopBinary_against_randn(seed)
    m = randi(100); n = randi(100);
 
-   iCon.randn('state',seed);  A1 = double(iCon.randn(m,n)<0);
-   iCon.randn('state',seed);  A2 = opBinary(m,n);
-   iCon.randn('state',seed);  A3 = opBinary(m,n,0); % explicit
-   iCon.randn('state',seed);  A4 = opBinary(m,n,1); % implicit
+   randn('state',seed);  A1 = double(iCon.randn(m,n)<0);
+   randn('state',seed);  A2 = opBinary(m,n);
+   randn('state',seed);  A3 = opBinary(m,n,0); % explicit
+   randn('state',seed);  A4 = opBinary(m,n,1); % implicit
 
    x = iCon.randn(n,2);
    y = A1 *x;
