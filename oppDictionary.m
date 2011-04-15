@@ -321,6 +321,12 @@ classdef oppDictionary < oppSpot
                     y = B*local_x;
                 end
                 
+                % Check for sparsity
+                aresparse = codistributed.zeros(1,numlabs);
+                aresparse(labindex) = issparse(y);
+                % labBarrier;
+                if any(aresparse), y = sparse(y); end;
+                
                 % Summing the results and distribute
                 y = pSPOT.utils.global_sum(y); % The result now sits on lab 1
                 y = codistributed(y,1,codistributor1d());

@@ -317,6 +317,12 @@ classdef oppBlockDiag < oppSpot
                     tmpy = zeros(0,size(x,2));
                 end
                 
+                % Check for sparsity
+                aresparse = codistributed.zeros(1,numlabs);
+                aresparse(labindex) = issparse(tmpy);
+                % labBarrier;
+                if any(aresparse), tmpy = sparse(tmpy); end;
+                
                 % Codistribute y
                 fincodist = codistributor1d(1,finpart,fingsize);
                 y = codistributed.build(tmpy,fincodist);
@@ -456,6 +462,12 @@ classdef oppBlockDiag < oppSpot
                 else
                     y = zeros(0,size(x,2));
                 end
+                
+                % Check for sparsity
+                aresparse = codistributed.zeros(1,numlabs);
+                aresparse(labindex) = issparse(y);
+                % labBarrier;
+                if any(aresparse), y = sparse(y); end;
                 
                 % Codistribute y
                 fincodist = codistributor1d(1,finpart,fingsize);

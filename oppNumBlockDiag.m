@@ -337,6 +337,12 @@ classdef oppNumBlockDiag < oppSpot
                     tmpy = zeros(0,multicols);
                 end
                 
+                % Check for sparsity
+                aresparse = codistributed.zeros(1,numlabs);
+                aresparse(labindex) = issparse(tmpy);
+                % labBarrier;
+                if any(aresparse), tmpy = sparse(tmpy); end;
+                
                 fincodist = codistributor1d(1,finpartition,finsize);
                 tmpy = codistributed.build(tmpy,fincodist,'noCommunication');
                 
