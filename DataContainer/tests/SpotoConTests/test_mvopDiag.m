@@ -8,7 +8,7 @@ end
 function test_mvopDiag_multiply
 %% Test for multivectors multiplication
 n = randi(100);
-d = randn(n,1);
+d = iCon.randn(n,1);
 D = opDiag(d);
 x = iCon.randn(n);
 

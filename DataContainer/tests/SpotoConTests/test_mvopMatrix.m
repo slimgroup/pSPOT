@@ -8,10 +8,10 @@ function test_mvopMatrix_multiply
    randn('state',0);
    
    % Set up matrices and operators for problems
-   A  = randn(2,2) + sqrt(-1) * randn(2,2);
+   A  = iCon.randn(2,2) + 1i * iCon.randn(2,2);
    B  = opMatrix(A);
-   xr = randn(2,2);
-   xi = sqrt(-1) * randn(2,2);
+   xr = iCon.randn(2,2);
+   xi = 1i * randn(2,2);
    x  = xr + xi;
 
    % Check opMatrix
@@ -29,10 +29,10 @@ function test_mvopMatrix_divide
    randn('state',0);
    
    % Set up matrices and operators for problems
-   A  = randn(2,2) + sqrt(-1) * randn(2,2);
+   A  = iCon.randn(2,2) + 1i * iCon.randn(2,2);
    B  = opMatrix(A);
-   xr = randn(2,4);
-   xi = sqrt(-1) * randn(2,4);
+   xr = iCon.randn(2,4);
+   xi = 1i * iCon.randn(2,4);
    x  = xr + xi;
 
    % Check opMatrix

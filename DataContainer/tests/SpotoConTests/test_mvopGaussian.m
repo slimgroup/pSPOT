@@ -13,7 +13,7 @@ end
 function test_mvopGaussian_mode01_against_rand(seed)
    m = 10; n = 5;
 
-   randn('state',seed);  A1 = randn(m,n);
+   randn('state',seed);  A1 = iCon.randn(m,n);
    randn('state',seed);  A2 = opGaussian(m,n);
    randn('state',seed);  A3 = opGaussian(m,n,0); % explicit
    randn('state',seed);  A4 = opGaussian(m,n,1); % implicit

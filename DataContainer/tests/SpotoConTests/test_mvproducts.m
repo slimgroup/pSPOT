@@ -4,13 +4,13 @@ function test_mvproducts
    randn('state',0); rand('state',0);
 
    % Set up matrices and operators for problems
-   A  = randn(2,2) + 1i * randn(2,2);
+   A  = iCon.randn(2,2) + 1i * iCon.randn(2,2);
    B  = opMatrix(A);
-   c  = randn(1,1) + 1i * randn(1,1);
+   c  = iCon.randn(1,1) + 1i * iCon.randn(1,1);
    A  = A * c;
    B  = B * c;
-   xr = randn(2,2);
-   xi = randn(2,2) *1i;
+   xr = iCon.randn(2,2);
+   xi = iCon.randn(2,2) *1i;
    x  = xr + xi;
 
    % Check operator products

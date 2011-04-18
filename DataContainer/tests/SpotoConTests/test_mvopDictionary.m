@@ -11,7 +11,7 @@ function test_mvopDictionary_mixed
    B = opBernoulli(m,nB);
    D = opDictionary(A, B);
    
-   x = [D.drandn D.drandn];
+   x = iCon([D.drandn D.drandn]);
    
    y1 = A*x(1:nA,:) + B*x(nA+1:end,:);
    
@@ -37,7 +37,7 @@ end
 function test_mvopDictionary_double
    G = opGaussian(3,5);
    E = opEye(3,4);
-   R = randn(3,6);
+   R = iCon.randn(3,6);
    Z = opZeros(3,1);
    D = opDictionary(G, E, [], R, Z);
    

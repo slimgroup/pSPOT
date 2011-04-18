@@ -7,27 +7,32 @@ function test_mvopOrthogonal_divide
    
    n = 23; % whatever...
    
-   Q = opDCT(n); b = [Q.rrandn Q.rrandn];
+   Q = opDCT(n); b = iCon([Q.rrandn Q.rrandn]);
    assertEqual( Q\b, Q'*b )
    assertElementsAlmostEqual( svd(double(Q)), ones(size(Q,1),1) );
 
    Q = opDCT2(n); b = [Q.rrandn Q.rrandn];
+   b = iCon(b);
    assertEqual( Q\b, Q'*b )
    assertElementsAlmostEqual( svd(double(Q)), ones(size(Q,1),1) );
 
    Q = opDFT(n);  b = [Q.rrandn Q.rrandn];
+   b = iCon(b);
    assertEqual( Q\b, Q'*b )
    assertElementsAlmostEqual( svd(double(Q)), ones(size(Q,1),1) );
    
    Q = opDFT2(n);  b = [Q.rrandn Q.rrandn];
+   b = iCon(b);
    assertEqual( Q\b, Q'*b )
    assertElementsAlmostEqual( svd(double(Q)), ones(size(Q,1),1) );
 
    Q = opDirac(n);  b = [Q.rrandn Q.rrandn];
+   b = iCon(b);
    assertEqual( Q\b, Q'*b )
    assertElementsAlmostEqual( svd(double(Q)), ones(size(Q,1),1) );
 
    Q = opHaar(128);  b = [Q.rrandn Q.rrandn];
+   b = iCon(b);
    assertEqual( Q\b, Q'*b )
    assertElementsAlmostEqual( svd(double(Q)), ones(size(Q,1),1) );
    

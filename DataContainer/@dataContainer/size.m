@@ -1,4 +1,4 @@
-function d = size(x,dim)
+function varargout = size(x,dim)
 %size  Dimensions of a data container
 %
 %   D = size(x), for a data container x, returns the dimensions of x in an
@@ -30,9 +30,13 @@ elseif nargin > 1 && ~isempty('dim')
     if dim < 1 || dim > length(dims)
        error('Dimension argument must be within the dimensions of x');
     else
-       d = dims(dim);
+       varargout = num2cell(dims(dim));
     end
     
 else
-   d = dims; 
+    if nargout <= 1
+        varargout{1} = dims;
+    else
+        varargout = num2cell(dims);
+    end
 end

@@ -5,12 +5,12 @@ end
 
 function test_mvsolves_mrdivide
 
-n = 3; A = magic(n); b = [(1:n)' (1:n)'];
-x1 = b'/A;
+n   = 3; A = iCon(magic(n)); b = iCon([(1:n)' (1:n)']);
+x1  = b'/A;
 
 spotparams('cgtol',1e-8,'cgitsfact',3,'cgshow',0);
 Aop = opMatrix(A);
-x2 = b'/Aop;
+x2  = b'/Aop;
 
 assertElementsAlmostEqual(x1,x2)
 
@@ -18,15 +18,16 @@ end
 
 function test_mvsolves_mldivide
 
-n  = 100; on = ones(n,1); A = spdiags([-2*on 4*on -on],-1:1,n,n);
+n  = 100; on = iCon(ones(n,1)); A = spdiags([-2*on 4*on -on],-1:1,n,n);
 b  = [sum(A,2) sum(A,2)]; tol = 1e-8; maxit = 60;
+b  = iCon(b);
 for i = 1:2
     [x1(:,i),flag1] = lsqr(A,b(:,i),tol,maxit);
 end
 
 spotparams('cgtol',1e-8,'cgitsfact',3,'cgshow',0);
 Aop = opFunction(n,n,@(x,mode)afun_diff(x,n,mode));
-x2 = Aop\b;
+x2  = Aop\b;
 
 assertElementsAlmostEqual(x1,x2,'relative',1e-6)
 
@@ -34,10 +35,11 @@ end
 
 function test_mvsolves_opInverse
 
-n = 21; A = gallery('moler',n);  b = A*ones(n,1);
+n   = 21; A = gallery('moler',n);  b = A*ones(n,1);
+b   = iCon(b);
 Aop = opMatrix(A);
-x = opInverse(Aop)*b;
-r = b - Aop*x;
+x   = opInverse(Aop)*b;
+r   = b - Aop*x;
 assertTrue(norm(r)/norm(b)<1e-6)
 
 end
