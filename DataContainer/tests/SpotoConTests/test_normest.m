@@ -6,43 +6,43 @@ function test_normest
    
    % Square real matrices
    m = 13; n = 13;
-   A = randn(m,n);
+   A = iCon.randn(m,n);
    B = opMatrix(A);
    checkequal(A,B);
 
    % Square complex matrices
    m = 13; n = 13;
-   A = randn(m,n) + 1i*randn(m,n);
+   A = iCon.randn(m,n) + 1i*iCon.randn(m,n);
    B = opMatrix(A);
    checkequal(A,B);
    
    % tall matrices
    m = 13; n = 10;
-   A = randn(m,n) + 1i*randn(m,n);
+   A = iCon.randn(m,n) + 1i*iCon.randn(m,n);
    B = opMatrix(A);
    checkequal(A,B);  
    
    % wide matrices
    m = 10; n = 13;
-   A = randn(m,n) + 1i*randn(m,n);
+   A = iCon.randn(m,n) + 1i*iCon.randn(m,n);
    B = opMatrix(A);
    checkequal(A,B);
    
    % "no column" matrices
    m = 0; n = 13;
-   A = randn(m,n) + 1i*randn(m,n);
+   A = iCon.randn(m,n) + 1i*iCon.randn(m,n);
    B = opMatrix(A);
    checkequal(A,B);
    
    % "no row" matrices
    m = 13; n = 0;
-   A = randn(m,n) + 1i*randn(m,n);
+   A = iCon.randn(m,n) + 1i*iCon.randn(m,n);
    B = opMatrix(A);
    checkequal(A,B);
    
    % Zero matrix
    m = 0; n = 0;
-   A = randn(m,n) + 1i*randn(m,n);
+   A = iCon.randn(m,n) + 1i*iCon.randn(m,n);
    B = opMatrix(A);
    checkequal(A,B);
 
