@@ -94,3 +94,14 @@ y2 = K2*x2(:);
 assertEqual(y1,y2);
 
 end % dirac special
+
+function test_oppKron2Lo_FoG
+%% FoG
+m  = randi([2 10]);
+A  = opDFT(m);
+B  = opDFT(m*m);
+K1 = B*opKron(A,A)*B;
+K2 = B*oppKron2Lo(A,A,1)*B;
+x  = K1.drandn;
+assertElementsAlmostEqual(K1*x, K2*x);
+end % FoG
