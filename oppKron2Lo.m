@@ -35,6 +35,8 @@ classdef oppKron2Lo < oppSpot
     %   before calculation( this distribution will be faster than using 
     %   matlabs (:) function).
     %
+    %   See also: oppKron2Lo.drandn, oppKron2Lo.rrandn, oppKron2Lo.dzeros,
+    %   oppKron2Lo.rzeros
     
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -177,6 +179,7 @@ classdef oppKron2Lo < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % drandn is overloaded to create a distributed random vector
         function y = drandn(op)
+        %DRANDN Random vector in operator domain
             if ~op.tflag
                 dims = [op.children{2}.n, op.children{1}.n];
             else
@@ -185,6 +188,7 @@ classdef oppKron2Lo < oppSpot
             y = distrandnvec( dims );
         end
         function y = rrandn(op)
+            %RRANDN Random vector in operator range
             if ~op.tflag
                 dims = [op.children{2}.m, op.children{1}.m];
             else
@@ -193,6 +197,7 @@ classdef oppKron2Lo < oppSpot
             y = distrandnvec( dims );
         end
         function y = dzeros(op)
+            %DZEROS Zero vector in operator domain
             if ~op.tflag
                 dims = [op.children{2}.n, op.children{1}.n];
             else
@@ -201,6 +206,7 @@ classdef oppKron2Lo < oppSpot
             y = distzeros( dims );
         end
         function y = rzeros(op)
+            %RZEROS Zero vector in operator range
             if ~op.tflag
                 dims = [op.children{2}.m, op.children{1}.m];
             else
