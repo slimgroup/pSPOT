@@ -1,4 +1,22 @@
 function distWrite(name,x,varargin)
+%DISTWRITE  Write distributed data to binary file
+%
+%   x = distWrite(FILENAME,DATA,PARAM1,VALUE1,PARAM2,VALUE2,...) writes
+%   the distributed data DATA into file FILENAME. Addtional
+%   parameters include:
+%   OFFSET    - An integer specifying the number of bits to skip from the 
+%               start of file before actual reading occurs, defaults to 0
+%   PRECISION - A string specifying the precision of one unit of data, 
+%               defaults to 'double' (8 bits)
+%               Supported precisions: 'double', 'single'
+%   REPEAT    - Positive integer or Inf (defaults to Inf).
+%               Number of times to apply the specified format to the mapped
+%               region of the file. If Inf, repeat until end of file.
+%
+%   Warning: If the file name defined by the path FILENAME already exist,
+%   it will be overwritten.
+%
+%   Note: Please provide the absolute path to the file
 
 % Setup variables
 filename  = name;

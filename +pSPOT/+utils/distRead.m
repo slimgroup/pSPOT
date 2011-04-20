@@ -1,4 +1,20 @@
 function x = distRead(name,dimensions,varargin)
+%DISTREAD  Reads in binary files as distributed arrays
+%
+%   x = distRead(FILENAME,DIMENSIONS,PARAM1,VALUE1,PARAM2,VALUE2,...) reads
+%   the binary file specified by FILENAME directly into a distributed array
+%   x of size DIMENSIONS distributed over the last dimension. Addtional
+%   parameters include:
+%   OFFSET    - An integer specifying the number of bits to skip from the 
+%               start of file before actual reading occurs, defaults to 0
+%   PRECISION - A string specifying the precision of one unit of data, 
+%               defaults to 'double' (8 bits)
+%               Supported precisions: 'double', 'single'
+%   REPEAT    - Positive integer or Inf (defaults to Inf).
+%               Number of times to apply the specified format to the mapped
+%               region of the file. If Inf, repeat until end of file. 
+%
+%   Note: The absolute path to the file must be provided.
 
 % Setup variables
 filename  = name;
