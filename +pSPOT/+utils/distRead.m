@@ -59,16 +59,31 @@ switch precision
 end    
 
 spmd
-    % Setup local chunk size
-    global_codist   = codistributor1d(length(dimensions),[],dimensions);
-    partition       = global_codist.Partition;
-    local_size      = [dimensions(1:end-1) partition(labindex)];
-    
-    % Setup offsets
-    global_part     = codistributed(1:dimensions(end));
-    global_indices  = globalIndices(global_part,2,labindex);
-    elements_offset = prod([dimensions(1:end-1) global_indices(1) - 1]);
-    local_offset    = offset + elements_offset*bytesize;
+    % Account for column vectors
+    if length(dimensions) == 2 && dimensions(2) == 1
+        % Setup local chunk size
+        global_codist   = codistributor1d(1,[],dimensions);
+        partition       = global_codist.Partition;
+        local_size      = [partition(labindex) 1];
+
+        % Setup offsets
+        global_part     = codistributed(1:dimensions(end));
+        global_indices  = globalIndices(global_part,1,labindex);
+        elements_offset = global_indices(1) - 1;
+        local_offset    = offset + elements_offset*bytesize;
+        
+    else % Multivectors
+        % Setup local chunk size
+        global_codist   = codistributor1d(length(dimensions),[],dimensions);
+        partition       = global_codist.Partition;
+        local_size      = [dimensions(1:end-1) partition(labindex)];
+
+        % Setup offsets
+        global_part     = codistributed(1:dimensions(end));
+        global_indices  = globalIndices(global_part,2,labindex);
+        elements_offset = prod([dimensions(1:end-1) global_indices(1) - 1]);
+        local_offset    = offset + elements_offset*bytesize;
+    end
     
     % Setup memmapfile
     M = memmapfile(filename,'format',{precision,local_size,'x'},...
