@@ -1,29 +1,32 @@
 classdef dataContainer
 %DATACONTAINER  The Data Container Mother Class
 %
-%   x = dataContainer(DATA) returns a data container object containing the
-%   explicit data as well as important properties of the data such as the
-%   dimensions (implicit and original dimensions included), whether it is
-%   implicitly or explicitly vectorized, distributed, and its distribution
-%   dimension.
+%   x = dataContainer(TYPE,EXDIMS,IMDIMS) is the abstract parent class for
+%   all data container classes.
 %
-%   Since dataContainer is subclassed from the handle superclass, all 
-%   instances copied from the original object points back to the same 
-%   object, and data is not copied. any change made to one instance of the 
-%   data container object will affect all copies of the object. 
-%   (ie. copied by assignment, etc.)
+%   TYPE   is a string that specifies the type of the data container that 
+%          is being created
+%   EXDIMS is the explicit dimensions of the contained data
+%   IMDIMS is the implicit dimensions of the contained data
 %
-%   The following properties can be accessed via dot notation:
+%   Data Container Flags:
+%   strict If true, all elementary operations must be performed on data
+%          container objects that have the exact same implicit dimensions
+%          as well as permutation.
 %
-%   x.data returns the actual data stored in the data container. Note that
-%   any changes made to this data by itself is not monitored by the data
-%   container and thus may break its history.
+%   Since this is an abstract class that cannot be instantiated, this
+%   documentation is for reference purposes only.
 %
-%   data container methods: 
-%   distriCon, reshape, vec, unvec, permute, unpermute, mtimes
+%   Data Container subclasses: 
+%   iCon, piCon
 %
-%   overloaded Matlab methods:
-%   size, norm, subsref, subsasgn
+%   Overloaded Matlab methods:
+%   abs, eq, isreal, length, ndims, plus, size, ge, isempty, 
+%   isscalar, lt, ne, power, subsasgn, double, gt, isize, ldivide, minus,
+%   norm, rdivide, subsref, end, isnumeric, le, mtimes, normest%   
+%
+%   Extra methods not found in Matlab:
+%   invvec, invpermute, setImDims, vec
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties

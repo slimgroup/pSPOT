@@ -6,7 +6,6 @@ function y = le(A,B)
 %   not.  A and B must have the same dimensions unless one is a
 %   scalar. A scalar can be compared with any size array.
 %
-%   C = LE(A,B) is called for the syntax 'A <= B' when A or B is an
-%   object.
+%   Note that this returns a Matlab logical array
 
 y = le( double(A), double(B) );

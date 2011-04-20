@@ -1,10 +1,13 @@
 function y = invpermute(x)
-%UNPERMUTE    Un-permutation for data container
+%INVPERMUTE  Inverse-permutation of a data container
 %
-%   unpermute(X) permutes the data container back into the original
+%   invpermute(X) permutes the data container back into the original
 %   permutation as specified in the property, x.perm
 %
-%   See also: permute
+%   Note: invpermute does not work with collapsed implicit dimensions (ie.
+%   vec-ed data). Try using invvec on the data before doing invpermute
+%
+%   See also: iCon.permute, dataContainer.vec
 
 % Check for collapsed dimensions
 for i = 1:length(x.perm)

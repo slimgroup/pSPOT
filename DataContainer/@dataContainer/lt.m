@@ -6,7 +6,6 @@ function y = lt(A,B)
 %   not.  A and B must have the same dimensions unless one is a
 %   scalar. A scalar can be compared with any size array.
 %
-%   C = LT(A,B) is called for the syntax 'A < B' when A or B is an
-%   object.
+%   Note: This returns a Matlab logical array
 
 y = lt( double(A), double(B) );

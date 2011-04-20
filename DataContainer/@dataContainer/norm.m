@@ -5,18 +5,24 @@ function y = norm(x,p)
 %   a future release. See DOC NORM.  
 %
 %   For matrices...
-%     NORM(X) is the 2-norm of X.
-%     NORM(X,2) is the same as NORM(X).
-%     NORM(X,1) is the 1-norm of X.
-%     NORM(X,inf) is the infinity norm of X.
-%     NORM(X,'fro') is the Frobenius norm of X.
-%     NORM(X,P) is available for matrix X only if P is 1, 2, inf or 'fro'.
+%       NORM(X) is the 2-norm of X.
+%       NORM(X,2) is the same as NORM(X).
+%       NORM(X,1) is the 1-norm of X.
+%       NORM(X,inf) is the infinity norm of X.
+%       NORM(X,'fro') is the Frobenius norm of X.
+%       NORM(X,P) is available for matrix X only if P is 1, 2, inf or 'fro'
 %
 %   For vectors...
-%     NORM(V,P) = sum(abs(V).^P)^(1/P).
-%     NORM(V) = norm(V,2).
-%     NORM(V,inf) = max(abs(V)).
-%     NORM(V,-inf) = min(abs(V)).
+%       NORM(V,P)    = sum(abs(V).^P)^(1/P).
+%       NORM(V)      = norm(V,2).
+%       NORM(V,inf)  = max(abs(V)).
+%       NORM(V,-inf) = min(abs(V)).
+%
+%   For tensors >= 3D... (A friendly reminder will be given)
+%       NORM(X,P)    = sum(abs(vec(X)).^P)^(1/P).
+%       NORM(X)      = norm(vec(X),2).
+%       NORM(X,inf)  = max(abs(vec(X))).
+%       NORM(X,-inf) = min(abs(vec(X))).
 
 % Process and extract arguments
 if nargin == 1, p = 2; end

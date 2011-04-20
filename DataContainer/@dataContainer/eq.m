@@ -6,7 +6,6 @@ function y = eq(A,B)
 %   not.  A and B must have the same dimensions unless one is a
 %   scalar. A scalar can be compared with any size array.
 %
-%   C = EQ(A,B) is called for the syntax 'A == B' when A or B is an
-%   object.
+%   Note: Returns a Matlab logical array
 
 y = eq( double(A), double(B) );

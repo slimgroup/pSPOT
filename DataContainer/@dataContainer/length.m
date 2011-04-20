@@ -1,13 +1,9 @@
-function n = length(op)
-%LENGTH  Maximum dimension of operator.
+function n = length(x)
+%LENGTH  Maximum dimension of data.
 %
-%   length(A) returns the maximum dimension of the operator A.
+%   length(X) returns the maximum dimension of the data container X.
+%
+%   Note: This returns a Matlab numeric data array
 
-%   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
-%   See the file COPYING.txt for full copyright information.
-%   Use the command 'spot.gpl' to locate this file.
-   
-%   http://www.cs.ubc.ca/labs/scl/spot
-
-n = max(size(op));
+n = max(size(x));
 
