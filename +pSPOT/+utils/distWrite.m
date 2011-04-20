@@ -58,7 +58,6 @@ spmd
     elements_offset = sum(global_elements(1:labindex-1));
     local_offset    = offset + elements_offset*bytesize;
     
-    labBarrier;
     if labindex == 1   % Lab 1 always gets to write first
         % Setup memmapfile
         M = memmapfile(filename,'format',{precision,local_size,'x'},...
