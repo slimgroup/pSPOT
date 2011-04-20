@@ -1,11 +1,10 @@
 function x = distRead(name,dimensions,varargin)
 
 % Setup variables
-filename   = name;
-precision  = 'double';
-repeat     = inf;
-offset     = 0;
-writable   = false;
+filename  = name;
+precision = 'double';
+repeat    = inf;
+offset    = 0;
 
 % Preprocess input arguments
 error(nargchk(1, nargin, nargin, 'struct'));
@@ -25,7 +24,7 @@ for i = 1:2:length(varargin)
     
     fieldname = lower(varargin{i});
     switch fieldname
-        case {'writable', 'offset', 'precision', 'repeat'}
+        case {'offset', 'precision', 'repeat'}
             eval([fieldname ' = varargin{i+1};']);
         otherwise
             error('Parameter "%s" is unrecognized.', ...
@@ -57,7 +56,7 @@ spmd
     
     % Setup memmapfile
     M = memmapfile(filename,'format',{precision,local_size,'x'},...
-        'offset',local_offset);
+        'offset',local_offset,'repeat',repeat);
     
     % Read local data
     local_data      = double(M.data(1).x);
