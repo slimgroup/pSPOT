@@ -1,5 +1,6 @@
 function y = diag(varargin)
 %DIAG Diagonal matrices and diagonals of a matrix.
+%
 %   DIAG(V,K) when V is a vector with N components is a square matrix
 %   of order N+ABS(K) with the elements of V on the K-th diagonal. K = 0
 %   is the main diagonal, K > 0 is above the main diagonal and K < 0
@@ -11,8 +12,6 @@ function y = diag(varargin)
 %   the elements of the K-th diagonal of X.
 %
 %   DIAG(X) is the main diagonal of X. DIAG(DIAG(X)) is a diagonal matrix.
-%
-%   See also SPDIAGS, TRIU, TRIL, BLKDIAG.
 
 % Doublify any iCon
 varargin = cellfun(@(x) InCoreDataContainer.stripicon(x), varargin,...

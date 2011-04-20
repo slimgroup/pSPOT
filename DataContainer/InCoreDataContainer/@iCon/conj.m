@@ -1,15 +1,9 @@
 function y = conj(x)
-%CONJ  Elementwise conjugate of operator.
+%CONJ  Elementwise conjugate of data container
 %
-%   conj(OP) is the elementwise conjugate of the Spot operator OP.
+%   conj(x) is the elementwise conjugate of the data container x.
 %
-%   See also opSpot.real, opConj.
+%   See also iCon.real
 
-%   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
-%   See the file COPYING.txt for full copyright information.
-%   Use the command 'spot.gpl' to locate this file.
-
-%   http://www.cs.ubc.ca/labs/scl/spot
-
-y = x;
+y      = x;
 y.data = conj(double(x));

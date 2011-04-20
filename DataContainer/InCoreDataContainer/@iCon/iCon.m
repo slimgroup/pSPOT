@@ -1,5 +1,5 @@
 classdef iCon < dataContainer
-%DCINCORE   The In-Core Data Container Class
+%ICON   The In-Core Data Container Class
 %
 %
 
