@@ -1,4 +1,4 @@
-function x = distRead(name,varargin)
+function x = distRead(name,dimensions,varargin)
 
 % Setup variables
 filename   = name;
@@ -6,7 +6,6 @@ precision  = 'double';
 repeat     = inf;
 offset     = 0;
 writable   = false;
-dimensions = [];
 
 % Preprocess input arguments
 error(nargchk(1, nargin, nargin, 'struct'));
@@ -14,6 +13,9 @@ error(nargchk(1, nargin, nargin, 'struct'));
 if rem(length(varargin), 2) ~= 0
     error('Param/value pairs must come in pairs.');
 end
+
+assert(ischar(name), 'filename must be a string')
+assert(isnumeric(dimensions), 'dimensions must be numeric')
 
 % Parse param-value pairs
 for i = 1:2:length(varargin)
@@ -23,7 +25,7 @@ for i = 1:2:length(varargin)
     
     fieldname = lower(varargin{i});
     switch fieldname
-        case {'writable', 'offset', 'precision', 'repeat', 'dimensions'}
+        case {'writable', 'offset', 'precision', 'repeat'}
             eval([fieldname ' = varargin{i+1};']);
         otherwise
             error('Parameter "%s" is unrecognized.', ...
@@ -41,7 +43,6 @@ switch precision
         error('Unsupported precision');
 end    
 
-% spmd
 spmd
     % Setup local chunk size
     global_codist   = codistributor1d(length(dimensions),[],dimensions);
@@ -49,7 +50,9 @@ spmd
     local_size      = [dimensions(1:end-1) partition(labindex)];
     
     % Setup offsets
-    elements_offset = prod([dimensions(1:end-1) partition(1:labindex-1)]);
+    global_part     = codistributed(1:dimensions(end));
+    global_indices  = globalIndices(global_part,2,labindex);
+    elements_offset = prod([dimensions(1:end-1) global_indices(1) - 1]);
     local_offset    = offset + elements_offset*bytesize;
     
     % Setup memmapfile
@@ -57,7 +60,7 @@ spmd
         'offset',local_offset);
     
     % Read local data
-    local_data      = M.data(1).x;
+    local_data      = double(M.data(1).x);
     x = codistributed.build(local_data,global_codist,'noCommunication');
     
 end % spmd
