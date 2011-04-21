@@ -13,4 +13,4 @@ function x = randn(varargin)
 %   Negative integers are treated as 0.
 %   - The data is always distributed to the last dimension
 
-x = ppiCon(distributed.randn(varargin{:}));
+x = piCon(distributed.randn(varargin{:}));
