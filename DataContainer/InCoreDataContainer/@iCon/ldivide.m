@@ -4,8 +4,11 @@ function y = ldivide(A,B,swp)
 %   must have the same dimensions unless one is a scalar.
 %   A scalar can be divided with anything.
 %
-%   C = LDIVIDE(A,B) is called for the syntax 'A .\ B' when A or B is an
-%   object.
+%   Note:
+%   - The returned data container will contain the metadata of the left
+%     operator.
+%   - If strict flag is enforced in just one of the operators, then
+%     both operators must have the same implicit dimensions.
 %
 %   See also RDIVIDE
 

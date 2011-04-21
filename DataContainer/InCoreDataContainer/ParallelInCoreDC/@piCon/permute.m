@@ -8,7 +8,7 @@ function y = permute(x,varargin)
 %   conserved relatively. ie. no redistribution or communication of
 %   elements happen under the hood.
 %
-%   See also: unpermute
+%   See also: invpermute
 
 % Setup variables
 perm = [varargin{:}];

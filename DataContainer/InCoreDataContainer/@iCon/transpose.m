@@ -1,16 +1,10 @@
 function result = transpose(x)
-%.'   Operator tranpose.
+%.'   Data container tranpose.
 %   A.' is the (non-conjugate) transpose of A.
 %
-%   transpose(A) is called for the syntax A.' when A is an operator.
+%   transpose(A) is called for the syntax A.' when A is an data container.
 %
-%   See also opTranspose, opCTranspose, opSpot.ctranspose.
-   
-%   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
-%   See the file COPYING.txt for full copyright information.
-%   Use the command 'spot.gpl' to locate this file.
-
-%   http://www.cs.ubc.ca/labs/scl/spot
+%   See also iCon.ctranspose.
 
 % Transpose
 result        = x;

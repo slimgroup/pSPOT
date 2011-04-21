@@ -16,7 +16,7 @@ function y = reshape(varargin)
 %   size of the distributed dimension. Or some special symmetrical
 %   distribution scheme is used.
 %
-%   See also: unvec, vec, double
+%   See also: invvec, dataContainer.vec, iCon.double
 
 % Check and extract dim
 if isa(varargin{2},'piCon')

@@ -1,13 +1,11 @@
 function y = plus(A,B,swp)
 %+   Sum of two operators.
 %
-%   See also opSum, opSpot.minus.
-
-%   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
-%   See the file COPYING.txt for full copyright information.
-%   Use the command 'spot.gpl' to locate this file.
-
-%   http://www.cs.ubc.ca/labs/scl/spot
+%   Note:
+%   - The returned data container will contain the metadata of the left
+%     operator.
+%   - If strict flag is enforced in just one of the operators, then
+%     both operators must have the same implicit dimensions.
 
 if nargin == 3 && strcmp(swp,'swap')
    temp = A;

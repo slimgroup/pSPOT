@@ -17,11 +17,6 @@ function y = mldivide(A,B,swp)
 %   nonzero components per column. If K < N this will usually not
 %   be the same solution as PINV(A)*B.  A\EYE(SIZE(A)) produces a
 %   generalized inverse of A.
-%
-%   C = MLDIVIDE(A,B) is called for the syntax 'A \ B' when A or B is an
-%   object.
-%
-%   See also LDIVIDE, RDIVIDE, MRDIVIDE.
 
 % unswap
 if nargin == 3 && strcmp(swp,'swap')

@@ -4,7 +4,7 @@ function y = permute(x,varargin)
 %   permute(X,N1,N2,...,N) permutes the data container according to the
 %   order of permutation [N1,N2,...,N]
 %
-%   See also: unpermute
+%   See also: invpermute
 
 % Setup variables
 perm = [varargin{:}];

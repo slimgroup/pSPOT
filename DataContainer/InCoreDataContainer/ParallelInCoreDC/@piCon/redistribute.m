@@ -1,4 +1,15 @@
 function y = redistribute(x,varargin)
+%REDISTRIBUTE   Redistribution for data container
+%   
+%   y = redistribute(x) redistributes the underlying distributed
+%   data in data container x to the last dimension.
+%
+%   y = redistribute(x,DDIM) redistributes x to specified distribution
+%   dimensions DDIM.
+%
+%   y = redistribute(x,DDIM,PART) additional specifies the distribution
+%   partition to be PART. Note that the sum of the distribution partition
+%   must be equal to the correct dimension in the global size of x.
 
 % Setup variables
 dim   = ndims(x);

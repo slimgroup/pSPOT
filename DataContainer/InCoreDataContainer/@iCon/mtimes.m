@@ -1,4 +1,9 @@
 function y = mtimes(A,B,swp)
+%*   Matrix multiply.
+%   X*Y is the matrix product of X and Y.  Any scalar (a 1-by-1 matrix)
+%   may multiply anything.  Otherwise, the number of columns of X must
+%   equal the number of rows of Y.
+
 % unswap
 if nargin == 3 && strcmp(swp,'swap')
     tmp = B;

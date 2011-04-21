@@ -5,14 +5,13 @@ function y = reshape(x,varargin)
 %   dimensions defined as [N1,N2,...,N]. Note that the number of elements
 %   must be conserved.
 %
-%   Always keep in mind that reshape on distributed arrays always conserve
-%   the elements locally on the labs, ie. There will be no communication
-%   between labs. Therefore, the local parts size after reshaping has to be
-%   the same locally. This is generally not an issue if you preserve the
-%   size of the distributed dimension. Or some special symmetrical
-%   distribution scheme is used.
+%   Note: The new reshape dimensions must always be a collapsed or
+%   uncollapsed form of the original implicit dimension. Cross-dimensional
+%   reshapes are not allowed. If you insist on doing cross-dimensional
+%   reshapes, consider using setImDims to change the implicit dimensions
+%   before reshaping.
 %
-%   See also: unvec, vec, double
+%   See also: invvec, dataContainer.vec, iCon.double, setImDims
 
 % Check for the collapsibility of reshape
 % Do the calculation

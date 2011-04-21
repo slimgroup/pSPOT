@@ -1,7 +1,34 @@
 classdef iCon < dataContainer
 %ICON   The In-Core Data Container Class
 %
+%   x = iCon(DATA) returns a serial in-core data container containing DATA.
 %
+%   Overloaded Matlab methods:
+%   abs                        inv                        permute
+%   invvec                     plus                       isempty
+%   power                      bsxfun                     conj              
+%   isnumeric                  real                       ctranspose      
+%   isreal                     reshape                    diag             
+%   isscalar                   disp                       ldivide          
+%   sign                       distributed                le               
+%   size                       double                     length           
+%   subsasgn                   end                        lt               
+%   subsref                    eq                         minus            
+%   times                      mldivide                   transpose        
+%   full                       mpower                     uminus                     
+%   ge                         mrdivide                   uplus                      
+%   gt                         mtimes                     horzcat          
+%   ndims                      vertcat                    ne                         
+%   imag                       norm                       normest 
+%
+%   Extra methods not found in Matlab:
+%   opMatrix                   assertElementsAlmostEqual  invpermute
+%   assertEqual                invvec                     isize
+%   setImDims                  extract                    vec
+%   inject
+%
+%   Static methods:
+%   randn                      zeros
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Public Methods

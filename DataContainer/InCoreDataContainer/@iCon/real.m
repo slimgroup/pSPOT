@@ -1,7 +1,7 @@
 function y = real(x)
 %REAL  Complex real part.
 %
-%   real(A) returns an operator comprised of the real part of A.
+%   real(A) returns an data container containing the real part of A.
 %
 %   See also imag.
 

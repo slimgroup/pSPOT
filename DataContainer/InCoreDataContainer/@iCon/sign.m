@@ -5,6 +5,8 @@ function y = sign(x)
 %   less than zero.  For the nonzero elements of complex X,
 %   SIGN(X) = X ./ ABS(X).
 %
+%   Note: Returns a Matlab numeric array
+%   
 %   See also ABS.
 
 y = x;

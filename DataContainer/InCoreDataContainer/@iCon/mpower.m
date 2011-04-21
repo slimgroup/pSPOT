@@ -2,12 +2,8 @@ function y = mpower(A,B,swp)
 %^   Matrix power.
 %
 %   A^y is A to the y power.
-
-%   Copyright 2009, Ewout van den Berg and Michael P. Friedlander
-%   See the file COPYING.txt for full copyright information.
-%   Use the command 'spot.gpl' to locate this file.
-   
-%   http://www.cs.ubc.ca/labs/scl/spot
+%
+%   Note: A must be square, and y must be scalar
 
 % unswap
 if nargin == 3 && strcmp(swp,'swap')

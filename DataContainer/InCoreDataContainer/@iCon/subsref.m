@@ -1,9 +1,6 @@
 function varargout = subsref(x,s)
 %SUBSREF   Subscripted reference.
 %
-%   X.<property> returns the value stored in that property: Currently the
-%   two properties that the user would be interested in is:
-%
 %   X(a,b,..) - where a,b,.. are indices returns the explicit
 %               elements stored within the data container as if it is a
 %               Matlab array. Actually this level of subreferencing is
@@ -14,7 +11,7 @@ function varargout = subsref(x,s)
 %               explicitly change all references to this object, including
 %               the original, the copies and whatnot.
 %
-%   See also: vec, unvec, subsasgn
+%   See also: iCon.vec, invvec, iCon.subsasgn
 
 if length(s) > 1
 %     % Check for extended function calls

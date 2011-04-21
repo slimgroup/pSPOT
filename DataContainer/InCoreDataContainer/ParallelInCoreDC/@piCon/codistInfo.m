@@ -1,4 +1,5 @@
 function y = codistInfo(x)
+%CODISTINFO Prints the codistributor info onto the Command Window
 
 fprintf('excoddims: ')
 disp(x.excoddims)
