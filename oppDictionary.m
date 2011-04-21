@@ -329,7 +329,7 @@ classdef oppDictionary < oppSpot
                 
                 % Summing the results and distribute
                 y = pSPOT.utils.global_sum(y); % The result now sits on lab 1
-                y = codistributed(y,1,codistributor1d());
+                y = codistributed(y,1,codistributor1d(2));
                 
             end %spmd
             
