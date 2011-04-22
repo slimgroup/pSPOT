@@ -1,4 +1,4 @@
-function distWrite(name,x,varargin)
+function distWriteNoQ(name,x,varargin)
 %DISTWRITE  Write distributed data to binary file
 %
 %   x = distWrite(FILENAME,DATA,PARAM1,VALUE1,PARAM2,VALUE2,...) writes
@@ -76,40 +76,12 @@ spmd
     elements_offset = sum(global_elements(1:labindex-1));
     local_offset    = offset + elements_offset*bytesize;
     
-    if labindex == 1   % Lab 1 always gets to write first
-        % Setup memmapfile
-        M = memmapfile(filename,'format',{precision,local_size,'x'},...
-            'offset',local_offset, 'writable', true,...
-            'repeat',repeat);
-        
-        % Write local data
-        M.data(1).x = local_data;
-    end
-    labBarrier; % Synchronize
-    
-    if labindex == 1
-        labs = 2:numlabs;
-        while ~isempty(labs)
-            if( labProbe(labs(1)) )
-                labReceive(labs(1)); % Get the ready signal
-                labSend('Go ahead',labs(1)); % Send the go ahead signal
-                labReceive(labs(1)); % Wait for the done signal
-                labs(1) = [];
-            else
-                labs = circshift( labs, [0 -1] );
-            end
-        end
-    else % Other labs
-        labSend('Im Ready!',1); % Send ready signal
-        labReceive(1); % Wait for the go ahead signal
-        % Setup memmapfile
-        M = memmapfile(filename,'format',{precision,local_size,'x'},...
-            'offset',local_offset, 'writable', true,...
-            'repeat',repeat);
-        
-        % Write local data
-        M.data(1).x = local_data;
-        labSend('Im Done!',1);
-    end
+    % Setup memmapfile
+    M = memmapfile(filename,'format',{precision,local_size,'x'},...
+        'offset',local_offset, 'writable', true,...
+        'repeat',repeat);
+
+    % Write local data
+    M.data(1).x = local_data;
     
 end % spmd
