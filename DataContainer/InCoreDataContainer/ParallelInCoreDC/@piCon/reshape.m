@@ -28,7 +28,7 @@ else
 end
 
 % Check and extract x and sizes
-x = varargin{1};
+x       = varargin{1};
 assert(isa(x,'piCon'), 'X must be a parallel data container')
 sizes   = [varargin{2:end}];
 
@@ -67,28 +67,47 @@ if ~dim, dim  = x.excoddims; end
 
 % Pick the smallest dimension
 dim = min(dim,length(sizes));
-if prod(sizes) == sizes(1), dim = 1; end
 
-spmd
-    % Setup local parts
-    data = getLocalPart(data);
-    part = codistributed.zeros(1,numlabs);
-    
-    % Reshape
-    if ~isempty(data)
-        locsizes       = num2cell(sizes);
-        locsizes{dim}  = [];
-        data           = reshape(data,locsizes{:});
-        part(labindex) = size(data,dim);
-    else
-        empty_size      = sizes;
-        empty_size(dim) = 0;
-        data = zeros(empty_size);
+% Vec case
+if prod(sizes) == sizes(1)
+    spmd
+        % Setup local parts
+        data = getLocalPart(data);
+        data = data(:); % vec
+        part = codistributed.zeros(1,numlabs);
+        
+        % Setup codistributor and combine
+        if ~isempty(data)
+            part(labindex)  = length(data);
+        end
+        
+        % Build codistributed
+        cod  = codistributor1d(1,part,sizes);
+        data = codistributed.build(data,cod,'noCommunication');
     end
-
-    % Build codistributed
-    cod  = codistributor1d(dim,part,sizes);
-    data = codistributed.build(data,cod,'noCommunication');
+    
+else % Everything else
+    spmd
+        % Setup local parts
+        data = getLocalPart(data);
+        part = codistributed.zeros(1,numlabs);
+        
+        % Reshape
+        if ~isempty(data)
+            locsizes        = num2cell(sizes);
+            locsizes{dim}   = [];
+            data            = reshape(data,locsizes{:});
+            part(labindex)  = size(data,dim);
+        else
+            empty_size      = sizes;
+            empty_size(dim) = 0;
+            data = zeros(empty_size);
+        end
+        
+        % Build codistributed
+        cod  = codistributor1d(dim,part,sizes);
+        data = codistributed.build(data,cod,'noCommunication');
+    end
 end
 
 % Set variables
