@@ -54,7 +54,6 @@ end
 switch precision
     case 'single'
         bytesize = 4;
-        x = single(x);
     case 'double'
         bytesize = 8;
     otherwise
@@ -68,6 +67,9 @@ spmd
     % Setup local chunk size
     local_data      = getLocalPart(x);
     local_size      = size(local_data);
+    
+    % Convert to single if single
+    if strcmp(precision,'single'), local_data = single(local_data); end
     
     % Setup offsets
     global_elements = codistributed.zeros(1,numlabs);
@@ -83,5 +85,9 @@ spmd
 
     % Write local data
     M.data(1).x = local_data;
+    
+    % Verbose output
+    output = ['Lab ' int2str(labindex) ' done writing!'];
+    disp(output);
     
 end % spmd
