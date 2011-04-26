@@ -4,9 +4,9 @@ function distWrite(name,x,varargin)
 %   x = distWrite(FILENAME,DATA,PARAM1,VALUE1,PARAM2,VALUE2,...) writes
 %   the distributed data DATA into file FILENAME. Addtional
 %   parameters include:
-%   OFFSET    - An integer specifying the number of bits to skip from the 
+%   OFFSET    - An integer specifying the number of bits to skip from the
 %               start of file before actual reading occurs, defaults to 0
-%   PRECISION - A string specifying the precision of one unit of data, 
+%   PRECISION - A string specifying the precision of one unit of data,
 %               defaults to 'double' (8 bits)
 %               Supported precisions: 'double', 'single'
 %   REPEAT    - Positive integer or Inf (defaults to Inf).
@@ -54,7 +54,6 @@ end
 switch precision
     case 'single'
         bytesize = 4;
-        x = single(x);
     case 'double'
         bytesize = 8;
     otherwise
@@ -68,6 +67,9 @@ spmd
     % Setup local chunk size
     local_data      = getLocalPart(x);
     local_size      = size(local_data);
+    
+    % Convert to single if single
+    if strcmp(precision,'single'), local_data = single(local_data); end
     
     % Setup offsets
     global_elements = codistributed.zeros(1,numlabs);
@@ -84,6 +86,11 @@ spmd
         
         % Write local data
         M.data(1).x = local_data;
+        
+        % Verbose output
+        output = ['Lab ' int2str(labindex) ' done writing!'];
+        disp(output);
+        
     end
     labBarrier; % Synchronize
     
@@ -110,6 +117,10 @@ spmd
         % Write local data
         M.data(1).x = local_data;
         labSend('Im Done!',1);
+        
+        % Verbose output
+        output = ['Lab ' int2str(labindex) ' done writing!'];
+        disp(output);
     end
     
 end % spmd
