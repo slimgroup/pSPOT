@@ -77,7 +77,7 @@ spmd
         if verbose
             tsingle = toc(tsingle);
             disp(['Lab ' int2str(labindex) ' converted to single in '...
-                in2str(tsingle) 's']);
+                int2str(tsingle) 's']);
         end
     end
     
