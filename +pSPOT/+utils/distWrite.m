@@ -71,7 +71,15 @@ spmd
     local_size      = size(local_data);
     
     % Convert to single if single
-    if strcmp(precision,'single'), local_data = single(local_data); end
+    if strcmp(precision,'single')
+        if verbose, tsingle = tic; end
+        local_data = single(local_data);
+        if verbose
+            tsingle = toc(tsingle);
+            disp(['Lab ' int2str(labindex) ' converted to single in '...
+                in2str(tsingle) 's']);
+        end
+    end
     
     % Setup offsets
     global_elements = codistributed.zeros(1,numlabs);
@@ -87,11 +95,14 @@ spmd
             'repeat',repeat);
         
         % Write local data
+        if verbose, twrite = tic; end
         M.data(1).x = local_data;
         
         % Verbose output
         if verbose
-        disp(['1/' int2str(poolsize) ' labs written!']);
+            twrite = toc(twrite);
+            disp(['1/' int2str(poolsize) ' labs written! Time taken: '...
+                int2str(twrite) 's']);
         end
         
     end
@@ -103,13 +114,16 @@ spmd
             if( labProbe(labs(1)) )
                 labReceive(labs(1)); % Get the ready signal
                 labSend('Go ahead',labs(1)); % Send the go ahead signal
+                if verbose, twrite = tic; end
                 labReceive(labs(1)); % Wait for the done signal
                 labs(1) = [];
                 
                 % Verbose output
                 if verbose
-                disp([int2str(poolsize - length(labs)) '/'...
-                    int2str(poolsize) ' labs written!']);
+                    twrite = toc(twrite);
+                    disp([int2str(poolsize - length(labs)) '/'...
+                    int2str(poolsize) ' labs written! Time taken: '...
+                    int2str(twrite) 's']);
                 end
                 
             else
@@ -124,7 +138,7 @@ spmd
             'offset',local_offset, 'writable', true,...
             'repeat',repeat);
         
-        % Write local data
+        % Write local data        
         M.data(1).x = local_data;
         labSend('Im Done!',1);
         

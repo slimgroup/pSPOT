@@ -71,7 +71,12 @@ spmd
     local_size      = size(local_data);
     
     % Convert to single if single
-    if strcmp(precision,'single'), local_data = single(local_data); end
+    if strcmp(precision,'single')
+        local_data = single(local_data);
+        if verbose
+            disp(['Lab ' int2str(labindex) ' converted to single']);
+        end
+    end
     
     % Setup offsets
     global_elements = codistributed.zeros(1,numlabs);
@@ -86,12 +91,14 @@ spmd
         'repeat',repeat);
 
     % Write local data
+    if verbose, twrite = tic; end
     M.data(1).x = local_data;
     
     % Verbose output
     if verbose
+        twrite = toc(twrite);
         disp( ['Lab ' int2str(labindex) '/' int2str(poolsize)...
-            ' done writing!'] );
+            ' done writing! Time taken: ' int2str(twrite) 's'] );
     end
     
 end % spmd
