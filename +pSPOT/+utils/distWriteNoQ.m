@@ -12,17 +12,18 @@ function distWriteNoQ(name,x,varargin)
 %   REPEAT    - Positive integer or Inf (defaults to Inf).
 %               Number of times to apply the specified format to the mapped
 %               region of the file. If Inf, repeat until end of file.
+%   VERBOSE   - True if verbose output is desired after every sucessful lab
+%               write. Defaults to false.
 %
 %   Warning: If the file name defined by the path FILENAME already exist,
 %   it will be overwritten.
-%
-%   Note: Please provide the absolute path to the file
 
 % Setup variables
 filename  = name;
 precision = 'double';
 repeat    = inf;
 offset    = 0;
+verbose   = false;
 
 % Preprocess input arguments
 error(nargchk(1, nargin, nargin, 'struct'));
@@ -42,7 +43,7 @@ for i = 1:2:length(varargin)
     
     fieldname = lower(varargin{i});
     switch fieldname
-        case {'offset', 'precision', 'repeat'}
+        case {'offset', 'precision', 'repeat','verbose'}
             eval([fieldname ' = varargin{i+1};']);
         otherwise
             error('Parameter "%s" is unrecognized.', ...
@@ -62,6 +63,7 @@ end
 
 % Preallocate File
 pSPOT.utils.allocFile(filename,prod(size(x)),bytesize);
+poolsize = matlabpool('size');
 
 spmd
     % Setup local chunk size
@@ -87,7 +89,9 @@ spmd
     M.data(1).x = local_data;
     
     % Verbose output
-    output = ['Lab ' int2str(labindex) ' done writing!'];
-    disp(output);
+    if verbose
+        disp( ['Lab ' int2str(labindex) '/' int2str(poolsize)...
+            ' done writing!'] );
+    end
     
 end % spmd
