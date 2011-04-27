@@ -20,7 +20,7 @@ function distWriteNoQ(name,x,varargin)
 
 % Setup variables
 filename  = name;
-precision = 'double';
+precision = 'double';`
 repeat    = inf;
 offset    = 0;
 verbose   = false;
