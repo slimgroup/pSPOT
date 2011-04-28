@@ -27,10 +27,12 @@ elseif nargin > 1 && ~isempty('dim')
     if nargout > 1
        error('Unknown command option.');
     end
-    if dim < 1 || dim > length(dims)
-       error('Dimension argument must be within the dimensions of x');
+    if dim < 1 
+        error('Dimension argument must be within the dimensions of x');
+    elseif dim > length(dims)
+        varargout{1} = 1;
     else
-       varargout = num2cell(dims(dim));
+        varargout = num2cell(dims(dim));
     end
     
 else

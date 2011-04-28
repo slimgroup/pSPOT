@@ -8,3 +8,4 @@ y.imdims    = x.imdims;
 y.perm      = x.perm;
 y.strict    = x.strict;
 y.imcoddims = x.imcoddims;
+y.imcodpart = pSPOT.utils.defaultDistribution(size(y,y.imcoddims));
