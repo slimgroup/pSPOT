@@ -61,23 +61,23 @@ function test_oppMatrix_plus
 m  = randi(100); n = randi(100);
 A1 = iCon.randn(m,n);
 A2 = oppMatrix(distributed(A1));
-B  = piCon.randn(m,n);
+B  = iCon.randn(m,n);
 y1 = A1 + B;
 y2 = A2 + B;
 z  = zeros(m,n);
-assertEqual(z, gather(y1-y2));
+assertEqual(y1,gather(double(y2)));
 end % plus
 
 function test_oppMatrix_minus
 %% test for minus of oppMatrix
-m = randi(100); n = randi(100);
-A1 = randn(m,n);
+m  = randi(100); n = randi(100);
+A1 = iCon.randn(m,n);
 A2 = oppMatrix(distributed(A1));
-B = randn(m,n);
+B  = iCon.randn(m,n);
 y1 = A1 - B;
 y2 = A2 - B;
-z = zeros(m,n);
-q = y1 - double(y2);
+z  = zeros(m,n);
+q  = y1 - double(y2);
 if isdistributed(q), q = gather(q); end
 assertEqual(z,q);
 end % minus

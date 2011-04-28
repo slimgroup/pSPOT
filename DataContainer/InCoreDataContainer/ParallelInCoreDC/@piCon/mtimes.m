@@ -13,7 +13,7 @@ if nargin == 3 && strcmp(swp,'swap')
 end
 
 % Multiply
-if ~isa(A,'iCon') % Right multiply
+if ~isa(A,'piCon') % Right multiply
     y        = B;
     y.data   = double( A*double(B) );
     y.exdims = size(y.data);
@@ -27,7 +27,7 @@ if ~isa(A,'iCon') % Right multiply
         y.imdims{1} = A.ms;
     end
     
-elseif ~isa(B,'iCon') % Left multiply
+elseif ~isa(B,'piCon') % Left multiply
     y        = A;
     y.data   = double( double(A)*B );
     y.exdims = size(y.data);

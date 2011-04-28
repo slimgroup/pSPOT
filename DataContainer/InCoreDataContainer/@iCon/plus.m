@@ -29,16 +29,16 @@ if isscalar(B)
 end
 
 if ~isa(A,'iCon') % Right plus
-    y      = B;
-    y.data = double(A + double(B));
+    y = dataCon(double(A + double(B)));
+    y = metacopy(B,y);
             
 elseif ~isa(B,'iCon') % Left plus
-    y      = A;
-    y.data = double(double(A) + B);
+    y = dataCon(double(double(A) + B));
+    y = metacopy(A,y);
     
 else % Both data containers
-    y      = A;
-    y.data = double(A) + double(B);
+    y = dataCon(double(A) + double(B));
+    y = metacopy(A,y);
     
     % Check for strict flag
     if A.strict || B.strict

@@ -128,6 +128,9 @@ classdef dataContainer
         
         % power
         y = power(A,B)
+        
+        % metacopy
+        y = metacopy(x,y)
                 
     end % Public Abstract methods
     
