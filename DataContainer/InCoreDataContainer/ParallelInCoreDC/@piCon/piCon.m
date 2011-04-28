@@ -64,8 +64,8 @@ classdef (InferiorClasses = {?distributed,?codistributed}) piCon < iCon
             end
             
             % Construct iCon
-            x = x@iCon(data);
-            cod = cod{1};
+            x           = x@iCon(data);
+            cod         = cod{1};
             x.excoddims = cod.Dimension;
             x.excodpart = cod.Partition;
             x.imcoddims = cod.Dimension;

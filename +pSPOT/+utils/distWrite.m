@@ -63,10 +63,10 @@ end
 
 % Preallocate File
 pSPOT.utils.allocFile(filename,prod(size(x)),bytesize);
-poolsize = matlabpool('size');
 
 spmd
     % Setup local chunk size
+    poolsize        = numlabs;
     local_data      = getLocalPart(x);
     local_size      = size(local_data);
     
