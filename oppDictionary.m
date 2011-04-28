@@ -7,6 +7,9 @@ classdef oppDictionary < oppSpot
     %   operators. Each of the operators is multiplied with the
     %   corresponding part of x on seperate labs.
     %
+    %   D = oppDictionary(N,OP) creates a stacked operator A using N number
+    %   of repeating operators OP.
+    %
     %   GATHER specifies whether to gather the results to a local array
     %   or leave them distributed, default is 0.
     %   GATHER = 0 will leave them distributed.
@@ -69,19 +72,29 @@ classdef oppDictionary < oppSpot
                 weights = varargin{1};
                 weights = weights(:);
                 
-                if isempty(weights) % Empty weights (why in the world???)
-                    weights = 1;
-                end
-                
-                if isscalar(varargin{1}) % Same weight applied to all
-                    weights = weights*ones(nargs-1,1);
+                if nargs == 2 % Repeating ops
                     
-                else
-                    if length(varargin{1}) ~= nargs-1
-                        % Incorrect weight size
-                        error('Weights size mismatch');
+                    if spot.utils.isposintscalar(varargin{1}) % repeating N times
+                        weights = ones(weights,1);
+                        
+                    end % Else: Repeating as many times as there are weights
+                    
+                    for i = 3:length(weights)+1
+                        varargin{i} = varargin{2};
                     end
-                    % Else: Normal weights with normal ops
+                    
+                else % Non-repeating ops
+                    
+                    if isscalar(varargin{1}) % Same weight applied to all
+                        weights = weights*ones(nargs-1,1);
+                        
+                    else
+                        if length(varargin{1}) ~= nargs-1
+                            % Incorrect weight size
+                            error('Weights size mismatch');
+                        end
+                        % Else: Normal weights with normal ops
+                    end
                 end
                 varargin(1) = []; % delete weights
                 
