@@ -25,7 +25,7 @@ function y = mtimes(A,B)
 
 % dataContainer preprocessing
 if isa(B,'dataContainer')
-    y = mtimes(B,A,'swap');
+    y = mtimes(B, A,'swap');
 else
     
 % if nargin == 3 && strcmp(swap,'swap')

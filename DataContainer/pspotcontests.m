@@ -1,4 +1,4 @@
-function out = spotcontests(varargin)
+function out = pspotcontests(varargin)
 %PSPOTTESTS Run unit tests in pSpot tests directory.
 %   spottests runs all the test cases that can be found in the current directory
 %   and summarizes the results in the Command Window.
@@ -72,7 +72,7 @@ else
 end
       
 if nargin < 1
-    suite = TestSuite.fromName(fullfile(DataContainer.path,'tests','SpotoContests'));
+    suite = TestSuite.fromName(fullfile(DataContainer.path,'tests','pSpotoContests'));
 else
     name_list = getInputNames(varargin{:});
     if numel(name_list) == 1

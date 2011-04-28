@@ -80,7 +80,6 @@ classdef oppKron2Lo < oppSpot
                 pSPOT.utils.stdpspotchk(varargin{:});
             m = prod(m);
             n = prod(n);
-            clear varargin;
             
             % Construct operator
             op = op@oppSpot('pKron', m, n);
@@ -95,7 +94,12 @@ classdef oppKron2Lo < oppSpot
             %applied
             if ~ (m == 0 || n == 0)
                 op.permutation = op.best_permutation();
-            end
+            end            
+            
+            % Setting up implicit dimensions of output vector
+            op.ms = fliplr(cellfun(@(x) size(x,1),varargin)); % Flipped
+            op.ns = fliplr(cellfun(@(x) size(x,2),varargin));
+            clear varargin;
             
         end % Constructor
         

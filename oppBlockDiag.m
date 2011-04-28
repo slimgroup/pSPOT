@@ -234,14 +234,14 @@ classdef oppBlockDiag < oppSpot
             % Checking size of x
             opchildren = distributed(op.children);
             spmd
-                xcodist = getCodistributor(x);
+                xcodist   = getCodistributor(x);
                 chicodist = getCodistributor(opchildren);
             end
-            xcodist = xcodist{1};
-            xpart = xcodist.Partition;
+            xcodist   = xcodist{1};
+            xpart     = xcodist.Partition;
             chicodist = chicodist{1};
-            chipart = chicodist.Partition;
-            nlabs = matlabpool('size');
+            chipart   = chicodist.Partition;
+            nlabs     = matlabpool('size');
             
             if xcodist.Dimension ~= 1 % Dimensional check
                 error('x is not distributed along dimension 1');
@@ -252,7 +252,7 @@ classdef oppBlockDiag < oppSpot
                 childm = 0;
                 childn = 0;
                 for j=childnum+1:(childnum+chipart(i))
-                    child = op.children{j};
+                    child  = op.children{j};
                     childm = childm + child.m;
                     childn = childn + child.n;
                 end
@@ -271,18 +271,19 @@ classdef oppBlockDiag < oppSpot
             
             % Setting up the variables
             opweights = op.weights;
-            gather = op.gather;
-            opm = op.m;   opn = op.n;
+            gather    = op.gather;
+            opm       = op.m;   
+            opn       = op.n;
             % This "renaming" is required to avoid passing in the whole op,
             % which for some weird reason stalls spmd
             
             spmd
                 % Setting up the local parts
                 codist = getCodistributor(opchildren);
-                wind = globalIndices(codist,2); % local weights indices
-                local_weights = opweights(wind);
+                wind   = globalIndices(codist,2); % local weights indices
+                local_weights  = opweights(wind);
                 local_children = getLocalPart(opchildren);
-                local_x = getLocalPart(x);
+                local_x        = getLocalPart(x);
                 
                 % Setting up codistributor for y
                 finpart = codistributed.zeros(1,numlabs);
