@@ -26,23 +26,23 @@ if isscalar(A) && isscalar(B)
 end
 
 if isscalar(A)
-    A = iCon(A*ones(size(B)));
+    A = dataCon(A*ones(size(B)));
 end
 if isscalar(B)
-    B = iCon(B*ones(size(A)));
+    B = dataCon(B*ones(size(A)));
 end
 
 if ~isa(A,'iCon') % Right multiply
-    y      = B;
-    y.data = double(A .* double(B));
+    y = dataCon(double(A .* double(B)));
+    y = metacopy(B,y);
             
 elseif ~isa(B,'iCon') % Left multiply
-    y      = A;
-    y.data = double(double(A) .* B);
+    y = dataCon(double(double(A) .* B));
+    y = metacopy(A,y);
     
 else % Both data containers
-    y      = A;
-    y.data = double(A) .* double(B);
+    y = dataCon(double(A) .* double(B));
+    y = metacopy(A,y);
     
     % Check for strict flag
     if A.strict || B.strict

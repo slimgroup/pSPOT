@@ -4,10 +4,10 @@ function y = power(A,B)
 %   must have the same dimensions unless one is a scalar. 
 %   A scalar can operate into anything.
 
-y = iCon(power(double(A),double(B)));
+y = dataCon(power(double(A),double(B)));
 
-if isa(A,'dataContainer')
-    y.imdims = A.imdims;
+if isa(A,'iCon')
+    y = metacopy(A,y);
 else
-    y.imdims = B.imdims;
+    y = metacopy(B,y);
 end

@@ -5,5 +5,5 @@ function y = imag(x)
 %
 %   See also real
 
-y      = x;
+y = x;
 y.data = imag(double(x));

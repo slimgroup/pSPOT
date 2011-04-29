@@ -76,7 +76,8 @@ classdef oppNumBlockDiag < oppSpot
             
             % Extract weights
             nargs = length(varargin);
-            if ~isnumeric(varargin{1}) || ndims(varargin{1})==3   % No weights
+            if isdistributed(varargin{1}) || ~isnumeric(varargin{1}) ||...
+                    ndims(varargin{1})==3   % No weights
                 weights = ones(nargs,1);
             else
                 % weights
@@ -88,7 +89,7 @@ classdef oppNumBlockDiag < oppSpot
             
             % Check weights
             nSlices = size(varargin{1},3);
-            Cube = varargin{1};
+            Cube    = double(varargin{1});
             if isscalar(weights)
                 weights = weights.*ones(size(varargin{1},3),1); % default
             else

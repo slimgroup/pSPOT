@@ -17,4 +17,4 @@ function y = diag(varargin)
 varargin = cellfun(@(x) InCoreDataContainer.stripicon(x), varargin,...
     'UniformOutput',false);
 
-y = iCon(diag(varargin{:}));
+y = dataCon(diag(varargin{:}));

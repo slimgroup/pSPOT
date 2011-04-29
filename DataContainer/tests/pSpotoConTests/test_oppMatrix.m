@@ -65,7 +65,7 @@ B  = iCon.randn(m,n);
 y1 = A1 + B;
 y2 = A2 + B;
 z  = zeros(m,n);
-assertEqual(y1,gather(double(y2)));
+assertEqual(y1,gather(y2));
 end % plus
 
 function test_oppMatrix_minus

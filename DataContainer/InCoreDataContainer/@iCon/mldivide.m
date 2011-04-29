@@ -23,8 +23,8 @@ function y = mldivide(A,B,swp)
 % unswap
 if nargin == 3 && strcmp(swp,'swap')
     tmp = B;
-    B = A;
-    A = tmp;
+    B   = A;
+    A   = tmp;
     clear('tmp');
 end
 
@@ -32,13 +32,11 @@ if isscalar(A)
     y = A .\ B;
     
 elseif ~isa(A,'iCon')
-    y        = B;
-    y.data   = double( A \ double(B) );
-    y.exdims = size(y.data);
+    y = dataCon(double( A \ double(B) ));
+    y = metacopy(B,y);
     
     % Extract collapsed dimensions & permutation
     y.imdims = { size(A,2) B.imdims{2} };
-    y.perm   = B.perm;
     
     % Check for spot ms and ns
     if isa(A,'opSpot')
@@ -46,13 +44,11 @@ elseif ~isa(A,'iCon')
     end
     
 elseif ~isa(B,'iCon')
-    y        = A;
-    y.data   = double( double(A) \ B );
-    y.exdims = size(y.data);
+    y = dataCon(double( double(A) \ B ));
+    y = metacopy(A,y);
     
     % Extract collapsed dimensions & permutation
     y.imdims = { A.imdims{2} size(B,2) };
-    y.perm   = A.perm;
     
     % Check for spot ms and ns
     if isa(A,'opSpot')
@@ -60,13 +56,12 @@ elseif ~isa(B,'iCon')
     end
     
 else % Both data containers
-    y        = A;
-    y.data   = double(A) \ double(B);
-    y.exdims = size(y.data);
+    y = dataCon(double(A) \ double(B));
+    y = metacopy(A,y);
     
     % Extract collapsed dimensions
     y.imdims = { A.imdims{2} B.imdims{2} };
-    y.perm   = A.perm;
+    y.perm   = 1:ndims(y);
 end
 
 end % mldivide

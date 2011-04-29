@@ -57,59 +57,52 @@ A    = oppNumBlockDiag(-2,B);
 assertEqual(A.weights,[-2;-2;-2]);
 
 % Test for normal weights
-B    = randn(5,4,2);
+B    = iCon.randn(5,4,2);
 A    = oppNumBlockDiag([3 4],distributed(B),1);
 B1   = B(:,:,1); B2 = B(:,:,2);
 C{1} = opMatrix(B1); C{2} = opMatrix(B2);
 A2   = oppBlockDiag([3 4],C{:},1);
-
-x    = A2.drandn;
-
+x    = dataCon(A2.drandn);
 assertElementsAlmostEqual(A*x, A2*x);
-
-x    = A2.rrandn;
-
+x    = dataCon(A2.rrandn);
 assertElementsAlmostEqual(A'*x, A2'*x);
 
 end
 
 function test_oppNumBlockDiag_xvec
 %% Testing multidimensional x in vector form
-B = randn(5,4,2);
-A = oppNumBlockDiag(distributed(B),3,1);
-B1 = B(:,:,1); B2 = B(:,:,2);
+B    = iCon.randn(5,4,2);
+A    = oppNumBlockDiag(distributed(B),3,1);
+B1   = B(:,:,1); B2 = B(:,:,2);
 C{1} = opKron(opDirac(3), opMatrix(B1)); 
 C{2} = opKron(opDirac(3), opMatrix(B2)); 
-A2 = oppBlockDiag(C{:},1);
+A2   = oppBlockDiag(C{:},1);
 
-x = drandn(A2);
+x    = dataCon(drandn(A2));
 
-y1 = A*x;
-y2 = A2*x;
+y1   = A*x;
+y2   = A2*x;
 
 assertElementsAlmostEqual(y1,y2);
+end % xvec
 
+function test_oppNumBlockDiag_kronification
 %% Testing for scalar kronification
-B = randn(1,1,2);
-A = oppNumBlockDiag(distributed(B),3,1);
-B1 = B(:,:,1); B2 = B(:,:,2);
+B    = randn(1,1,2);
+A    = oppNumBlockDiag(distributed(B),3,1);
+B1   = B(:,:,1); B2 = B(:,:,2);
 C{1} = opKron(opDirac(3), opMatrix(B1)); 
 C{2} = opKron(opDirac(3), opMatrix(B2)); 
-A2 = oppBlockDiag(C{:},1);
-
-x = drandn(A2);
-
-y1 = A*x;
-y2 = A2*x;
-
+A2   = oppBlockDiag(C{:},1);
+x    = dataCon(drandn(A2));
+y1   = A*x;
+y2   = A2*x;
 assertElementsAlmostEqual(y1,y2);
-
-
 warning('on','WarnDist:Wrongdistribution');
 warning('on','WarnDist:Nodistribution');
 warning('on','No:Input');
 warning('on','distcomp:codistributed:norm:usingNormest');
-end % xvec
+end % kronification
 
 function test_oppNumBlockDiag_empty
 %% Testing for empty labs
@@ -118,9 +111,9 @@ function test_oppNumBlockDiag_empty
 % Create B with empty first lab
 B = distributed.randn(5,5,2);
 spmd
-    Bloc = getLocalPart(B);
+    Bloc  = getLocalPart(B);
     gsize = [5 5 1];
-    part = codistributed.zeros(1,numlabs);
+    part  = codistributed.zeros(1,numlabs);
     part(labindex) = size(Bloc,3);
     if labindex == 1
         Bloc = zeros(5,5,0);
@@ -130,7 +123,7 @@ spmd
 end
 
 % Construct A
-A = oppNumBlockDiag(B);
+A = oppNumBlockDiag(dataCon(B));
 
 spmd % Create x with only second lab
     x = codistributed.randn(numlabs*5,1);
@@ -145,7 +138,7 @@ spmd % Create x with only second lab
     x = codistributed.build(xloc,codistributor1d(1,part,gsize));
 end
 
-A*x;
+A*dataCon(x);
 end
 
 

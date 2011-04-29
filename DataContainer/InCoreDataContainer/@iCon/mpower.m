@@ -14,19 +14,17 @@ if nargin == 3 && strcmp(swp,'swap')
 end
 
 if size(A,1) ~= size(A,2)
-   error('Operator must be square.');
+    error('Operator must be square.');
 end
 if ~isscalar(B)
-   error('Exponent must be a scalar.');
+    error('Exponent must be a scalar.');
+else
+    B = double(B);
 end
 
 if isa(A,'iCon')
-    y      = A;
-    y.data = double(A) ^ double(B);
-    
-elseif isa(B,'iCon')
-    y = A ^ double(B);
-    
+    y = dataCon(double(A) ^ B);
+    y = metacopy(A,y);
 else
-   error('Invalid parameters to mpower.');
+    y = A ^ B;
 end

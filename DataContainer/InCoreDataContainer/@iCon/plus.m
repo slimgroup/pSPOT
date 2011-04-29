@@ -9,8 +9,8 @@ function y = plus(A,B,swp)
 
 if nargin == 3 && strcmp(swp,'swap')
    temp = A;
-   A = B;
-   B = temp;
+   A  = B;
+   B  = temp;
    clear temp;
 end
 

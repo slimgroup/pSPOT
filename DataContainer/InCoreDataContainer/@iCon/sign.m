@@ -9,5 +9,4 @@ function y = sign(x)
 %   
 %   See also ABS.
 
-y = x;
-y.data = sign(double(x));
+y = sign(double(x));

@@ -36,6 +36,10 @@ function test_dataConMethods_iCon_isnumeric(x)
     isnumeric(x);
 end
 
+function test_dataConMethods_iCon_issparse(x)
+    issparse(x);
+end
+
 function test_dataConMethods_iCon_isreal(x)
     isreal(x);
 end

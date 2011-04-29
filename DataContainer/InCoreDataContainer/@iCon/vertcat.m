@@ -6,4 +6,4 @@ function y = vertcat(varargin)
 %   See also iCon.horzcat
 
 varargin = cellfun(@double,varargin,'UniformOutput',false');
-y = iCon(vertcat(varargin{:}));
+y = dataCon(vertcat(varargin{:}));

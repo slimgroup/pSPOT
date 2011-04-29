@@ -78,7 +78,7 @@ elseif ~isa(B,'opSpot')
    
       % Perform operator*matrix
       if isempty(A)
-         y = zeros(A.m,size(B,2));
+         y = zeros(A.m,0);
       else
          y = A.applyMultiply(B,1);
       end

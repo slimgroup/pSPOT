@@ -35,6 +35,10 @@ function test_dataConMethods_piCon_isnumeric(x)
     isnumeric(x);
 end
 
+function test_dataConMethods_piCon_issparse(x)
+    issparse(x);
+end
+
 function test_dataConMethods_piCon_isreal(x)
     isreal(x);
 end

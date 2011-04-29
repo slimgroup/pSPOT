@@ -46,12 +46,10 @@ function y = bsxfun(fun,A,B)
 %     A = bsxfun(@minus, A, mean(A));
 
 
-y = iCon(bsxfun(fun,double(A),double(B)));
+y = dataCon(bsxfun(fun,double(A),double(B)));
 
 if isa(A,'iCon')
-    y.imdims = A.imdims;
-    y.perm   = A.perm;
+    y = metacopy(A,y);
 elseif isa(B,'iCon')
-    y.imdims = B.imdims;
-    y.perm   = B.perm;
+    y = metacopy(B,y);
 end

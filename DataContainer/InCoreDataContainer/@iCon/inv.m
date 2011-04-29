@@ -4,8 +4,7 @@ function y = inv(x)
 %   A warning message is printed if X is badly scaled or
 %   nearly singular.
 
-y        = x;
-y.data   = inv(double(x));
-y.exdims = fliplr(x.exdims);
+y        = dataCon(inv(double(x)));
+y        = metacopy(x,y);
 y.imdims = fliplr(x.imdims);
 y.perm   = fliplr(x.perm);
