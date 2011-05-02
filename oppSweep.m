@@ -40,7 +40,7 @@ classdef oppSweep < oppSpot
             assert(length(varargin) == 1, 'Only one operator is supported');
             
             % Standard checking
-            [opList,m,n,cflag,linear] = stdpspotchk(varargin{1});
+            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{1});
             
             % Construct
             op = op@oppSpot('pSweep', m, n);
