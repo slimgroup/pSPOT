@@ -23,6 +23,7 @@ function y = mtimes(A,B)
 % 4) C*s
 % 5) C*C, either of which can be a foreign class (including opSpot)
 
+spmd,warning('off','distcomp:codistributed:mTimes:changeOutputCodistr');end
 % dataContainer preprocessing
 if isa(B,'dataContainer')
     y = mtimes(B, A,'swap');
@@ -91,3 +92,4 @@ else
     y = opFoG(A,B);
 end
 end % catch
+spmd,warning('on','distcomp:codistributed:mTimes:changeOutputCodistr');end
