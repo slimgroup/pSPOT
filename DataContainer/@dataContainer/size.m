@@ -1,4 +1,4 @@
-function d = size(x,dim)
+function varargout = size(x,dim)
 %size  Dimensions of a data container
 %
 %   D = size(x), for a data container x, returns the dimensions of x in an
@@ -14,11 +14,8 @@ function d = size(x,dim)
 
 %   http://www.cs.ubc.ca/labs/scl/spot
 
-if x.ivec
-    dims = [numel(x.data) 1];
-else
-    dims = x.dims;
-end
+% Setup variables
+dims = x.exdims;
 
 if nargin == 0
    error('Not enough input arguments');
@@ -30,12 +27,18 @@ elseif nargin > 1 && ~isempty('dim')
     if nargout > 1
        error('Unknown command option.');
     end
-    if dim < 1 || dim > length(dims)
-       error('Dimension argument must be within the dimensions of x');
+    if dim < 1 
+        error('Dimension argument must be within the dimensions of x');
+    elseif dim > length(dims)
+        varargout{1} = 1;
     else
-       d = dims(dim);
+        varargout = num2cell(dims(dim));
     end
     
 else
-   d = dims; 
+    if nargout <= 1
+        varargout{1} = dims;
+    else
+        varargout = num2cell(dims);
+    end
 end

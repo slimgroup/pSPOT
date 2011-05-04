@@ -17,6 +17,7 @@ classdef oplWindow1Dtpr < opSpot
     properties (SetAccess = private)
         p = 0;
 	h = 0;
+	oshape = 0;
 	yshape = 0;
 	xshape = 0;
     end
@@ -34,10 +35,11 @@ classdef oplWindow1Dtpr < opSpot
 	  n = varargin{1};
 	  p = varargin{2};
 	  h = varargin{3};
-          [ m ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+          [ m os ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
 	  op = op@opSpot('lWindow1Dtpr',m,n);
 	  op.p = p;
 	  op.h = h;
+	  op.oshape = os;
 	  op.yshape = ys;
 	  op.xshape = xs;
        end % function oplWindow1Dtpr

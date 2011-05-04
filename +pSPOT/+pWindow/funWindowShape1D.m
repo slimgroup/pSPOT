@@ -1,7 +1,7 @@
-function [ m ys xs ] = funWindowShape1D( n, p, h )
+function [ m os ys xs ] = funWindowShape1D( n, p, h )
 %funWindowShape1D is a support function for forward oplWindow1D* operators.
 %
-%   [ M YS XS ] = funWindowShape1D( N, P, H )
+%   [ M OS YS XS ] = funWindowShape1D( N, P, H )
 %
 %   INPUT:
 %      N = length of the input vector
@@ -9,18 +9,33 @@ function [ m ys xs ] = funWindowShape1D( n, p, h )
 %      H = half of the overlap's size
 %   OUTPUT:
 %      M = length of the output vector
+%      OS = (p,3) vector holding start, size, end indecies
+%           of the default distribution of the input vector in every window
 %      YS = (p,3) vector holding start, size, end indecies
-%           of the output vector in every window
+%           of the default distribution iof the output vector in every window
 %      XS = (p,3) vector holding start, size, end indecies
-%           of the input vector in every window
-%
+%           of the input vector that will end up in every ouput window
+%   NOTE:
+%      This function assumes that the both the input and output vector
+%      will follow the default distribution
 
     % check # of processors
     assert(p>1,'funWindowShape1D: number of processors has to be bigger then %d',p);
 
     % initialize shape vecs
+    oo=zeros(p,1); od=zeros(p,1); oe=zeros(p,1);
     yo=zeros(p,1); yd=zeros(p,1); ye=zeros(p,1);
     xo=zeros(p,1); xd=zeros(p,1); xe=zeros(p,1);
+
+    % get window params for default source distribution (x)
+    f=floor(n/p); c=ceil(n/p); r=mod(n,p);
+
+    % get window sizes and origins for default source distribution (x)
+    od(1:p)=c;
+    od(r+1:p)=f;
+    oo(1)=1;
+    for i=1:p-1; oo(i+1)=oo(i)+od(i); end;
+    oe=oo+od-1;
 
     % get window params for target (y) oriented distribution
     m=n+(p-1)*2*h;
@@ -46,6 +61,7 @@ function [ m ys xs ] = funWindowShape1D( n, p, h )
     assert(t>2*h,'funWindowShape1D: half-overlap (%d) too large for local window size (%d). Args: (%d,%d,%d)',h,t,n,p,h);
 
     % put array together
+    os = [oo od oe];
     ys = [yo yd ye];
     xs = [xo xd xe];
 

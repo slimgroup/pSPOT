@@ -40,7 +40,7 @@ classdef oppSweep < oppSpot
             assert(length(varargin) == 1, 'Only one operator is supported');
             
             % Standard checking
-            [opList,m,n,cflag,linear] = stdpspotchk(varargin{1});
+            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{1});
             
             % Construct
             op = op@oppSpot('pSweep', m, n);
@@ -130,6 +130,12 @@ classdef oppSweep < oppSpot
                 end
                 
                 local_y = reshape(local_y,size_y);
+                
+                % Check for sparsity
+                aresparse = codistributed.zeros(1,numlabs);
+                aresparse(labindex) = issparse(local_y);
+                % labBarrier;
+                if any(aresparse), local_y = sparse(local_y); end;
                 
                 fincodist = codistributor1d(length(size_x),finpart,fingsize);
                 

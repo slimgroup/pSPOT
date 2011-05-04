@@ -10,7 +10,7 @@ function [ A ] = funWindow1DtprFor( n, p, h )
 %   OUTPUT:
 %      A = 'inverse' operator
 
-    [ m ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+    [ m os ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
 
     A=sparse(m,n);
     for i=0:ys(1,2)-1

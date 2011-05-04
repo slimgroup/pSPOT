@@ -171,10 +171,11 @@ classdef oppKron < oppSpot
             end % spmd
             
             % Setup the variables
-            y = x;
-            y.data   = data;
-            y.dims   = gsize{1};
-            y.codist = cod{1};
+            y = dataContainer(data);
+            y.data    = data;
+            y.dims    = gsize{1};
+            y.codist  = cod{1};
+            y.history = x.history;
             setHistory(y);
             y = ivec(y);
 

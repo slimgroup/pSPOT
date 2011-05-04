@@ -55,3 +55,22 @@ function test_oppDictionary_double
    assertEqual( gather(double(D)), [double(G), double(E), double(R), double(Z)] )
    warning('on','pSpot:NoInput');
 end
+
+function test_oppDictionary_repeating
+%% Repeating operators
+N  = randi([2 5]);
+OP = randn(randi([2 5]),randi([2 5]));
+for i = 1:N
+    oplist{i} = OP;
+end
+S1 = oppDictionary(N,OP,1);
+S2 =  opDictionary(oplist{:});
+x1 = S1.drandn;
+x2 = S1.rrandn;
+y1 = S1*x1;
+y2 = S2*gather(x1);
+z1 = S1'*x2;
+z2 = S2'*x2;
+assertElementsAlmostEqual(y1,y2);
+assertElementsAlmostEqual(z1,z2);
+end % Repeating
