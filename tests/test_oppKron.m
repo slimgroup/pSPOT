@@ -28,9 +28,10 @@ function test_oppKron_5D
     spmd
         x = codistributed(x,codistributor1d(DIMDIST));
     end
-    dx = dataContainer(x);
+    dx = piCon(x);
     dx = ivec(dx);
     
+        
     % fprintf('oppKron2Lo : '),tic,
     y2 = K2*x(:); % toc
     % fprintf('oppKron    : '),tic,
