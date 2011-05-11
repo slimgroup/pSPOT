@@ -62,7 +62,7 @@ switch precision
 end
 
 % Preallocate File
-pSPOT.utils.allocFile(filename,prod(size(x)),bytesize);
+pSPOT.io.allocFile(filename,prod(size(x)),bytesize);
 
 spmd
     % Setup local chunk size
