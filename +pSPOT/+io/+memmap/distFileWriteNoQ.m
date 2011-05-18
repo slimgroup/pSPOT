@@ -1,12 +1,12 @@
-function distWrite(name,x,varargin)
+function distFileWriteNoQ(name,x,varargin)
 %DISTWRITE  Write distributed data to binary file
 %
-%   x = distWrite(FILENAME,DATA,PARAM1,VALUE1,PARAM2,VALUE2,...) writes
+%   x = distFileWrite(FILENAME,DATA,PARAM1,VALUE1,PARAM2,VALUE2,...) writes
 %   the distributed data DATA into file FILENAME. Addtional
 %   parameters include:
-%   OFFSET    - An integer specifying the number of bits to skip from the
+%   OFFSET    - An integer specifying the number of bits to skip from the 
 %               start of file before actual reading occurs, defaults to 0
-%   PRECISION - A string specifying the precision of one unit of data,
+%   PRECISION - A string specifying the precision of one unit of data, 
 %               defaults to 'double' (8 bits)
 %               Supported precisions: 'double', 'single'
 %   REPEAT    - Positive integer or Inf (defaults to Inf).
@@ -72,12 +72,9 @@ spmd
     
     % Convert to single if single
     if strcmp(precision,'single')
-        if verbose, tsingle = tic; end
         local_data = single(local_data);
         if verbose
-            tsingle = toc(tsingle);
-            disp(['Lab ' int2str(labindex) ' converted to single in '...
-                int2str(tsingle) 's']);
+            disp(['Lab ' int2str(labindex) ' converted to single']);
         end
     end
     
@@ -88,60 +85,20 @@ spmd
     elements_offset = sum(global_elements(1:labindex-1));
     local_offset    = offset + elements_offset*bytesize;
     
-    if labindex == 1   % Lab 1 always gets to write first
-        % Setup memmapfile
-        M = memmapfile(filename,'format',{precision,local_size,'x'},...
-            'offset',local_offset, 'writable', true,...
-            'repeat',repeat);
-        
-        % Write local data
-        if verbose, twrite = tic; end
-        M.data(1).x = local_data;
-        
-        % Verbose output
-        if verbose
-            twrite = toc(twrite);
-            disp(['1/' int2str(poolsize) ' labs written! Time taken: '...
-                int2str(twrite) 's']);
-        end
-        
-    end
-    labBarrier; % Synchronize
+    % Setup memmapfile
+    M = memmapfile(filename,'format',{precision,local_size,'x'},...
+        'offset',local_offset, 'writable', true,...
+        'repeat',repeat);
+
+    % Write local data
+    if verbose, twrite = tic; end
+    M.data(1).x = local_data;
     
-    if labindex == 1
-        labs     = 2:numlabs;
-        while ~isempty(labs)
-            if( labProbe(labs(1)) )
-                labReceive(labs(1)); % Get the ready signal
-                labSend('Go ahead',labs(1)); % Send the go ahead signal
-                if verbose, twrite = tic; end
-                labReceive(labs(1)); % Wait for the done signal
-                labs(1) = [];
-                
-                % Verbose output
-                if verbose
-                    twrite = toc(twrite);
-                    disp([int2str(poolsize - length(labs)) '/'...
-                    int2str(poolsize) ' labs written! Time taken: '...
-                    int2str(twrite) 's']);
-                end
-                
-            else
-                labs = circshift( labs, [0 -1] );
-            end
-        end
-    else % Other labs
-        labSend('Im Ready!',1); % Send ready signal
-        labReceive(1); % Wait for the go ahead signal
-        % Setup memmapfile
-        M = memmapfile(filename,'format',{precision,local_size,'x'},...
-            'offset',local_offset, 'writable', true,...
-            'repeat',repeat);
-        
-        % Write local data        
-        M.data(1).x = local_data;
-        labSend('Im Done!',1);
-        
+    % Verbose output
+    if verbose
+        twrite = toc(twrite);
+        disp( ['Lab ' int2str(labindex) '/' int2str(poolsize)...
+            ' done writing! Time taken: ' int2str(twrite) 's'] );
     end
     
 end % spmd
