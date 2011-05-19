@@ -1,5 +1,5 @@
 function test_suite = test_oplWindow1D
-%test_oppStack  Unit tests for the Stack meta operator
+%test_oplWindow1D  Unit tests for 1d windowing operators
 initTestSuite;
 end
 
