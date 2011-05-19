@@ -29,9 +29,8 @@ function test_oppKron_5D
         x = codistributed(x,codistributor1d(DIMDIST));
     end
     dx = piCon(x);
-    dx = ivec(dx);
+    dx = vec(dx);
     
-        
     % fprintf('oppKron2Lo : '),tic,
     y2 = K2*x(:); % toc
     % fprintf('oppKron    : '),tic,
@@ -39,6 +38,8 @@ function test_oppKron_5D
     
     y1 = double(unDistriCon(vec(y1)));
     assertElementsAlmostEqual(y1,y2);
+    
+    warning('on','dataCon:RedistributingX');
     
 end
 

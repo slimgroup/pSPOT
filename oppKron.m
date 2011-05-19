@@ -20,10 +20,10 @@ classdef oppKron < oppSpot
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
+            
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Public methods
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     
     methods
         
@@ -79,6 +79,26 @@ classdef oppKron < oppSpot
             str = [str(1:end-2), ')'];
         end % Display
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % mtimes
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % For the moment mtimes is only implemented for right
+        % multiplication
+        function y=mtimes(op,x)
+            if isa(x,'dataContainer')
+                if ~isa(op,'oppKron')
+                    error('Left multiplication not taken in account')                                                
+                elseif isa(x,'opSpot')    
+                    y = opFoG(op,x);                    
+                elseif ~isa(x,'oppKron')
+                    assert( isvector(x) , 'Please use vectorized matrix')                    
+                    y=op.multiply(x, 1);
+                else
+                    error(['unsupported data type: ' class(x)]);
+                end
+            end 
+        end       
+        
     end % methods
     
     methods ( Access = protected )
@@ -91,10 +111,7 @@ classdef oppKron < oppSpot
             % Check for dataconness of x
             assert(isa(x,'dataContainer'),...
                 'X must be a data container')
-            assert(x.isdist,'X must be distributed');
-            
-            % Remove implicit vectorization
-            x     = univec(x);
+            %metax = extract(x);            
             
             % Setup variables
             ops   = op.children;
@@ -102,15 +119,15 @@ classdef oppKron < oppSpot
             % Reversing order of children for intuitive indexing
             ops   = fliplr(ops);
             nops  = length(ops);
-            
+            x     = invvec(x);
             % Setup spmd variables
             data  = x.data;
             perm  = circshift(1:nops,[0 -1]);
-            ddims = x.codist.Dimension;
+            ddims = x.imcoddims;            
             
             % Quickfix for bordercases
             temp  = ones(1,nops);
-            temp(1:length(x.dims)) = x.dims;
+            temp(1:length(x.exdims)) = x.exdims;
             gsize = temp;
             
             spmd
@@ -126,7 +143,7 @@ classdef oppKron < oppSpot
                         part = codistributed.zeros(1,numlabs);
                         if ~isempty(dloc)
                             part(labindex) = size(dloc,1);
-                        end%,labBarrier, fprintf('A: '), size(dloc), part, gsize
+                        end
                         pcod = codistributor1d(1,part,gsize);
                         dloc = codistributed.build(dloc,pcod,'noCommunication');
                         dloc = redistribute(dloc,codistributor1d(2));
@@ -171,17 +188,17 @@ classdef oppKron < oppSpot
             end % spmd
             
             % Setup the variables
-            y = dataContainer(data);
+            y = piCon(data);
             y.data    = data;
-            y.dims    = gsize{1};
-            y.codist  = cod{1};
-            y.history = x.history;
-            setHistory(y);
-            y = ivec(y);
+            y.exdims  = gsize{1};
+            %y.codist  = cod{1};
+            %y.history = x.history;
+            %setHistory(y);
+            y = vec(y);
 
         end % Multiply
         
-    end % Methods
+    end % Methods    
     
 end % classdef
 
