@@ -193,7 +193,15 @@ classdef oppDistFun < oppSpot
             % Setup variables
             ops = op.children;
             F   = op.fun;
-            xsize = op.local_n;
+            if mode == 1
+                xsize = op.local_n;
+            else
+                xsize = op.local_m;
+            end
+            
+            % distribute x if necessary
+            x = pSPOT.utils.scatterchk(x,mode,op.gather);
+            % WARNING: do we check whether x and A1,A2,... are distributed equally?
             
             % Check for the distribution of x
             assert(isdistributed(x),'X must be distributed')
