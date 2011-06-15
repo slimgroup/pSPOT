@@ -1,7 +1,10 @@
-% function test_suite = test_oppKron
-% initTestSuite;
-% end
-% 
+function test_suite = test_oppKron
+initTestSuite;
+end
+function test_oppKron_5D_skipped
+end
+
+%
 % function test_oppKron_5D
 % %%
 %     warning('off','dataCon:RedistributingX');
