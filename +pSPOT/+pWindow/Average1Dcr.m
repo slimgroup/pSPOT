@@ -1,7 +1,7 @@
-function [ t ] = Taper1Dcr( i, n, h )
-%Taper1Dcr 1D taper using sin() - for outer windows
+function [ t ] = Average1Dcr( i, n, h )
+%Average1Dcr 1D taper using .5 - for outer windows
 %
-%   [ T ] = Taper1Dcr( I, N, H )
+%   [ T ] = Average1Dcr( I, N, H )
 %
 %   INPUT:
 %      I = element index (1:N)
@@ -18,7 +18,7 @@ function [ t ] = Taper1Dcr( i, n, h )
     end
     b=2*h;
     if x<n;
-        t=sin(x*(pi/2.)/(2.*h+1.));
+        t=.5;
     else
         t=1;
     end

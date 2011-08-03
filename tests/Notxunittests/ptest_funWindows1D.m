@@ -64,6 +64,27 @@ for n=N(1):N(2):N(3)
                 disp(AB.message);
             end
 
+            try
+                [ A ]=pSPOT.pWindow.funWindow1DavgFor(n,p,h);
+                [ B ]=pSPOT.pWindow.funWindow1DavgBck(n,p,h);
+                try
+                    x0=rand(n,1);
+                    y=A*x0;
+                    x1=B*y;
+                    check=sum(abs((x1-x0)'));
+                    assert(check<10^-T,'ERROR: does not pass inverse test check=%f',check);
+                catch xy
+                    fprintf('AVG: n=%d m=%d p=%d h=%d\n',n,m,p,h);
+                    disp(xy.message);
+                    %disp(full(A))
+                    %disp(full(B))
+                    %disp(full(B*A))
+                end
+            catch AB
+                fprintf('AVG: n=%d m=%d p=%d h=%d\n',n,m,p,h);
+                disp(AB.message);
+            end
+
         end
     end
 end

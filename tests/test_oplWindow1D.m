@@ -28,3 +28,15 @@ function test_oplWindow1D_tpr
    end
 end
 
+function test_oplWindow1D_avg
+%%
+   for n=30:3:42
+       for p=2:3
+           for h=0:3
+	       A=oplWindow1Davg(n,p,h);
+               utest(A);
+	   end
+       end
+   end
+end
+
