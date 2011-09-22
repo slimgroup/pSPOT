@@ -20,6 +20,8 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
       function op = oppSpot(type,m,n)
          %oppSpot  Constructor.
          op = op@opSpot(type,m,n);
+         op.ddistscheme = n;
+         op.rdistscheme = m;
       end
       
    end %methods - public
