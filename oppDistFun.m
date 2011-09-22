@@ -142,15 +142,17 @@ classdef oppDistFun < oppSpot
             clear opss;
                         
             % Construct oppCompositexun
-            op           = op@oppSpot('DistFun', m_total, n_total);
-            op.local_m   = m;
-            op.local_n   = n;
-            op.children  = ops;
-            op.fun       = F;
-            op.cflag     = cflag;
-            op.linear    = linflag;
-            op.sweepflag = true;
-            op.gather    = opgather;
+            op             = op@oppSpot('DistFun', m_total, n_total);
+            op.local_m     = m;
+            op.local_n     = n;
+            op.children    = ops;
+            op.fun         = F;
+            op.cflag       = cflag;
+            op.linear      = linflag;
+            op.sweepflag   = true;
+            op.gather      = opgather;
+            op.ddistscheme = n*ones(1,sizA(end));
+            op.rdistscheme = m*ones(1,sizA(end));
             
         end % constructor
         

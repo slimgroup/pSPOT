@@ -45,11 +45,13 @@ classdef oppTranspose < oppSpot
           % Construct operator
           [m, n] = size(A);
           op = op@oppSpot('pTranspose', n, m);
-          op.cflag      = A.cflag;
-          op.linear     = A.linear;
-          op.sweepflag  = true;
-          op.children   = {A};
-          op.opIntrnl   = oppCTranspose(opConj(A));
+          op.cflag       = A.cflag;
+          op.linear      = A.linear;
+          op.sweepflag   = true;
+          op.children    = {A};
+          op.opIntrnl    = oppCTranspose(opConj(A));
+          op.ddistscheme = A.rdistscheme;
+          op.rdistscheme = A.ddistscheme;
        end % function opTranspose
       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

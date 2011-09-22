@@ -94,16 +94,17 @@ classdef oppBlockDiag < oppSpot
             
             % Standard checking and setup sizes
             [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
-            m = sum(m);     n = sum(n);
             
             % Construct operator
-            op = op@oppSpot('pBlockDiag', m, n);
-            op.cflag    = cflag;
-            op.linear   = linear;
-            op.children = opList;
-            op.weights  = weights;
-            op.sweepflag= true;
-            op.gather   = gather;
+            op = op@oppSpot('pBlockDiag', sum(m), sum(n));
+            op.cflag       = cflag;
+            op.linear      = linear;
+            op.children    = opList;
+            op.weights     = weights;
+            op.sweepflag   = true;
+            op.gather      = gather;
+            op.ddistscheme = n;
+            op.rdistscheme = m;
             
         end %Constructor
         
@@ -127,95 +128,95 @@ classdef oppBlockDiag < oppSpot
             str = [str(1:end-2), ')'];
         end % Display
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Drandn
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function x = drandn(A,Ncols)
-            ncols = 1;
-            if nargin == 2 % for easy multivectoring
-                ncols = Ncols;
-            end
-            
-            % Distribute children
-            opchildren = distributed(A.children);
-            
-            spmd, chicodist = getCodistributor(opchildren); end
-            
-            chicodist = chicodist{1};
-            chipart = chicodist.Partition;
-            childnum = 0;
-            for i=1:matlabpool('size')
-                xpart(i) = 0;
-                for j=childnum+1:childnum+chipart(i)
-                    child = A.children{j};
-                    xpart(i) = xpart(i) + child.n;
-                end
-                childnum = childnum + chipart(i);
-            end
-            xgsize = [A.n ncols];
-            
-            n = A.n;
-            if isreal(A)
-                spmd
-                    xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(n,ncols,codistributor1d(1));
-                    x = redistribute(x,xcodist);
-                end
-            else
-                spmd
-                    xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(n,ncols,codistributor1d(1)) +...
-                        1i*codistributed.randn(n,ncols,codistributor1d(1));
-                    x = redistribute(x,xcodist);
-                end
-            end
-            
-        end % drandn
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Rrandn
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function x = rrandn(A,Ncols)
-            ncols = 1;
-            if nargin == 2 % for easy multivectoring
-                ncols = Ncols;
-            end
-            
-            opchildren = distributed(A.children);
-                        
-            spmd, chicodist = getCodistributor(opchildren); end
-            
-            chicodist = chicodist{1};
-            chipart = chicodist.Partition;
-            childnum = 0;
-            for i=1:matlabpool('size')
-                xpart(i) = 0;
-                for j=childnum+1:childnum+chipart(i)
-                    child = A.children{j};
-                    xpart(i) = xpart(i) + child.m;
-                end
-                childnum = childnum + chipart(i);
-            end
-            xgsize = [A.m ncols];
-            
-            m = A.m;
-            
-            if isreal(A)
-                spmd
-                    xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(m,ncols,codistributor1d(1));
-                    x = redistribute(x,xcodist);
-                end
-            else
-                spmd
-                    xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(m,ncols,codistributor1d(1)) +...
-                        1i*codistributed.randn(m,ncols,codistributor1d(1));
-                    x = redistribute(x,xcodist);
-                end
-            end
-            
-        end % rrandn
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         % Drandn
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         function x = drandn(A,Ncols)
+%             ncols = 1;
+%             if nargin == 2 % for easy multivectoring
+%                 ncols = Ncols;
+%             end
+%             
+%             % Distribute children
+%             opchildren = distributed(A.children);
+%             
+%             spmd, chicodist = getCodistributor(opchildren); end
+%             
+%             chicodist = chicodist{1};
+%             chipart = chicodist.Partition;
+%             childnum = 0;
+%             for i=1:matlabpool('size')
+%                 xpart(i) = 0;
+%                 for j=childnum+1:childnum+chipart(i)
+%                     child = A.children{j};
+%                     xpart(i) = xpart(i) + child.n;
+%                 end
+%                 childnum = childnum + chipart(i);
+%             end
+%             xgsize = [A.n ncols];
+%             
+%             n = A.n;
+%             if isreal(A)
+%                 spmd
+%                     xcodist = codistributor1d(1,xpart,xgsize);
+%                     x = codistributed.randn(n,ncols,codistributor1d(1));
+%                     x = redistribute(x,xcodist);
+%                 end
+%             else
+%                 spmd
+%                     xcodist = codistributor1d(1,xpart,xgsize);
+%                     x = codistributed.randn(n,ncols,codistributor1d(1)) +...
+%                         1i*codistributed.randn(n,ncols,codistributor1d(1));
+%                     x = redistribute(x,xcodist);
+%                 end
+%             end
+%             
+%         end % drandn
+%         
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         % Rrandn
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         function x = rrandn(A,Ncols)
+%             ncols = 1;
+%             if nargin == 2 % for easy multivectoring
+%                 ncols = Ncols;
+%             end
+%             
+%             opchildren = distributed(A.children);
+%                         
+%             spmd, chicodist = getCodistributor(opchildren); end
+%             
+%             chicodist = chicodist{1};
+%             chipart = chicodist.Partition;
+%             childnum = 0;
+%             for i=1:matlabpool('size')
+%                 xpart(i) = 0;
+%                 for j=childnum+1:childnum+chipart(i)
+%                     child = A.children{j};
+%                     xpart(i) = xpart(i) + child.m;
+%                 end
+%                 childnum = childnum + chipart(i);
+%             end
+%             xgsize = [A.m ncols];
+%             
+%             m = A.m;
+%             
+%             if isreal(A)
+%                 spmd
+%                     xcodist = codistributor1d(1,xpart,xgsize);
+%                     x = codistributed.randn(m,ncols,codistributor1d(1));
+%                     x = redistribute(x,xcodist);
+%                 end
+%             else
+%                 spmd
+%                     xcodist = codistributor1d(1,xpart,xgsize);
+%                     x = codistributed.randn(m,ncols,codistributor1d(1)) +...
+%                         1i*codistributed.randn(m,ncols,codistributor1d(1));
+%                     x = redistribute(x,xcodist);
+%                 end
+%             end
+%             
+%         end % rrandn
         
     end % Methods
     

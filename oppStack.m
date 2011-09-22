@@ -103,17 +103,17 @@ classdef oppStack < oppSpot
             % Standard pSpot checking and setup sizes
             [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             assert( all(n == n(1)), 'Operator sizes are not consistant');
-            m = sum(m);
             
             % Construct
-            op = op@oppSpot('pStack', m, n(1));
-            op.cflag    = cflag;
-            op.linear   = linear;
-            op.children = opList;
-            op.weights  = weights;
-            op.sweepflag= true;
-            op.gather   = gather;
-            op.precedence= 1;
+            op = op@oppSpot('pStack', sum(m), n(1));
+            op.cflag       = cflag;
+            op.linear      = linear;
+            op.children    = opList;
+            op.weights     = weights;
+            op.sweepflag   = true;
+            op.gather      = gather;
+            op.precedence  = 1;
+            op.rdistscheme = m;
             
             
         end %Constructor

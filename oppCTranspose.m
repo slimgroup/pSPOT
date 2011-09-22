@@ -38,10 +38,12 @@ classdef oppCTranspose < oppSpot
           % Construct operator
           [m, n] = size(A);
           op = op@oppSpot('pCTranspose', n, m);
-          op.cflag      = A.cflag;
-          op.linear     = A.linear;
-          op.sweepflag  = true;
-          op.children   = {A};
+          op.cflag       = A.cflag;
+          op.linear      = A.linear;
+          op.sweepflag   = true;
+          op.children    = {A};
+          op.ddistscheme = A.rdistscheme;
+          op.rdistscheme = A.ddistscheme;
        end % function opCTranspose
       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
