@@ -8,6 +8,8 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
    properties
       gather = 0;
       weights;
+      ddistscheme = []; % Distribution scheme of operator domain
+      rdistscheme = []; % Distribution scheme of operator range
    end %properties
       
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
