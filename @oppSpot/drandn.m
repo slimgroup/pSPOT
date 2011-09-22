@@ -30,8 +30,10 @@ if length(scheme) > 1 % Distributed
         scheme(end+1:end+(nlabs - length(scheme))) = 0;
     end
     spmd
-        ypart = randn(scheme(labindex),ncols);
-        ycodist = codistributor1d(1);
+        ypart   = randn(scheme(labindex),ncols);
+        ygpart  = codistributed.zeros(1,numlabs);
+        ygpart(labindex) = scheme(labindex);
+        ycodist = codistributor1d(1,ygpart,[sum(scheme),ncols]);
         y = codistributed.build(ypart,ycodist,'noCommunication');
     end
 else % Non-distributed
