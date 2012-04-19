@@ -9,7 +9,7 @@ function [ m xs ys ] = funWindowLast1HaloShape( n, p, h )
 %      H = half of the overlap's size
 %   OUTPUT:
 %      M = length of the output vector
-%      OS = (p,3) vector holding start, size, end indecies
+%      XS = (p,3) vector holding start, size, end indecies
 %           of the default distribution of the input vector in every window
 %      YS = (p,3) vector holding start, size, end indecies
 %           of the default distribution of the output vector in every window
