@@ -8,6 +8,14 @@ classdef oplWindow1Dtpr < opSpot
 %      P = number of processors
 %      H = half of the overlap's size
 %
+%   ATTRIBUTES:
+%      oshape = (p,3) vector holding start, size, end indecies
+%           of the default distribution of the input vector in every window
+%      yshape = (p,3) vector holding start, size, end indecies
+%           of the default distribution of the output vector in every window
+%      xshape = (p,3) vector holding start, size, end indecies
+%           of the input vector that will end up in every ouput window
+%
 %   Notes:
 %       1. This is not a parallel/distributed operator
     
@@ -16,10 +24,10 @@ classdef oplWindow1Dtpr < opSpot
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = private)
         p = 0;
-	h = 0;
-	oshape = 0;
-	yshape = 0;
-	xshape = 0;
+    h = 0;
+    oshape = 0;
+    yshape = 0;
+    xshape = 0;
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,31 +39,31 @@ classdef oplWindow1Dtpr < opSpot
        % Constructor
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function op = oplWindow1Dtpr(varargin)
-	  assert(nargin==3,'lWindow1Dtpr: wrong # of arguments')
-	  n = varargin{1};
-	  p = varargin{2};
-	  h = varargin{3};
+      assert(nargin==3,'lWindow1Dtpr: wrong # of arguments')
+      n = varargin{1};
+      p = varargin{2};
+      h = varargin{3};
           [ m os ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
-	  op = op@opSpot('lWindow1Dtpr',m,n);
-	  op.p = p;
-	  op.h = h;
-	  op.oshape = os;
-	  op.yshape = ys;
-	  op.xshape = xs;
+      op = op@opSpot('lWindow1Dtpr',m,n);
+      op.p = p;
+      op.h = h;
+      op.oshape = os;
+      op.yshape = ys;
+      op.xshape = xs;
        end % function oplWindow1Dtpr
        
        % xtratests
        function result = xtratests(op)
            T = 14;
-	   x0=rand(op.n,1);
-	   y=op*x0;
-	   x1=op'*y;
-	   check=norm(x1-x0);
-	   if check < op.n*10^-T
+       x0=rand(op.n,1);
+       y=op*x0;
+       x1=op'*y;
+       check=norm(x1-x0);
+       if check < op.n*10^-T
                result = true;
-	   else
+       else
                result = false;
-	   end
+       end
        end % xtratests
 
     end % Methods
@@ -68,10 +76,10 @@ classdef oplWindow1Dtpr < opSpot
         % Multiplication
         function y = multiply(op,x,mode)
            if (mode == 1)
-	      [ A ] = pSPOT.pWindow.funWindow1DtprFor(op.n,op.p,op.h);
+          [ A ] = pSPOT.pWindow.funWindow1DtprFor(op.n,op.p,op.h);
               y = A * x;
            else
-	      [ B ] = pSPOT.pWindow.funWindow1DtprBck(op.n,op.p,op.h);
+          [ B ] = pSPOT.pWindow.funWindow1DtprBck(op.n,op.p,op.h);
               y = B * x;
            end
         end % Multipy
