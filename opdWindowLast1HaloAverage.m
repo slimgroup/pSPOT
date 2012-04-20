@@ -17,13 +17,15 @@ classdef opdWindowLast1HaloAverage < oppSpot
 %
 %   Notes:
 %       1. This is a parallel/distributed operator
+%       2. This operator does not pass dottest
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = private)
-        p = 0;
+    f = 0;
     l = 0;
+    p = 0;
     h = 0;
     yshape = 0;
     xshape = 0;
@@ -47,16 +49,39 @@ classdef opdWindowLast1HaloAverage < oppSpot
       f = n/l;
           [ m xs ys ] = pSPOT.pWindow.funWindowLast1HaloShape( l, p, h );
       op = op@oppSpot('dWindowLast1HaloAverage',f*m,f*m);
-      op.p = p;
+      op.f = f;
       op.l = l;
+      op.p = p;
       op.h = h;
       op.yshape = ys;
       op.xshape = xs;
        end % function opdWindowLast1HaloAverage
        
+       % xtratests
+       function result = xtratests(op)
+       T = 14;
+       F=opdWindowLast1Halo(op.f*op.l,op.l,op.p,op.h);
+       x0=distributed.randn(op.f,op.l);
+       x0=x0(:);
+       x1=F'*op*F*x0;
+       check=norm(x1-x0);
+       if check < op.n*10^-T
+               result = true;
+       else
+               result = false;
+       end
+       end % xtratests
+
        % utest ( skip dottest )
        function output = utest(op,k,verbose)
-           warning('No tests defined')
+           try
+               addpath(fullfile(spot.path,'tests','xunit'))
+           catch ME
+               error('Can''t find xunit toolbox.')
+           end
+           if nargin < 3, verbose = 0; end
+           if nargin < 2, k = 5; end
+           assertTrue(op.xtratests,k);
            output = 'PASSED!';
        end % utest
 

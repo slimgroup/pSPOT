@@ -22,8 +22,9 @@ classdef opdWindowLast1Halo < oppSpot
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = private)
-        p = 0;
+    f = 0;
     l = 0;
+    p = 0;
     h = 0;
     yshape = 0;
     xshape = 0;
@@ -47,16 +48,38 @@ classdef opdWindowLast1Halo < oppSpot
       f = n/l;
           [ m xs ys ] = pSPOT.pWindow.funWindowLast1HaloShape( l, p, h );
       op = op@oppSpot('dWindowLast1Halo',f*m,f*l);
-      op.p = p;
+      op.f = f;
       op.l = l;
+      op.p = p;
       op.h = h;
       op.yshape = ys;
       op.xshape = xs;
        end % function opdWindowLast1Halo
        
+       % xtratests
+       function result = xtratests(op)
+       T = 14;
+       x0=distributed.randn(op.f,op.l);
+       x0=x0(:);
+       x1=op'*op*x0;
+       check=norm(x1-x0);
+       if check < op.n*10^-T
+               result = true;
+       else
+               result = false;
+       end
+       end % xtratests
+
        % utest ( skip dottest )
        function output = utest(op,k,verbose)
-           warning('No tests defined')
+           try
+               addpath(fullfile(spot.path,'tests','xunit'))
+           catch ME
+               error('Can''t find xunit toolbox.')
+           end
+           if nargin < 3, verbose = 0; end
+           if nargin < 2, k = 5; end
+           assertTrue(op.xtratests,k);
            output = 'PASSED!';
        end % utest
 
