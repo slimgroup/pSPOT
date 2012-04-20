@@ -1,5 +1,5 @@
 function [ A ] = funWindow1DfdBck( n, p, h )
-%funWindow1DfdBck inverse windowing sparse array for finite difference algorithms
+%funWindow1DfdBck inverse swap windowing sparse array for finite difference algorithms
 %
 %   [ A ] = funWindow1DfdBck( N, P, H )
 %

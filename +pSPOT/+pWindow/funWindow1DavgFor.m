@@ -1,5 +1,5 @@
 function [ A ] = funWindow1DavgFor( n, p, h )
-%funWindow1DavgFor forward windowing sparse array for CARP-CG method
+%funWindow1DavgFor forward average windowing sparse array for CARP-CG method
 %
 %   [ A ] = funWindow1DavgFor( N, P, H )
 %

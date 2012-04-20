@@ -13,9 +13,6 @@ function [ m xs ys ] = funWindowLast1HaloShape( n, p, h )
 %           of the default distribution of the input vector in every window
 %      YS = (p,3) vector holding start, size, end indecies
 %           of the default distribution of the output vector in every window
-%   NOTE:
-%      This function assumes that the both the input and output vector
-%      will follow the default distribution
 
     % check # of processors
     assert(p>1,'funWindowLast1HaloShape: number of processors has to be bigger then %d',p);

@@ -1,5 +1,5 @@
 function [ A ] = funWindow1DavgBck( n, p, h )
-%funWindow1DavgBck inverse tapered windowing sparse array for CARP-CG method
+%funWindow1DavgBck inverse avarage windowing sparse array for CARP-CG method
 %
 %   [ A ] = funWindow1DavgBck( N, P, H )
 %
