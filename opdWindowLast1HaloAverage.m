@@ -1,31 +1,32 @@
-classdef oplWindow1Davg < opSpot
-%oplWindow1Davg tapered windowing for CARP-CG method
+classdef opdWindowLast1HaloAverage < oppSpot
+%opdWindowLast1HaloAverage tapered windowing for CARP-CG method
 %
-%   oplWindow1Davg(N,P,H)
+%   opdWindowLast1HaloAverage(N,L,P,H)
 %
 %   ARGUMENTS:
 %      N = length of the input vector
+%      L = length of the last dimension of input vector
 %      P = number of processors
 %      H = half of the overlap's size
 %
 %   ATTRIBUTES:
-%      oshape = (p,3) vector holding start, size, end indecies
+%      xshape = (p,3) vector holding start, size, end indecies
 %           of the default distribution of the input vector in every window
 %      yshape = (p,3) vector holding start, size, end indecies
 %           of the default distribution of the output vector in every window
-%      xshape = (p,3) vector holding start, size, end indecies
-%           of the input vector that will end up in every ouput window
 %
 %   Notes:
-%       1. This is not a parallel/distributed operator
+%       1. This is a parallel/distributed operator
+%       2. This operator does not pass dottest
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = private)
-        p = 0;
+    f = 0;
+    l = 0;
+    p = 0;
     h = 0;
-    oshape = 0;
     yshape = 0;
     xshape = 0;
     end
@@ -38,26 +39,31 @@ classdef oplWindow1Davg < opSpot
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Constructor
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       function op = oplWindow1Davg(varargin)
-      assert(nargin==3,'lWindow1Davg: wrong # of arguments')
+       function op = opdWindowLast1HaloAverage(varargin)
+      assert(nargin==4,'dWindowLast1HaloAverage: wrong # of arguments')
       n = varargin{1};
-      p = varargin{2};
-      h = varargin{3};
-          [ m os ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
-      op = op@opSpot('lWindow1Davg',m,n);
+      l = varargin{2};
+      p = varargin{3};
+      h = varargin{4};
+      assert(mod(n,l)==0,'Fatal error: L is not a valid last dimension')
+      f = n/l;
+          [ m xs ys ] = pSPOT.pWindow.funWindowLast1HaloShape( l, p, h );
+      op = op@oppSpot('dWindowLast1HaloAverage',f*m,f*m);
+      op.f = f;
+      op.l = l;
       op.p = p;
       op.h = h;
-      op.oshape = os;
       op.yshape = ys;
       op.xshape = xs;
-       end % function oplWindow1Davg
+       end % function opdWindowLast1HaloAverage
        
        % xtratests
        function result = xtratests(op)
-           T = 14;
-       x0=rand(op.n,1);
-       y=op*x0;
-       x1=op'*y;
+       T = 14;
+       F=opdWindowLast1Halo(op.f*op.l,op.l,op.p,op.h);
+       x0=distributed.randn(op.f,op.l);
+       x0=x0(:);
+       x1=F'*op*F*x0;
        check=norm(x1-x0);
        if check < op.n*10^-T
                result = true;
@@ -89,11 +95,9 @@ classdef oplWindow1Davg < opSpot
         % Multiplication
         function y = multiply(op,x,mode)
            if (mode == 1)
-          [ A ] = pSPOT.pWindow.funWindow1DavgFor(op.n,op.p,op.h);
-              y = A * x;
+           y = pSPOT.pWindow.funWindowLast1HaloAverage(x,op.l,op.p,op.h);
            else
-          [ B ] = pSPOT.pWindow.funWindow1DavgBck(op.n,op.p,op.h);
-              y = B * x;
+            error('No transpose/inverse defined')
            end
         end % Multipy
       

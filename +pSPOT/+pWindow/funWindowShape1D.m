@@ -12,7 +12,7 @@ function [ m os ys xs ] = funWindowShape1D( n, p, h )
 %      OS = (p,3) vector holding start, size, end indecies
 %           of the default distribution of the input vector in every window
 %      YS = (p,3) vector holding start, size, end indecies
-%           of the default distribution iof the output vector in every window
+%           of the default distribution of the output vector in every window
 %      XS = (p,3) vector holding start, size, end indecies
 %           of the input vector that will end up in every ouput window
 %   NOTE:

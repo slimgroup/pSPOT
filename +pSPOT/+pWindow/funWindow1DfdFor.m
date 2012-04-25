@@ -1,5 +1,5 @@
 function [ A ] = funWindow1DfdFor( n, p, h )
-%funWindow1DfdFor forward windowing sparse array for finite difference algorithms
+%funWindow1DfdFor forward swap windowing sparse array for finite difference algorithms
 %
 %   [ A ] = funWindow1DfdFor( N, P, H )
 %
