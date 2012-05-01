@@ -2,7 +2,7 @@ function test_funWindowLast1()
     p=matlabpool('size');
     for h=1:1:5
         for m=100:100:500
-            for t=1:5
+            for t=1:3
                 % prepare input vector
                 l=(3*h+randi(p*100,1))*p;
                 odims=[m,l];
@@ -14,9 +14,9 @@ function test_funWindowLast1()
                 % run function form with MPI
                 tic;
                 [ N xs ys ] = pSPOT.pWindow.funWindowLast1HaloShape(l,p,h);
-                y=pSPOT.pWindow.funWindowLast1HaloMake(x,l,p,h);
-                z=pSPOT.pWindow.funWindowLast1HaloAverage(y,l,p,h);
-                v=pSPOT.pWindow.funWindowLast1HaloDrop(z,l,p,h);
+                y=pSPOT.pWindow.funWindowLast1HaloMakeDist(x,l,p,h);
+                z=pSPOT.pWindow.funWindowLast1HaloAverageDist(y,l,p,h);
+                v=pSPOT.pWindow.funWindowLast1HaloDropDist(z,l,p,h);
                 tm=toc;
                 y=gather(y);
                 z=gather(z);

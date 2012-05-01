@@ -95,7 +95,7 @@ classdef opdWindowLast1HaloAverage < oppSpot
         % Multiplication
         function y = multiply(op,x,mode)
            if (mode == 1)
-           y = pSPOT.pWindow.funWindowLast1HaloAverage(x,op.l,op.p,op.h);
+           y = pSPOT.pWindow.funWindowLast1HaloAverageDist(x,op.l,op.p,op.h);
            else
             error('No transpose/inverse defined')
            end

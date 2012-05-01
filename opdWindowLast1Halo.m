@@ -93,9 +93,9 @@ classdef opdWindowLast1Halo < oppSpot
         % Multiplication
         function y = multiply(op,x,mode)
            if (mode == 1)
-           y = pSPOT.pWindow.funWindowLast1HaloMake(x,op.l,op.p,op.h);
+           y = pSPOT.pWindow.funWindowLast1HaloMakeDist(x,op.l,op.p,op.h);
            else
-           y = pSPOT.pWindow.funWindowLast1HaloDrop(x,op.l,op.p,op.h);
+           y = pSPOT.pWindow.funWindowLast1HaloDropDist(x,op.l,op.p,op.h);
            end
         end % Multipy
       

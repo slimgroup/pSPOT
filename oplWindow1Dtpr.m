@@ -43,7 +43,7 @@ classdef oplWindow1Dtpr < opSpot
       n = varargin{1};
       p = varargin{2};
       h = varargin{3};
-          [ m os ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+          [ m os ys xs ] = pSPOT.pWindow.funWindow1DShape( n, p, h );
       op = op@opSpot('lWindow1Dtpr',m,n);
       op.p = p;
       op.h = h;

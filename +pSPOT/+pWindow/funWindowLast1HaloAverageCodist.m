@@ -1,9 +1,9 @@
-function Y = funWindowLast1HaloAverage( x, n, p, h )
-%funWindowLast1HaloAverage
+function Y = funWindowLast1HaloAverageCodist( x, n, p, h )
+%funWindowLast1HaloAverageCodist
 %       is a support function for forward opdWindowLast1* operators;
 %       it exchanges halos of the input vector X and avarages ovelaps
 %
-%   Y = funWindowLast1HaloMake( X, N, P, H )
+%   Y = funWindowLast1HaloAverageCodist( X, N, P, H )
 %
 %   INPUT:
 %      X = input vector
@@ -14,14 +14,14 @@ function Y = funWindowLast1HaloAverage( x, n, p, h )
 %      Y = output vector
 
     assert(isvector(x),'Fatal error: x has to be vector')
-    assert(isdistributed(x),'Fatal error: x has to be distributed')
-    assert(matlabpool('size')==p,'Fatal error: p does not match matlabpool size')
+    assert(iscodistributed(x),'Fatal error: x has to be codistributed')
+    assert(numlabs==p,'Fatal error: p does not match matlabpool size')
     assert(h>0,'Fatal error: half-halo has to be beger than 0')
     N=n+(p-1)*2*h;
     mN=prod(size(x));
     assert(mod(mN,N)==0,'Fatal error: N is not a valid last dimension')
     m=prod(size(x))/N;
-    spmd
+    %spmd
         part=codistributor1d.defaultPartition(n);
         PART=zeros(1,p);
         PART(1)=part(1)+h;
@@ -53,5 +53,5 @@ function Y = funWindowLast1HaloAverage( x, n, p, h )
         codist = codistributor1d(1,m*PART,[m*N 1]);
         Y=codistributed.build(otherdata(:),codist,'noCommunication');
     
-    end
+    %end
 end

@@ -1,7 +1,7 @@
-function [ m os ys xs ] = funWindowShape1D( n, p, h )
-%funWindowShape1D is a support function for forward oplWindow1D* operators.
+function [ m os ys xs ] = funWindow1DShape( n, p, h )
+%funWindow1DShape is a support function for forward oplWindow1D* operators.
 %
-%   [ M OS YS XS ] = funWindowShape1D( N, P, H )
+%   [ M OS YS XS ] = funWindow1DShape( N, P, H )
 %
 %   INPUT:
 %      N = length of the input vector
@@ -20,7 +20,7 @@ function [ m os ys xs ] = funWindowShape1D( n, p, h )
 %      will follow the default distribution
 
     % check # of processors
-    assert(p>1,'funWindowShape1D: number of processors has to be bigger then %d',p);
+    assert(p>1,'funWindow1DShape: number of processors has to be bigger then %d',p);
 
     % initialize shape vecs
     oo=zeros(p,1); od=zeros(p,1); oe=zeros(p,1);
@@ -58,7 +58,7 @@ function [ m os ys xs ] = funWindowShape1D( n, p, h )
 
     % test for minimal window size for source
     t=min(xd);
-    assert(t>2*h,'funWindowShape1D: half-overlap (%d) too large for local window size (%d). Args: (%d,%d,%d)',h,t,n,p,h);
+    assert(t>2*h,'funWindow1DShape: half-overlap (%d) too large for local window size (%d). Args: (%d,%d,%d)',h,t,n,p,h);
 
     % put array together
     os = [oo od oe];
@@ -67,12 +67,12 @@ function [ m os ys xs ] = funWindowShape1D( n, p, h )
 
     % check if everything sums up
     cn=sum(xs(:,2));
-    assert(cn==n,'funWindowShape1D: window sum %d != n=%d',cn,n);
+    assert(cn==n,'funWindow1DShape: window sum %d != n=%d',cn,n);
     cm=sum(ys(:,2));
-    assert(cm==m,'funWindowShape1D: extended window sum %d != m=%d',cm,m);
+    assert(cm==m,'funWindow1DShape: extended window sum %d != m=%d',cm,m);
 
     % debuging only
-    %disp('funWindowShape1D');
+    %disp('funWindow1DShape');
     %disp([n sum(cn) p h m sum(cm) c r f]);
     %disp([ys']); disp([xs']);
 

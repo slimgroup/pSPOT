@@ -1,9 +1,9 @@
-function Y = funWindowLast1HaloDrop( x, n, p, h )
-%funWindowLast1HaloDrop
+function Y = funWindowLast1HaloDropDist( x, n, p, h )
+%funWindowLast1HaloDropDist
 %       is a support function for forward opdWindowLast1* operators;
 %       it drops halos from the input vector X
 %
-%   Y = funWindowLast1HaloMake( X, N, P, H )
+%   Y = funWindowLast1HaloDropDist( X, N, P, H )
 %
 %   INPUT:
 %      X = input vector

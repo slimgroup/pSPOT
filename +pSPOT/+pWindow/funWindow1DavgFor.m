@@ -10,7 +10,7 @@ function [ A ] = funWindow1DavgFor( n, p, h )
 %   OUTPUT:
 %      A = 'inverse' operator
 
-    [ m os ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+    [ m os ys xs ] = pSPOT.pWindow.funWindow1DShape( n, p, h );
 
     A=sparse(m,n);
     for w=1:p
