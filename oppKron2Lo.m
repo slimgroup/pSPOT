@@ -63,7 +63,7 @@ classdef oppKron2Lo < oppSpot
             
             % Setup and extract gather
             gat = 0;
-            if isscalar(varargin{end})
+            if isscalar(varargin{end}) && isnumeric(varargin{end})
                 assert(any(varargin{end} == [0 1 2 3]),...
                     'Gather must be 0 1 2 or 3')
                 gat = varargin{end};
