@@ -14,7 +14,7 @@ for n=N(1):N(2):N(3)
         for h=0:H
     
             try
-                [ m osf ysf xsf ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+                [ m osf ysf xsf ] = pSPOT.pWindow.funWindow1DShape( n, p, h );
                 %fprintf('\ttest: n=%d p=%d h=%d\n',n,p,h);
             catch pr
                 %fprintf('invalid shape: n=%d p=%d h=%d\n',n,p,h);
@@ -51,6 +51,22 @@ for n=N(1):N(2):N(3)
                 end
             catch AB
                 fprintf('TPR: n=%d m=%d p=%d h=%d\n',n,m,p,h);
+                disp(AB.message);
+            end
+
+            try
+                A=oplWindow1Davg(n,p,h);
+                try
+                    A.utest(1);
+                catch xy
+                    fprintf('AVG: n=%d m=%d p=%d h=%d\n',n,m,p,h);
+                    disp(xy.message);
+                    %disp(full(A))
+                    %disp(full(A'))
+                    %disp(full(A'*A))
+                end
+            catch AB
+                fprintf('AVG: n=%d m=%d p=%d h=%d\n',n,m,p,h);
                 disp(AB.message);
             end
 

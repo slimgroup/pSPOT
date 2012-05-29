@@ -1,31 +1,31 @@
-classdef oplWindow1Dtpr < opSpot
-%oplWindow1Dtpr tapered windowing for partition-of-unity algorithms
+classdef opdWindowLast1Halo < oppSpot
+%opdWindowLast1Halo tapered windowing for CARP-CG method
 %
-%   oplWindow1Dtpr(N,P,H)
+%   opdWindowLast1Halo(N,L,P,H)
 %
 %   ARGUMENTS:
 %      N = length of the input vector
+%      L = length of the last dimension of input vector
 %      P = number of processors
 %      H = half of the overlap's size
 %
 %   ATTRIBUTES:
-%      oshape = (p,3) vector holding start, size, end indecies
+%      xshape = (p,3) vector holding start, size, end indecies
 %           of the default distribution of the input vector in every window
 %      yshape = (p,3) vector holding start, size, end indecies
 %           of the default distribution of the output vector in every window
-%      xshape = (p,3) vector holding start, size, end indecies
-%           of the input vector that will end up in every ouput window
 %
 %   Notes:
-%       1. This is not a parallel/distributed operator
+%       1. This is a parallel/distributed operator
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Properties
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties (SetAccess = private)
-        p = 0;
+    f = 0;
+    l = 0;
+    p = 0;
     h = 0;
-    oshape = 0;
     yshape = 0;
     xshape = 0;
     end
@@ -38,26 +38,30 @@ classdef oplWindow1Dtpr < opSpot
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Constructor
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       function op = oplWindow1Dtpr(varargin)
-      assert(nargin==3,'lWindow1Dtpr: wrong # of arguments')
+       function op = opdWindowLast1Halo(varargin)
+      assert(nargin==4,'dWindowLast1Halo: wrong # of arguments')
       n = varargin{1};
-      p = varargin{2};
-      h = varargin{3};
-          [ m os ys xs ] = pSPOT.pWindow.funWindow1DShape( n, p, h );
-      op = op@opSpot('lWindow1Dtpr',m,n);
+      l = varargin{2};
+      p = varargin{3};
+      h = varargin{4};
+      assert(mod(n,l)==0,'Fatal error: L is not a valid last dimension')
+      f = n/l;
+          [ m xs ys ] = pSPOT.pWindow.funWindowLast1HaloShape( l, p, h );
+      op = op@oppSpot('dWindowLast1Halo',f*m,f*l);
+      op.f = f;
+      op.l = l;
       op.p = p;
       op.h = h;
-      op.oshape = os;
       op.yshape = ys;
       op.xshape = xs;
-       end % function oplWindow1Dtpr
+       end % function opdWindowLast1Halo
        
        % xtratests
        function result = xtratests(op)
-           T = 14;
-       x0=rand(op.n,1);
-       y=op*x0;
-       x1=op'*y;
+       T = 14;
+       x0=distributed.randn(op.f,op.l);
+       x0=x0(:);
+       x1=op'*op*x0;
        check=norm(x1-x0);
        if check < op.n*10^-T
                result = true;
@@ -65,6 +69,19 @@ classdef oplWindow1Dtpr < opSpot
                result = false;
        end
        end % xtratests
+
+       % utest ( skip dottest )
+       function output = utest(op,k,verbose)
+           try
+               addpath(fullfile(spot.path,'tests','xunit'))
+           catch ME
+               error('Can''t find xunit toolbox.')
+           end
+           if nargin < 3, verbose = 0; end
+           if nargin < 2, k = 5; end
+           assertTrue(op.xtratests,k);
+           output = 'PASSED!';
+       end % utest
 
     end % Methods
     
@@ -76,11 +93,9 @@ classdef oplWindow1Dtpr < opSpot
         % Multiplication
         function y = multiply(op,x,mode)
            if (mode == 1)
-          [ A ] = pSPOT.pWindow.funWindow1DtprFor(op.n,op.p,op.h);
-              y = A * x;
+           y = pSPOT.pWindow.funWindowLast1HaloMakeDist(x,op.l,op.p,op.h);
            else
-          [ B ] = pSPOT.pWindow.funWindow1DtprBck(op.n,op.p,op.h);
-              y = B * x;
+           y = pSPOT.pWindow.funWindowLast1HaloDropDist(x,op.l,op.p,op.h);
            end
         end % Multipy
       

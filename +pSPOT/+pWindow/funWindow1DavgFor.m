@@ -1,7 +1,7 @@
-function [ A ] = funWindow1DfdFor( n, p, h )
-%funWindow1DfdFor forward swap windowing sparse array for finite difference algorithms
+function [ A ] = funWindow1DavgFor( n, p, h )
+%funWindow1DavgFor forward average windowing sparse array for CARP-CG method
 %
-%   [ A ] = funWindow1DfdFor( N, P, H )
+%   [ A ] = funWindow1DavgFor( N, P, H )
 %
 %   INPUT:
 %      N = length of the input vector
@@ -20,7 +20,7 @@ function [ A ] = funWindow1DfdFor( n, p, h )
     end
 
     szs=size(A);
-    assert(szs(1)==m,'funWindow1DfdFor: failed building the array');
-    assert(szs(2)==n,'funWindow1DfdFor: failed building the array');
+    assert(szs(1)==m,'funWindow1DavgFor: failed building the array');
+    assert(szs(2)==n,'funWindow1DavgFor: failed building the array');
 
 end

@@ -57,6 +57,8 @@ classdef oppDistFun < oppSpot
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     properties
         fun;
+        local_m;
+        local_n;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -125,8 +127,9 @@ classdef oppDistFun < oppSpot
             end
                                     
             % Extract parameters from function
-            bleh = F(0);
-            m = bleh(1); n = bleh(2); cflag = bleh(3); linflag = bleh(4);
+            cell_padding = cell(1,nargin(F)-1);
+            func_info = F(cell_padding{:},0);
+            m = func_info(1); n = func_info(2); cflag = func_info(3); linflag = func_info(4);
             
             if ~isposintscalar(m) || ~isposintscalar(n) % check m and n
               error('Dimensions of operator must be positive integers.');
@@ -134,18 +137,22 @@ classdef oppDistFun < oppSpot
             
             % Setup sizes
             sizA = size(opss{1});
-            m    = m*sizA(end);
-            n    = n*sizA(end);
+            m_total    = m*sizA(end);
+            n_total    = n*sizA(end);
             clear opss;
                         
             % Construct oppCompositexun
-            op           = op@oppSpot('DistFun', m, n);
-            op.children  = ops;
-            op.fun       = F;
-            op.cflag     = cflag;
-            op.linear    = linflag;
-            op.sweepflag = true;
-            op.gather    = opgather;
+            op             = op@oppSpot('DistFun', m_total, n_total);
+            op.local_m     = m;
+            op.local_n     = n;
+            op.children    = ops;
+            op.fun         = F;
+            op.cflag       = cflag;
+            op.linear      = linflag;
+            op.sweepflag   = true;
+            op.gather      = opgather;
+            op.ddistscheme = n*ones(1,sizA(end));
+            op.rdistscheme = m*ones(1,sizA(end));
             
         end % constructor
         
@@ -153,7 +160,7 @@ classdef oppDistFun < oppSpot
         % Display
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
-           str = 'bleh';
+           str = 'oppDistFun';
             
         end % Display
         
@@ -188,6 +195,15 @@ classdef oppDistFun < oppSpot
             % Setup variables
             ops = op.children;
             F   = op.fun;
+            if mode == 1
+                xsize = op.local_n;
+            else
+                xsize = op.local_m;
+            end
+            
+            % distribute x if necessary
+            x = pSPOT.utils.scatterchk(x,mode,op.gather);
+            % WARNING: do we check whether x and A1,A2,... are distributed equally?
             
             % Check for the distribution of x
             assert(isdistributed(x),'X must be distributed')
@@ -202,9 +218,6 @@ classdef oppDistFun < oppSpot
                 % Setup y
                 sizeA = size(ops{1});
                 y     = cell(1,sizeA(end));
-                % Setup x size
-                bleh  = F(0);
-                xsize = bleh(2);
                 
                 % Loop over the slices and apply F
                 n = 0;
@@ -230,7 +243,7 @@ classdef oppDistFun < oppSpot
                 y = codistributed.build(y,ycod,'noCommunication');
                 
             end % spmd
-                
+            
             % gather
             y = pSPOT.utils.gatherchk(y,mode,op.gather);
             

@@ -153,20 +153,22 @@ classdef oppNumBlockDiag < oppSpot
             
             % Construct operator
             op = op@oppSpot('pnumBlockDiag', m, n);
-            op.locm = localm;
-            op.locn = localn;
-            op.cflag    = cflag;
+            op.locm      = localm;
+            op.locn      = localn;
+            op.cflag     = cflag;
             op.sweepflag = false;
-            op.linear   = linear;
-            op.children = opList;
-            op.weights  = weights;
-            op.sweepflag= true;
-            op.gather   = gather;
+            op.linear    = linear;
+            op.children  = opList;
+            op.weights   = weights;
+            op.sweepflag = true;
+            op.gather    = gather;
             if exist('numcols_x','var')
                 op.numcols = numcols_x;
             else
                 op.numcols = 1;
             end
+            op.ddistscheme = (n/nSlices)*ones(1,nSlices);
+            op.rdistscheme = (m/nSlices)*ones(1,nSlices);
             
         end %Constructor
         
@@ -176,8 +178,8 @@ classdef oppNumBlockDiag < oppSpot
         function str = char(op)
             % Initialize
             str = 'numBlockDiag(';
-            childs = op.children;
-            if op.isBlockMatrix % For explicit distributed 3D matrices
+             childs = op.children;
+%             if op.isBlockMatrix % For explicit distributed 3D matrices
                 spmd
                     childs = getLocalPart(childs);
                     string = '';
@@ -186,25 +188,25 @@ classdef oppNumBlockDiag < oppSpot
                         string = [string,'Matrix(',int2str(m),',',int2str(n),'), '];
                     end
                 end % spmd
-            else
-                spmd
-                    childs = getLocalPart(childs);
-                    string = '';
-                    if ~isempty(childs)
-                        if ~cellfun(@isnumeric, childs(1))
-                            for childs = childs
-                                string = [string,char(childs{1}),', '];
-                            end
-                        else
-                            [m,n] = cellfun(@size, childs);
-                            for i=1:length(childs)
-                                string = [string,'Matrix(',int2str(m(i)),',', ...
-                                    int2str(n(i)),'), '];
-                            end
-                        end
-                    end
-                end % spmd
-            end % if dist3D
+%             else
+%                 spmd
+%                     childs = getLocalPart(childs);
+%                     string = '';
+%                     if ~isempty(childs)
+%                         if ~cellfun(@isnumeric, childs(1))
+%                             for childs = childs
+%                                 string = [string,char(childs{1}),', '];
+%                             end
+%                         else
+%                             [m,n] = cellfun(@size, childs);
+%                             for i=1:length(childs)
+%                                 string = [string,'Matrix(',int2str(m(i)),',', ...
+%                                     int2str(n(i)),'), '];
+%                             end
+%                         end
+%                     end
+%                 end % spmd
+%             end % if dist3D
             
             % Concatenating composite string
             stringy = '';

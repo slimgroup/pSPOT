@@ -1,7 +1,7 @@
-function [ t ] = Taper1Dcr( i, n, h )
-%Taper1Dcr 1D taper using sin() - for outer windows
+function [ t ] = Average1Dmm( i, n, h )
+%Average1Dmm 1D taper using .5 - for inner windows
 %
-%   [ T ] = Taper1Dcr( I, N, H )
+%   [ T ] = Average1Dmm( I, N, H )
 %
 %   INPUT:
 %      I = element index (1:N)
@@ -11,14 +11,14 @@ function [ t ] = Taper1Dcr( i, n, h )
 %      T = taper's value at I
 %
 
-    if i<=n-2*h
-        x=n;
+    if i<=n/2
+        x=i;
     else
         x=n-i+1;
     end
     b=2*h;
-    if x<n;
-        t=sin(x*(pi/2.)/(2.*h+1.));
+    if x<b+1;
+        t=.5;
     else
         t=1;
     end

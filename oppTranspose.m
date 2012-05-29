@@ -45,11 +45,13 @@ classdef oppTranspose < oppSpot
           % Construct operator
           [m, n] = size(A);
           op = op@oppSpot('pTranspose', n, m);
-          op.cflag      = A.cflag;
-          op.linear     = A.linear;
-          op.sweepflag  = true;
-          op.children   = {A};
-          op.opIntrnl   = oppCTranspose(opConj(A));
+          op.cflag       = A.cflag;
+          op.linear      = A.linear;
+          op.sweepflag   = true;
+          op.children    = {A};
+          op.opIntrnl    = oppCTranspose(opConj(A));
+          op.ddistscheme = A.rdistscheme;
+          op.rdistscheme = A.ddistscheme;
        end % function opTranspose
       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,25 +90,25 @@ classdef oppTranspose < oppSpot
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Drandn
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       function x = drandn(A,Ncols)
-           ncols = 1;
-           if nargin == 2 % for easy multivectoring
-               ncols = Ncols;
+       function x = drandn(A,varargin)
+           if size(varargin) == 1 % for easy multivectoring
+               ncols = varargin{1};
+           else
+               ncols = 1;
            end
-           A = A.children{1};
-           x = rrandn(A,ncols);
+           x = rrandn(A.children{1},ncols);
        end
        
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Rrandn
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       function x = rrandn(A,Ncols)
-           ncols = 1;
-           if nargin == 2 % for easy multivectoring
-               ncols = Ncols;
+       function x = rrandn(A,varargin)
+           if size(varargin) == 1 % for easy multivectoring
+               ncols = varargin{1};
+           else
+               ncols = 1;
            end
-           A = A.children{1};
-           x = drandn(A,ncols);
+           x = drandn(A.children{1},ncols);
        end
     
     end % methods - public

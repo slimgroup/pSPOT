@@ -1,7 +1,7 @@
-classdef oplWindow1Dtpr < opSpot
-%oplWindow1Dtpr tapered windowing for partition-of-unity algorithms
+classdef oplWindow1Davg < opSpot
+%oplWindow1Davg tapered windowing for CARP-CG method
 %
-%   oplWindow1Dtpr(N,P,H)
+%   oplWindow1Davg(N,P,H)
 %
 %   ARGUMENTS:
 %      N = length of the input vector
@@ -38,19 +38,19 @@ classdef oplWindow1Dtpr < opSpot
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Constructor
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       function op = oplWindow1Dtpr(varargin)
-      assert(nargin==3,'lWindow1Dtpr: wrong # of arguments')
+       function op = oplWindow1Davg(varargin)
+      assert(nargin==3,'lWindow1Davg: wrong # of arguments')
       n = varargin{1};
       p = varargin{2};
       h = varargin{3};
           [ m os ys xs ] = pSPOT.pWindow.funWindow1DShape( n, p, h );
-      op = op@opSpot('lWindow1Dtpr',m,n);
+      op = op@opSpot('lWindow1Davg',m,n);
       op.p = p;
       op.h = h;
       op.oshape = os;
       op.yshape = ys;
       op.xshape = xs;
-       end % function oplWindow1Dtpr
+       end % function oplWindow1Davg
        
        % xtratests
        function result = xtratests(op)
@@ -66,6 +66,19 @@ classdef oplWindow1Dtpr < opSpot
        end
        end % xtratests
 
+       % utest ( skip dottest )
+       function output = utest(op,k,verbose)
+           try
+               addpath(fullfile(spot.path,'tests','xunit'))
+           catch ME
+               error('Can''t find xunit toolbox.')
+           end
+           if nargin < 3, verbose = 0; end
+           if nargin < 2, k = 5; end
+           assertTrue(op.xtratests,k);
+           output = 'PASSED!';
+       end % utest
+
     end % Methods
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,10 +89,10 @@ classdef oplWindow1Dtpr < opSpot
         % Multiplication
         function y = multiply(op,x,mode)
            if (mode == 1)
-          [ A ] = pSPOT.pWindow.funWindow1DtprFor(op.n,op.p,op.h);
+          [ A ] = pSPOT.pWindow.funWindow1DavgFor(op.n,op.p,op.h);
               y = A * x;
            else
-          [ B ] = pSPOT.pWindow.funWindow1DtprBck(op.n,op.p,op.h);
+          [ B ] = pSPOT.pWindow.funWindow1DavgBck(op.n,op.p,op.h);
               y = B * x;
            end
         end % Multipy

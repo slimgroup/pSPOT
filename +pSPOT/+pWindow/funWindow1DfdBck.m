@@ -1,5 +1,5 @@
 function [ A ] = funWindow1DfdBck( n, p, h )
-%funWindow1DfdBck inverse windowing sparse array for finite difference algorithms
+%funWindow1DfdBck inverse swap windowing sparse array for finite difference algorithms
 %
 %   [ A ] = funWindow1DfdBck( N, P, H )
 %
@@ -10,7 +10,7 @@ function [ A ] = funWindow1DfdBck( n, p, h )
 %   OUTPUT:
 %      A = 'inverse' operator
 
-    [ m os ys xs ] = pSPOT.pWindow.funWindowShape1D( n, p, h );
+    [ m os ys xs ] = pSPOT.pWindow.funWindow1DShape( n, p, h );
 
     A=sparse(n,m);
     for w=1:p

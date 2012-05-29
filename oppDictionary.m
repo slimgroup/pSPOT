@@ -110,13 +110,14 @@ classdef oppDictionary < oppSpot
             
             % Construct
             op = op@oppSpot('pDictionary', m(1), n);
-            op.cflag    = cflag;
-            op.linear   = linear;
-            op.children = opList;
-            op.weights = weights;
-            op.sweepflag= true;
-            op.gather   = gather;
-            op.precedence = 1;
+            op.cflag       = cflag;
+            op.linear      = linear;
+            op.children    = opList;
+            op.weights     = weights;
+            op.sweepflag   = true;
+            op.gather      = gather;
+            op.precedence  = 1;
+            op.ddistscheme = cellfun(@(x) size(x,2),opList);
             
         end %Constructor
         
