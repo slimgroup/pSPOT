@@ -29,5 +29,3 @@ real = cellfun(@isreal,opList);
 cflag = ~all(real);
 linear = cellfun(@(p) logical(p.linear), opList);
 linear = all(linear);
-
-end

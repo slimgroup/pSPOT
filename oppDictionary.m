@@ -144,32 +144,41 @@ classdef oppDictionary < oppSpot
             %    A = double(op) will apply double to each child operator
             %    in oppDictionary, and return a distributed dictionary
             %    of explicit operators.
-            opchildren = distributed(op.children);
-            childm = op.m;
-            opn = op.n;
+            
+            % Find the default partition
+            chidist = pSPOT.utils.defaultDistribution(length(op.children));
+            chicomp = Composite();
+            glosize = [op.m op.n];
+            ind     = 1;
+            
+            % Send operators to corresponding labs
+            for i = 1:length(chicomp)
+                chicomp{i} = op.children(ind:(ind-1+chidist(i)));
+                ind = ind + chidist(i);
+            end
+            
+            % Actual doubling and rebuilding in spmd
             spmd
-                local_children = getLocalPart(opchildren);
-                childn = 0;
-                partition = codistributed.zeros(1,numlabs);
-                globalsize = [childm opn];
-                A = zeros(childm,childn);
-                if ~isempty(local_children)
-                    for i = 1:length(local_children)
-                        child = local_children{i};
-                        childn = childn + child.n;
+                childn          = 0;
+                partition       = codistributed.zeros(1,numlabs);
+                A               = zeros(glosize(1),childn);
+                if ~isempty(chicomp)
+                    for i = 1:length(chicomp)
+                        child   = chicomp{i};
+                        childn  = childn + child.n;
                     end
-                    A = zeros(childm,childn);
+                    A           = zeros(glosize(1),childn);
                     partition(labindex) = childn;
-                    k = 0;
-                    for i = 1:length(local_children)
-                        child = local_children{i};
-                        n = child.n;
+                    k           = 0;
+                    for i = 1:length(chicomp)
+                        child   = chicomp{i};
+                        n       = child.n;
                         A(:,k+1:k+n) = double(child);
-                        k = k+n;
+                        k       = k+n;
                     end
                 end
-                partition = gather(partition);
-                codist = codistributor1d(2,partition,globalsize);
+                partition       = gather(partition);
+                codist = codistributor1d(2,partition,glosize);
                 A = codistributed.build(A,codist,'noCommunication');
             end % spmd
             
@@ -179,31 +188,26 @@ classdef oppDictionary < oppSpot
         % Drandn
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function x = drandn(A,Ncols)
-            ncols = 1;
             if nargin == 2 % for easy multivectoring
                 ncols = Ncols;
+            else
+                ncols = 1;
             end
             
             % Forward mode
-            children = A.children;
-            opchildren = distributed(children);
-            
-            spmd, chicodist = getCodistributor(opchildren); end
-            
-            chicodist = chicodist{1};
-            chipart = chicodist.Partition;
-            childnum = 0;
+            chipart   = pSPOT.utils.defaultDistribution(length(A.children));
+            childnum  = 0;
             for i=1:matlabpool('size')
                 xpart(i) = 0;
                 for j=childnum+1:childnum+chipart(i)
-                    child = A.children{j};
+                    child    = A.children{j};
                     xpart(i) = xpart(i) + child.n;
                 end
-                childnum = childnum + chipart(i);
+                childnum     = childnum + chipart(i);
             end
-            xgsize = [A.n ncols];
+            xgsize           = [A.n ncols];
             
-            n = A.n;
+            n                = A.n;
             if isreal(A)
                 spmd
                     xcodist = codistributor1d(1,xpart,xgsize);
@@ -256,12 +260,12 @@ classdef oppDictionary < oppSpot
                 end
                 
                 B = oppStack(opEye(op.n,op.m)); % Pseudo copy constructor
-                B.children = tchild;
-                B.cflag = op.cflag;
+                B.children  = tchild;
+                B.cflag     = op.cflag;
                 B.sweepflag = op.sweepflag;
-                B.linear = op.linear;
-                B.gather = op.gather;
-                B.weights = conj(op.weights); % Conj for complex numbers
+                B.linear    = op.linear;
+                B.gather    = op.gather;
+                B.weights   = conj(op.weights); % Conj for complex numbers
                 
                 % Multiply
                 if isdistributed(x)
