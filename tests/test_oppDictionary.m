@@ -58,8 +58,8 @@ end
 
 function test_oppDictionary_repeating
 %% Repeating operators
-N  = randi([2 5]);
-OP = randn(randi([2 5]),randi([2 5]));
+N  = 3;
+OP = randn(3);
 for i = 1:N
     oplist{i} = OP;
 end

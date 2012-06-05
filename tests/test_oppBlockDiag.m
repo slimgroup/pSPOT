@@ -6,7 +6,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function test_oppBlockDiag_builtin
 %%
-   n = randi(10); m = randi(10);
+   n = 3; m = 3;
    A = opMatrix(randn(m,m));
    B = opMatrix(randn(n,n));
    D = oppBlockDiag(A,B);
@@ -15,11 +15,11 @@ end
 
 function test_oppBlockDiag_prod
 %%
-   n = randi(10); m = randi(10);
-   A = opMatrix(randn(m,m));
-   B = opMatrix(randn(n,n));
-   D = oppBlockDiag(A,B,1);
-   x = drandn(D,2);
+   n  = 3; m = 3;
+   A  = opMatrix(randn(m,m));
+   B  = opMatrix(randn(n,n));
+   D  = oppBlockDiag(A,B,1);
+   x  = drandn(D,2);
    x2 = gather(x);
    assertElementsAlmostEqual( norm([A*x2(1:m,:); B*x2(m+1:end,:)]- D*x),0 )
    assertElementsAlmostEqual( norm([A'*x2(1:m,:); B'*x2(m+1:end,:)]- D'*x),0 )
@@ -27,7 +27,7 @@ end
 
 function test_oppBlockDiag_repeat
 %%
-    n  = randi([2,10]);
+    n  = 3;
     A  = opMatrix(randn(n,n));
     D  = oppBlockDiag(3,A,1);
     E  = opBlockDiag(3,A);
@@ -39,13 +39,13 @@ end
 
 function test_oppBlockDiag_weights
 %%
-   n = randi(10); m = randi(10);
-   A = randn(m,m);
-   B = randn(n,n);
-   D = oppBlockDiag([m n],A,B,1);
+   n  = 3; m = 3;
+   A  = randn(m,m);
+   B  = randn(n,n);
+   D  = oppBlockDiag([m n],A,B,1);
    A2 = opMatrix(m*A); B2 = opMatrix(n*B);
-   E = opBlockDiag(A2,B2);
-   x = drandn(D,2);
+   E  = opBlockDiag(A2,B2);
+   x  = drandn(D,2);
    x2 = gather(x);
    assertElementsAlmostEqual(D*x, E*x2);
    assertElementsAlmostEqual(D'*x,E'*x2);
@@ -53,7 +53,7 @@ end
 
 function test_oppBlockDiag_divide
 %%
-    n = randi(10); m = randi(10);
+    n = 3; m = 3;
     A1 = opMatrix(randn(m,m));
     A2 = opMatrix(randn(n,n));
     D = oppBlockDiag(A1,A2);

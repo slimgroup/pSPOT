@@ -6,7 +6,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function test_oppMatrix_builtin
 %% Built-in tests for oppMatrix
-m = randi(100); n = randi(100);
+m = 3; n = 3;
 a = distributed.randn(m,n);
 A = oppMatrix(a);
 utest(A,3);
@@ -19,7 +19,7 @@ function test_oppMatrix_multiply
 % multiplications because of the distributed nature of the distributed
 % matrices. Error is in the order of e-15 so it is ok. We will just use
 % assertElementsAlmostEqual
-m  = randi(100); n = randi(100);
+m  = 3; n = 3;
 A1 = randn(m,n);
 A2 = oppMatrix(distributed(A1));
 x1 = [A2.drandn A2.drandn];
@@ -41,7 +41,7 @@ end % multiply
 
 function test_oppMatrix_basis_rn
 %% Test for oppMatrix so that it generates the correct result
-m  = randi(100); n = randi(100);
+m  = 3; n = 3;
 A1 = randn(m,n);
 A2 = oppMatrix(distributed(A1));
 x  = eye(n);
@@ -54,7 +54,7 @@ end % basis
 function test_oppMatrix_divide
 %% test for divide of oppMatrix
 % distributed matrix only supports left divide of square matrices
-n  = randi(100);
+n  = 3;
 A1 = randn(n);
 A2 = oppMatrix(distributed(A1));
 x  = A2.drandn;
@@ -69,7 +69,7 @@ end % divide
 
 function test_oppMatrix_plus
 %% test for plus of oppMatrix
-m  = randi(100); n = randi(100);
+m  = 3; n = 3;
 A1 = randn(m,n);
 A2 = oppMatrix(distributed(A1));
 B  = randn(m,n);
@@ -81,7 +81,7 @@ end % plus
 
 function test_oppMatrix_minus
 %% test for minus of oppMatrix
-m  = randi(100); n = randi(100);
+m  = 3; n = 3;
 A1 = randn(m,n);
 A2 = oppMatrix(distributed(A1));
 B  = randn(m,n);

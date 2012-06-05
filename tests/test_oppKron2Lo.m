@@ -4,8 +4,8 @@ end
     
 function test_oppKron2Lo_builtin
 %% Built-in unit tests for oppKron2Lo
-m = randi([2,100]);
-n = randi([2,100]);
+m = 3;
+n = 3;
 A = opDCT(m);
 B = opDFT(n);
 K = oppKron2Lo(B,A);
@@ -51,8 +51,8 @@ end % empty labs
 
 function test_oppKron2Lo_dirac
 %% Test for Dirac-skipping functionality
-m = randi(100);
-n = randi(100);
+m = 3;
+n = 3;
 A = opDirac(m);
 B = opDFT(n);
 x = randn(n,m);
@@ -97,7 +97,7 @@ end % dirac special
 
 function test_oppKron2Lo_FoG
 %% FoG
-m  = randi([2 10]);
+m  = 3;
 A  = opDFT(m);
 B  = opDFT(m*m);
 K1 = B*opKron(A,A)*B;

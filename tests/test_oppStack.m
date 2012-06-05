@@ -34,7 +34,7 @@ end
 
 function test_oppStack_weights
 %%
-    m1 = randi(10); m2 = randi(10); n = randi(10);
+    m1 = 3; m2 = 3; n = 3;
     A1 = randn(m1,n);
     A2 = randn(m2,n);
     D  = oppStack([m2 m1],A1,A2,1);
@@ -54,8 +54,8 @@ end
     
 function test_oppStack_repeating
 %% Repeating operators
-N  = randi([2 5]);
-OP = randn(randi([2 5]),randi([2 5]));
+N  = 3;
+OP = randn(3);
 for i = 1:N
     oplist{i} = OP;
 end
