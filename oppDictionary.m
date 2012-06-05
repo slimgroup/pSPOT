@@ -283,59 +283,55 @@ classdef oppDictionary < oppSpot
             assert(isdistributed(x),'X must be distributed');
             
             % Checking size of x
-            opchildren = distributed(op.children);
-            spmd
-                xcodist = getCodistributor(x);
-                chicodist = getCodistributor(opchildren);
-            end
+            opchildren = Composite();
+            spmd, xcodist = getCodistributor(x); end
             xcodist = xcodist{1};
-            xpart = xcodist.Partition;
-            chicodist = chicodist{1};
-            chipart = chicodist.Partition;
-            nlabs = matlabpool('size');
+            xpart   = xcodist.Partition;
+            chipart = pSPOT.utils.defaultDistribution(length(op.children));
             
             if xcodist.Dimension ~= 1 % Dimensional check
                 error('x is not distributed along dimension 1');
             end
             
+            % Check individual operator sizes and assign operators to labs
             childnum = 0;
-            for i=1:nlabs
-                childn = 0;
+            childopn = 0;
+            loc_weights = Composite();
+            for i=1:matlabpool('size')                
+                % Size checkings
+                childn         = 0;
                 for j=childnum+1:(childnum+chipart(i))
-                    child = op.children{j};
-                    childn = childn + child.n;
+                    child      = op.children{j};
+                    childn     = childn + child.n;
                 end
-                if childn ~= xpart(i)
-                    error('x size mismatch at lab %d, check your distribution',i);
-                end
-                childnum = childnum + chipart(i);
+                assert(childn == xpart(i),...
+                    'x size mismatch at lab %d, check your distribution',i);
+                childnum       = childnum + chipart(i);
+                
+                % Fill in composites and weights
+                opchildren{i}  = op.children(1+childopn:chipart(i)+childopn);
+                loc_weights{i} = op.weights(1+childopn:chipart(i)+childopn);
+                childopn       = chipart(i);
             end
             
             % Mode 1
-            % Setting up class variables
-            opm = op.m; opn = op.n;
-            opweights = op.weights;
+            % Setting up preallocation size
+            ysize = [op.m size(x,2)];
             % This "renaming" is required to avoid passing in the whole op,
             % which for some weird reason stalls spmd
             
             spmd
                 % Setting up local parts
-                local_children = getLocalPart(opchildren);
                 local_x = getLocalPart(x);
-                
-                % Setting up weights
-                codist = getCodistributor(opchildren);
-                wind = globalIndices(codist,2);
-                local_weights = opweights(wind);
-                
+                                
                 % Preallocate y
-                y = zeros(opm,size(x,2));
+                y = zeros(ysize);
                 
-                if ~isempty(local_children)
-                    for i=1:length(local_children)
-                        local_children{i} = local_weights(i) * local_children{i};
+                if ~isempty(opchildren)
+                    for i=1:length(opchildren)
+                        opchildren{i} = loc_weights(i) * opchildren{i};
                     end
-                    B = opDictionary(local_children{:});
+                    B = opDictionary(opchildren{:});
                     y = B*local_x;
                 end
                 
