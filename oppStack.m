@@ -141,29 +141,25 @@ classdef oppStack < oppSpot
             %    A = double(op) will apply double to each child operator
             %    in oppStack, and return a distributed stack of explicit
             %    operators.
-            opchildren = distributed(op.children);
+            
+            opchildren = Composite();
+            chidist    = pSPOT.utils.defGlobInd(length(opchildren));
+            for i = 1:length(opchildren)
+                opchildren{i} = op.children(chidist{i});
+            end
             childn = op.n;
-            opm = op.m;
+            opm    = op.m;
             spmd
-                local_children = getLocalPart(opchildren);
-                childm = 0;
-                partition = codistributed.zeros(1,numlabs);
-                globalsize = [opm childn];
-                A = zeros(childm,childn);
-                if ~isempty(local_children)
-                    for i = 1:length(local_children)
-                        child = local_children{i};
-                        childm = childm + child.m;
-                    end
-                    A = zeros(childm,childn);
+                % Setup distribution stuffs
+                childm          = 0;
+                partition       = codistributed.zeros(1,numlabs);
+                globalsize      = [opm childn];
+                
+                % Preallocate
+                A               = zeros(childm,childn);
+                if ~isempty(opchildren)
+                    A           = double(opStack(opchildren{:}));
                     partition(labindex) = childm;
-                    k = 0;
-                    for i = 1:length(local_children)
-                        child = local_children{i};
-                        m = child.m;
-                        A(k+1:k+m,:) = double(child);
-                        k = k+m;
-                    end
                 end
                 partition = gather(partition);
                 codist = codistributor1d(1,partition,globalsize);
@@ -194,17 +190,15 @@ classdef oppStack < oppSpot
         % Rrandn
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function x = rrandn(A,Ncols)
-            ncols = 1;
-            if nargin == 2 % for easy multivectoring
+            % for easy multivectoring
+            if nargin == 2 
                 ncols = Ncols;
+            else
+                ncols = 1;
             end
             
             opchildren = distributed(A.children);
-            
-            spmd, chicodist = getCodistributor(opchildren); end
-            
-            chicodist = chicodist{1};
-            chipart = chicodist.Partition;
+            chipart = pSPOT.utils.defaultDistribution(length(A.children));
             childnum = 0;
             for i=1:matlabpool('size')
                 xpart(i) = 0;
