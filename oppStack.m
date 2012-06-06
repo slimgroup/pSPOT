@@ -238,21 +238,18 @@ classdef oppStack < oppSpot
         function y = multiply(op,x,mode)
             
             if mode == 2 % Use oppDictionary, since a transpose of stack is
-                
-                opchildren = op.children; % equivalent to a dictionary with
-                tchild = cell(1,length(opchildren)); % transposed operators
-                for i = 1:length(opchildren)
-                    child = opchildren{i};
-                    tchild{i} = child';
-                end
+                % transpose operators
+                tchild = cellfun(@ctranspose,op.children,...
+                    'UniformOutput', false);
                 
                 B = oppDictionary(opEye(op.n,op.m)); % Pseudo copy constructor
-                B.children = tchild;
-                B.cflag = op.cflag;
-                B.sweepflag = op.sweepflag;
-                B.linear = op.linear;
-                B.gather = op.gather;
-                B.weights = conj(op.weights); % Conj for complex numbers
+                B.children    = tchild;
+                B.cflag       = op.cflag;
+                B.sweepflag   = op.sweepflag;
+                B.linear      = op.linear;
+                B.gather      = op.gather;
+                B.weights     = conj(op.weights); % Conj for complex numbers                
+                B.ddistscheme = cellfun(@(x) size(x,2),tchild);
                 
                 % Multiply
                 y = B*x;
@@ -272,7 +269,7 @@ classdef oppStack < oppSpot
             % Mode 1
             % Setting up class variables
             opchildren = distributed(op.children); % This "renaming" is
-            opm = op.m; opn = op.n;   % required to avoid
+            opm = op.m;   % required to avoid
             opweights = op.weights;   % passing in the whole op, which for
             % some weird reason stalls spmd
             spmd

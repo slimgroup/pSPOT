@@ -6,8 +6,10 @@ function y = compositeDef(x)
 %   matlabpool conditions.
 
 y       = Composite();
-globind = pSPOT.utils.defGlobInd(length(x));
+glodist = pSPOT.utils.defaultDistribution(length(x));
 
+ind = 0;
 for i=1:length(y)
-    y{i} = x(globind{i});
+    y{i} = x(ind+1:ind+glodist(i));
+    ind  = ind + glodist(i);
 end

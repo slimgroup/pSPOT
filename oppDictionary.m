@@ -252,12 +252,8 @@ classdef oppDictionary < oppSpot
             
             if mode == 2 % Use oppStack, since a transpose of dictionary is
                 % equivalent to a stack with transposed operators
-                opchildren = op.children;
-                tchild = cell(1,length(opchildren));
-                for i = 1:length(opchildren)
-                    child = opchildren{i};
-                    tchild{i} = child';
-                end
+                tchild = cellfun(@ctranspose,op.children,...
+                    'UniformOutput', false);
                 
                 B = oppStack(opEye(op.n,op.m)); % Pseudo copy constructor
                 B.children  = tchild;
@@ -283,7 +279,6 @@ classdef oppDictionary < oppSpot
             assert(isdistributed(x),'X must be distributed');
             
             % Checking size of x
-            opchildren = Composite();
             spmd, xcodist = getCodistributor(x); end
             xcodist = xcodist{1};
             xpart   = xcodist.Partition;
@@ -293,26 +288,16 @@ classdef oppDictionary < oppSpot
                 error('x is not distributed along dimension 1');
             end
             
-            % Check individual operator sizes and assign operators to labs
+            % Size checkings
             childnum = 0;
-            childopn = 0;
-            loc_weights = Composite();
-            for i=1:matlabpool('size')                
-                % Size checkings
-                childn         = 0;
-                for j=childnum+1:(childnum+chipart(i))
-                    child      = op.children{j};
-                    childn     = childn + child.n;
-                end
+            for i=1:matlabpool('size') 
+                childn = sum(op.ddistscheme(childnum+1:(childnum+chipart(i))));
                 assert(childn == xpart(i),...
                     'x size mismatch at lab %d, check your distribution',i);
                 childnum       = childnum + chipart(i);
-                
-                % Fill in composites and weights
-                opchildren{i}  = op.children(1+childopn:chipart(i)+childopn);
-                loc_weights{i} = op.weights(1+childopn:chipart(i)+childopn);
-                childopn       = chipart(i);
             end
+            opchildren  = pSPOT.utils.compositeDef(op.children);
+            loc_weights = pSPOT.utils.compositeDef(op.weights);
             
             % Mode 1
             % Setting up preallocation size
