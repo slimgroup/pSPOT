@@ -109,7 +109,7 @@ classdef oppStack < oppSpot
             op.sweepflag   = true;
             op.gather      = gather;
             op.precedence  = 1;
-            op.opsm = m;
+            op.opsm        = m;
             
         end %Constructor
         
@@ -230,7 +230,7 @@ classdef oppStack < oppSpot
                 B.linear      = op.linear;
                 B.gather      = op.gather;
                 B.weights     = conj(op.weights); % Conj for complex numbers                
-                B.opsn = cellfun(@(x) size(x,2),tchild);
+                B.opsn        = cellfun(@(x) size(x,2),tchild);
                 
                 % Multiply
                 y = B*x;

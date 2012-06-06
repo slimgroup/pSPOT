@@ -112,7 +112,7 @@ classdef oppDictionary < oppSpot
             op.sweepflag   = true;
             op.gather      = gather;
             op.precedence  = 1;
-            op.opsn = n;
+            op.opsn        = n;
             
         end %Constructor
         
@@ -257,7 +257,7 @@ classdef oppDictionary < oppSpot
                 B.linear      = op.linear;
                 B.gather      = op.gather;
                 B.weights     = conj(op.weights); % Conj for complex numbers
-                B.opsm = cellfun(@(x) size(x,1),tchild);
+                B.opsm        = cellfun(@(x) size(x,1),tchild);
                 
                 % Multiply
                 if isdistributed(x)

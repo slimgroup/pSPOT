@@ -97,8 +97,8 @@ classdef oppBlockDiag < oppSpot
             op.weights     = weights;
             op.sweepflag   = true;
             op.gather      = gather;
-            op.opsn = n;
-            op.opsm = m;
+            op.opsn        = n;
+            op.opsm        = m;
             
         end %Constructor
         
