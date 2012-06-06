@@ -62,7 +62,7 @@ classdef oppDictionary < oppSpot
             % Check for gather parameter
             if isscalar( varargin{end} ) && ~isa(varargin{end},'opSpot')
                 gather = varargin{end};
-                varargin(end) = [];
+                varargin(end) = [            ];
             end
             
             % Check for weights
@@ -75,8 +75,7 @@ classdef oppDictionary < oppSpot
                 if nargs == 2 % Repeating ops
                     
                     if spot.utils.isposintscalar(varargin{1}) % repeating N times
-                        weights = ones(weights,1);
-                        
+                        weights = ones(weights,1);                        
                     end % Else: Repeating as many times as there are weights
                     
                     for i = 3:length(weights)+1
@@ -106,10 +105,9 @@ classdef oppDictionary < oppSpot
             [opList,m,n,cflag,linear] = ...
                 pSPOT.utils.stdpspotchk(varargin{:});
             assert( all(m == m(1)), 'Operator sizes are not consistent');
-            n = sum(n);
             
             % Construct
-            op = op@oppSpot('pDictionary', m(1), n);
+            op = op@oppSpot('pDictionary', m(1), sum(n));
             op.cflag       = cflag;
             op.linear      = linear;
             op.children    = opList;
@@ -117,7 +115,7 @@ classdef oppDictionary < oppSpot
             op.sweepflag   = true;
             op.gather      = gather;
             op.precedence  = 1;
-            op.ddistscheme = cellfun(@(x) size(x,2),opList);
+            op.ddistscheme = n;
             
         end %Constructor
         
@@ -146,7 +144,7 @@ classdef oppDictionary < oppSpot
             %    of explicit operators.
             
             % Find the default partition
-            chidist = pSPOT.utils.defaultDistribution(length(op.children));
+            chidist = pSPOT.utils            .defaultDistribution(length(op.children));
             chicomp = Composite();
             glosize = [op.m op.n];
             ind     = 1;
@@ -207,18 +205,17 @@ classdef oppDictionary < oppSpot
             end
             xgsize           = [A.n ncols];
             
-            n                = A.n;
             if isreal(A)
                 spmd
                     xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(n,ncols,codistributor1d(1));
+                    x = codistributed.randn(xgsize,codistributor1d(1));
                     x = redistribute(x,xcodist);
                 end
             else
                 spmd
                     xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(n,ncols,codistributor1d(1)) +...
-                        1i*codistributed.randn(n,ncols,codistributor1d(1));
+                    x = codistributed.randn(xgsize,codistributor1d(1)) +...
+                        1i*codistributed.randn(xgsize,codistributor1d(1));
                     x = redistribute(x,xcodist);
                 end
             end
@@ -256,12 +253,13 @@ classdef oppDictionary < oppSpot
                     'UniformOutput', false);
                 
                 B = oppStack(opEye(op.n,op.m)); % Pseudo copy constructor
-                B.children  = tchild;
-                B.cflag     = op.cflag;
-                B.sweepflag = op.sweepflag;
-                B.linear    = op.linear;
-                B.gather    = op.gather;
-                B.weights   = conj(op.weights); % Conj for complex numbers
+                B.children    = tchild;
+                B.cflag       = op.cflag;
+                B.sweepflag   = op.sweepflag;
+                B.linear      = op.linear;
+                B.gather      = op.gather;
+                B.weights     = conj(op.weights); % Conj for complex numbers
+                B.rdistscheme = cellfun(@(x) size(x,1),tchild);
                 
                 % Multiply
                 if isdistributed(x)
@@ -321,9 +319,8 @@ classdef oppDictionary < oppSpot
                 end
                 
                 % Check for sparsity
-                aresparse = codistributed.zeros(1,numlabs);
-                aresparse(labindex) = issparse(y);
-                % labBarrier;
+                aresparse            = codistributed.zeros(1,numlabs);
+                aresparse(labindex)  = issparse(y);
                 if any(aresparse), y = sparse(y); end;
                 
                 % Summing the results and distribute

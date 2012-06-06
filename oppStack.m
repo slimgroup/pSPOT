@@ -73,8 +73,7 @@ classdef oppStack < oppSpot
                 if nargs == 2 % Repeating ops
                     
                     if spot.utils.isposintscalar(varargin{1}) % repeating N times
-                        weights = ones(weights,1);
-                        
+                        weights = ones(weights,1);                        
                     end % Else: Repeating as many times as there are weights
                     
                     for i = 3:length(weights)+1
@@ -115,7 +114,6 @@ classdef oppStack < oppSpot
             op.precedence  = 1;
             op.rdistscheme = m;
             
-            
         end %Constructor
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -142,21 +140,15 @@ classdef oppStack < oppSpot
             %    in oppStack, and return a distributed stack of explicit
             %    operators.
             
-            opchildren = Composite();
-            chidist    = pSPOT.utils.defGlobInd(length(opchildren));
-            for i = 1:length(opchildren)
-                opchildren{i} = op.children(chidist{i});
-            end
-            childn = op.n;
-            opm    = op.m;
+            opchildren = pSPOT.utils.compositeDef(op.children);
+            globalsize = [op.m op.n];
             spmd
                 % Setup distribution stuffs
                 childm          = 0;
                 partition       = codistributed.zeros(1,numlabs);
-                globalsize      = [opm childn];
                 
                 % Preallocate
-                A               = zeros(childm,childn);
+                A               = zeros(childm,globalsize(2));
                 if ~isempty(opchildren)
                     A           = double(opStack(opchildren{:}));
                     partition(labindex) = childm;
@@ -197,32 +189,24 @@ classdef oppStack < oppSpot
                 ncols = 1;
             end
             
-            opchildren = distributed(A.children);
-            chipart = pSPOT.utils.defaultDistribution(length(A.children));
-            childnum = 0;
+            chipart = pSPOT.utils.defGlobInd(length(A.children));
+            xpart   = zeros(1,matlabpool('size'));
             for i=1:matlabpool('size')
-                xpart(i) = 0;
-                for j=childnum+1:childnum+chipart(i)
-                    child = A.children{j};
-                    xpart(i) = xpart(i) + child.m;
-                end
-                childnum = childnum + chipart(i);
+                xpart(i) = sum(A.rdistscheme([chipart{i}]));
             end
             xgsize = [A.m ncols];
-            
-            m = A.m;
             
             if isreal(A)
                 spmd
                     xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(m,ncols,codistributor1d(1));
+                    x = codistributed.randn(xgsize,codistributor1d(1));
                     x = redistribute(x,xcodist);
                 end
             else
                 spmd
                     xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(m,ncols,codistributor1d(1)) +...
-                        1i*codistributed.randn(m,ncols,codistributor1d(1));
+                    x = codistributed.randn(xgsize,codistributor1d(1)) +...
+                        1i*codistributed.randn(xgsize,codistributor1d(1));
                     x = redistribute(x,xcodist);
                 end
             end
@@ -261,58 +245,46 @@ classdef oppStack < oppSpot
             if isdistributed(x)
                 spmd, xcodist = getCodistributor(x); end
                 xcodist = xcodist{1};
-                if xcodist.Dimension == 1 % Checking distribution of x
-                    error('x should not be distributed along first dimension');
-                end
+                assert(xcodist.Dimension == 1,...
+                    'x cannot be distributed along first dimension');
             end
             
             % Mode 1
-            % Setting up class variables
-            opchildren = distributed(op.children); % This "renaming" is
-            opm = op.m;   % required to avoid
-            opweights = op.weights;   % passing in the whole op, which for
-            % some weird reason stalls spmd
+            % Setting up class variables and partition sizes
+            loc_children = pSPOT.utils.compositeDef(op.children);
+            loc_weights  = pSPOT.utils.compositeDef(op.weights);
+            fingsize     = [op.m size(x,2)]; % final global size
+            chibind      = pSPOT.utils.defGlobInd(length(op.children));
+            finpart      = distributed.zeros(1,matlabpool('size'));
+            
+            for i=1:matlabpool('size')
+                finpart(i) = sum(op.rdistscheme([chibind{i}]));
+            end
+            
             spmd
-                % Setting up local parts
-                local_children = getLocalPart(opchildren);
-                finpart = codistributed.zeros(1,numlabs); % final partition
-                fingsize = [opm size(x,2)]; % final global size
+                % Preallocate y
+                y = zeros(getLocalPart(finpart),fingsize(2));
                 
-                % Setting up weights
-                codist = getCodistributor(opchildren);
-                wind = globalIndices(codist,2);
-                local_weights = opweights(wind);
-                
-                if ~isempty(local_children)
-                    % Setup partition size
-                    localm = 0;
-                    for i=1:length(local_children)
-                        child = local_children{i};
-                        localm = localm + child.m;
-                    end
-                    finpart(labindex) = localm;
-                    
-                    % Preallocate y
-                    y = zeros(localm,size(x,2));
-                    
+                if ~isempty(loc_children)                    
                     % Multiply
-                    B = opStack(local_weights,local_children{:});
+                    for i=1:length(loc_children)
+                        loc_children{i} = loc_weights(i) * loc_children{i};
+                    end
+                    B = opStack(loc_children{:});
                     y = B*x;
                 else
-                    y = zeros(0,size(x,2));
+                    y = zeros(0,fingsize(2));
                 end
                 
                 % Check for sparsity
                 aresparse = codistributed.zeros(1,numlabs);
-                aresparse(labindex) = issparse(y);
-                % labBarrier;
+                aresparse(labindex) = issparse(y);                
                 if any(aresparse), y = sparse(y); end;
                 
                 % Concatenating the results and distribute
-                finpart = gather(finpart);
+                finpart   = gather(finpart);
                 fincodist = codistributor1d(1,finpart,fingsize);
-                y = codistributed.build(y,fincodist);
-                
+                y = codistributed.build(y,fincodist,'noCommunication');                
             end %spmd
             
             if op.gather

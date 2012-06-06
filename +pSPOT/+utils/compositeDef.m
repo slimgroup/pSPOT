@@ -4,6 +4,8 @@ function y = compositeDef(x)
 %   y = compositeDef(x) returns a Composite array with the list of ops, x
 %   stored in the default distribution configuration given the current
 %   matlabpool conditions.
+%
+%   x must be a 1 by n array or cell
 
 y       = Composite();
 glodist = pSPOT.utils.defaultDistribution(length(x));
