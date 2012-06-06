@@ -13,7 +13,7 @@ else
     ncols = varargin{1};
 end
 
-scheme = A.ddistscheme;
+scheme = A.opsn;
 if length(scheme) > 1 % Distributed
     % scheme elements preprocessing
     nlabs = matlabpool('size');

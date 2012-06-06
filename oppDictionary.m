@@ -112,7 +112,7 @@ classdef oppDictionary < oppSpot
             op.sweepflag   = true;
             op.gather      = gather;
             op.precedence  = 1;
-            op.ddistscheme = n;
+            op.opsn = n;
             
         end %Constructor
         
@@ -257,7 +257,7 @@ classdef oppDictionary < oppSpot
                 B.linear      = op.linear;
                 B.gather      = op.gather;
                 B.weights     = conj(op.weights); % Conj for complex numbers
-                B.rdistscheme = cellfun(@(x) size(x,1),tchild);
+                B.opsm = cellfun(@(x) size(x,1),tchild);
                 
                 % Multiply
                 if isdistributed(x)
@@ -286,7 +286,7 @@ classdef oppDictionary < oppSpot
             % Size checkings
             childnum = 0;
             for i=1:matlabpool('size') 
-                childn = sum(op.ddistscheme(childnum+1:(childnum+chipart(i))));
+                childn = sum(op.opsn(childnum+1:(childnum+chipart(i))));
                 assert(childn == xpart(i),...
                     'x size mismatch at lab %d, check your distribution',i);
                 childnum       = childnum + chipart(i);

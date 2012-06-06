@@ -42,8 +42,8 @@ classdef oppCTranspose < oppSpot
           op.linear      = A.linear;
           op.sweepflag   = true;
           op.children    = {A};
-          op.ddistscheme = A.rdistscheme;
-          op.rdistscheme = A.ddistscheme;
+          op.opsn = A.opsm;
+          op.opsm = A.opsn;
        end % function opCTranspose
       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

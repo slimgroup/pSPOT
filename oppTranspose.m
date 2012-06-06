@@ -50,8 +50,8 @@ classdef oppTranspose < oppSpot
           op.sweepflag   = true;
           op.children    = {A};
           op.opIntrnl    = oppCTranspose(opConj(A));
-          op.ddistscheme = A.rdistscheme;
-          op.rdistscheme = A.ddistscheme;
+          op.opsn = A.opsm;
+          op.opsm = A.opsn;
        end % function opTranspose
       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

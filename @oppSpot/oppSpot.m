@@ -8,8 +8,8 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
    properties
       gather = 0;
       weights;
-      ddistscheme = []; % Distribution scheme of operator domain
-      rdistscheme = []; % Distribution scheme of operator range
+      opsn = []; % Distribution scheme of operator domain
+      opsm = []; % Distribution scheme of operator range
    end %properties
       
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,8 +20,8 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
       function op = oppSpot(type,m,n)
          %oppSpot  Constructor.
          op = op@opSpot(type,m,n);
-         op.ddistscheme = n;
-         op.rdistscheme = m;
+         op.opsn = n;
+         op.opsm = m;
       end
       
    end %methods - public

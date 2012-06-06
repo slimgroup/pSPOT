@@ -97,8 +97,8 @@ classdef oppBlockDiag < oppSpot
             op.weights     = weights;
             op.sweepflag   = true;
             op.gather      = gather;
-            op.ddistscheme = n;
-            op.rdistscheme = m;
+            op.opsn = n;
+            op.opsm = m;
             
         end %Constructor
         
@@ -236,8 +236,8 @@ classdef oppBlockDiag < oppSpot
             
             chinum = 0;
             for i=1:nlabs
-                childm = sum(op.rdistscheme(chinum+1:(chinum+chipart(i))));
-                childn = sum(op.ddistscheme(chinum+1:(chinum+chipart(i))));
+                childm = sum(op.opsm(chinum+1:(chinum+chipart(i))));
+                childn = sum(op.opsn(chinum+1:(chinum+chipart(i))));
                 
                 if mode == 1
                     assert(childn == xpart(i),...
@@ -336,8 +336,8 @@ classdef oppBlockDiag < oppSpot
             
             chinum = 0;
             for i=1:nlabs
-                childm = sum(op.rdistscheme(chinum+1:(chinum+chipart(i))));
-                childn = sum(op.ddistscheme(chinum+1:(chinum+chipart(i))));
+                childm = sum(op.opsm(chinum+1:(chinum+chipart(i))));
+                childn = sum(op.opsn(chinum+1:(chinum+chipart(i))));
                 
                 if mode == 1
                     assert(childm == xpart(i),...

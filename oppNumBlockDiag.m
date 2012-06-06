@@ -167,8 +167,8 @@ classdef oppNumBlockDiag < oppSpot
             else
                 op.numcols = 1;
             end
-            op.ddistscheme = (n/nSlices)*ones(1,nSlices);
-            op.rdistscheme = (m/nSlices)*ones(1,nSlices);
+            op.opsn = (n/nSlices)*ones(1,nSlices);
+            op.opsm = (m/nSlices)*ones(1,nSlices);
             
         end %Constructor
         

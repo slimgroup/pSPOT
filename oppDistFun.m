@@ -151,8 +151,8 @@ classdef oppDistFun < oppSpot
             op.linear      = linflag;
             op.sweepflag   = true;
             op.gather      = opgather;
-            op.ddistscheme = n*ones(1,sizA(end));
-            op.rdistscheme = m*ones(1,sizA(end));
+            op.opsn = n*ones(1,sizA(end));
+            op.opsm = m*ones(1,sizA(end));
             
         end % constructor
         

@@ -109,7 +109,7 @@ classdef oppStack < oppSpot
             op.sweepflag   = true;
             op.gather      = gather;
             op.precedence  = 1;
-            op.rdistscheme = m;
+            op.opsm = m;
             
         end %Constructor
         
@@ -189,7 +189,7 @@ classdef oppStack < oppSpot
             chipart = pSPOT.utils.defGlobInd(length(A.children));
             xpart   = zeros(1,matlabpool('size'));
             for i=1:matlabpool('size')
-                xpart(i) = sum(A.rdistscheme([chipart{i}]));
+                xpart(i) = sum(A.opsm([chipart{i}]));
             end
             xgsize = [A.m ncols];
             
@@ -230,7 +230,7 @@ classdef oppStack < oppSpot
                 B.linear      = op.linear;
                 B.gather      = op.gather;
                 B.weights     = conj(op.weights); % Conj for complex numbers                
-                B.ddistscheme = cellfun(@(x) size(x,2),tchild);
+                B.opsn = cellfun(@(x) size(x,2),tchild);
                 
                 % Multiply
                 y = B*x;
@@ -255,7 +255,7 @@ classdef oppStack < oppSpot
             finpart      = distributed.zeros(1,matlabpool('size'));
             
             for i=1:matlabpool('size')
-                finpart(i) = sum(op.rdistscheme([chibind{i}]));
+                finpart(i) = sum(op.opsm([chibind{i}]));
             end
             
             spmd
