@@ -195,6 +195,7 @@ classdef oppDictionary < oppSpot
             % Forward mode
             chipart   = pSPOT.utils.defaultDistribution(length(A.children));
             childnum  = 0;
+            xpart     = zeros(1,matlabpool('size'));
             for i=1:matlabpool('size')
                 xpart(i) = 0;
                 for j=childnum+1:childnum+chipart(i)
@@ -282,9 +283,8 @@ classdef oppDictionary < oppSpot
             xpart   = xcodist.Partition;
             chipart = pSPOT.utils.defaultDistribution(length(op.children));
             
-            if xcodist.Dimension ~= 1 % Dimensional check
-                error('x is not distributed along dimension 1');
-            end
+            assert(xcodist.Dimension == 1,... % Dimensional check
+                'x is not distributed along dimension 1');
             
             % Size checkings
             childnum = 0;

@@ -262,8 +262,8 @@ classdef oppStack < oppSpot
             end
             
             spmd
-                % Preallocate y
-                y = zeros(getLocalPart(finpart),fingsize(2));
+%                 % Preallocate y
+%                 y = zeros(getLocalPart(finpart),fingsize(2));
                 
                 if ~isempty(loc_children)                    
                     % Multiply
