@@ -42,17 +42,14 @@ classdef oppBlockDiag < oppSpot
         function op = oppBlockDiag(varargin)
             
             % Check Matlabpool
-            if matlabpool('size') == 0
-                error('Matlabpool is not on');
-            end
-            
-            % Settin' up the variables
-            gather = 0;
+            assert(matlabpool('size') > 0, 'Matlabpool is not on');
             
             % Extract gather
             if isscalar(varargin{end}) && ~isa(varargin{end},'opSpot')
                 gather = varargin{end};
                 varargin(end) = [];
+            else
+                gather = 0;
             end
             
             % Extract weights and fill in repeating ops
@@ -65,8 +62,7 @@ classdef oppBlockDiag < oppSpot
                 if nargs == 2 % Repeating ops
                     % repeating N times
                     if spot.utils.isposintscalar(varargin{1}) 
-                        weights = ones(weights,1);
-                        
+                        weights = ones(weights,1);                        
                     end % Else: Repeating as many times as there are weights
                     
                     for i = 3:length(weights)+1
@@ -269,7 +265,7 @@ classdef oppBlockDiag < oppSpot
                 % Setting up codistributor for y
                 finpart  = codistributed.zeros(1,numlabs);
                 
-                if ~isempty(loc_children)
+                if ~isempty(loc_children)                    
                     if length(loc_children) == 1
                         % Just to avoid repeating op case
                         B = loc_children{1};
@@ -370,8 +366,7 @@ classdef oppBlockDiag < oppSpot
                 % Setting up codistributor for y
                 finpart = codistributed.zeros(1,numlabs);
                 
-                if ~isempty(loc_children)
-                    
+                if ~isempty(loc_children)                    
                     % Extracting local sizes
                     sizemn = cellfun(@size,loc_children,'UniformOutput',false);
                     sizemn = [sizemn{:}];
@@ -385,8 +380,7 @@ classdef oppBlockDiag < oppSpot
                         y = zeros(localn,size(x,2));
                         
                         % Divide
-                        j = 0;
-                        k = 0;
+                        j = 0; k = 0;
                         for i=1:length(loc_children) % Divide by operator
                             child = loc_children{i};
                             y(j+1:j+child.n,:) = loc_weights(i) .* ...
@@ -402,8 +396,7 @@ classdef oppBlockDiag < oppSpot
                         y = zeros(localm,size(x,2));
                         
                         % Divide
-                        j = 0;
-                        k = 0;
+                        j = 0; k = 0;
                         for i=1:length(loc_children) % Divide by operator
                             child = ctranspose(loc_children{i});
                             y(j+1:j+child.n,:) = loc_weights(i) .* ...

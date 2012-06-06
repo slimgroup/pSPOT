@@ -50,17 +50,14 @@ classdef oppStack < oppSpot
         function op = oppStack(varargin)
             
             % Check Matlabpool
-            if matlabpool('size') == 0
-                error('Matlabpool is not on');
-            end
-            
-            % Setting up the variables
-            gather = 0;
+            assert(matlabpool('size') > 0, 'Matlabpool is not on');
             
             % Check for gather parameter
             if isscalar( varargin{end} ) && ~isa(varargin{end},'opSpot')
                 gather = varargin{end};
                 varargin(end) = [];
+            else
+                gather = 0;
             end
             
             % Check for weights
