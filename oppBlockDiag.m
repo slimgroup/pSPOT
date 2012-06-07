@@ -258,6 +258,8 @@ classdef oppBlockDiag < oppSpot
                 fingsize = [op.n size(x,2)];
             end
             
+            clear xcodist; clear xpart;
+            
             spmd
                 % Setting up the local parts
                 loc_x    = getLocalPart(x);
@@ -300,6 +302,9 @@ classdef oppBlockDiag < oppSpot
                 fincodist = codistributor1d(1,finpart,fingsize);
                 y = codistributed.build(y,fincodist,'noCommunication');
                 
+                % Clear unused variables
+                B = []; x = []; loc_children = []; loc_weights = [];
+                aresparse = []; fincodist = []; finpart = [];
             end % spmd
             
             % Gather

@@ -56,8 +56,6 @@ classdef oppNumBlockDiag < oppSpot
             assert(matlabpool('size') > 0, 'Matlabpool is not open');
             
             % Setting up the variables
-            localm = 0;
-            localn = 0;
             numcols_x = 1;
             gather = 0;
             
@@ -106,6 +104,7 @@ classdef oppNumBlockDiag < oppSpot
                     if numcodist.Dimension ~= 3
                         warn3D = 1;
                     end
+                    numcodist = [];
                 end
                 if warn3D{1}
                     error('3D Matrix is not distributed correctly!');
@@ -130,18 +129,18 @@ classdef oppNumBlockDiag < oppSpot
             % Convert distributed attributes to non-distributed scalars
             spmd
                 % Extract local m and n for future use
-                childs = getLocalPart(opList);
+                childs     = getLocalPart(opList);
                 [mm,nn,ss] = size(childs);
-                for i = 1:ss
-                    localm(1,i) = mm;
-                    localn(1,i) = nn;
-                end
+                localm     = mm*ones(1,ss);
+                localn     = nn*ones(1,ss);
+                
                 if iscodistributed(m), m = getLocalPart(m); end
                 if iscodistributed(n), n = getLocalPart(n); end
                 if iscodistributed(cflag), cflag = getLocalPart(cflag); end
                 if iscodistributed(linear), linear = getLocalPart(linear); end
+                childs = []; mm = []; nn = []; ss = [];
             end
-            clear childs; clear mm; clear nn; clear ss; clear i;
+            
             % Getting the scalar out of the composites
             if isa(m,'Composite'), m = m{1}; end; m = m(1);
             if isa(n,'Composite'), n = n{1}; end; n = n(1);
