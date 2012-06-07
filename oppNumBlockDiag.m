@@ -13,9 +13,9 @@ classdef oppNumBlockDiag < oppSpot
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
     %
-    %   B = oppNumBlockDiag([WEIGHT],A,NUMCOLS_X,GATHER) where A is a 3D numerical
+    %   B = oppNumBlockDiag([WEIGHT],A,ncols_x,GATHER) where A is a 3D numerical
     %   matrix. This will slice A along the 3rd dimension and use the 2D
-    %   slices Ak to build Kronecker operator kron(opDirac(NUMCOLS_X), opMatrix(Ak)).
+    %   slices Ak to build Kronecker operator kron(opDirac(ncols_x), opMatrix(Ak)).
     %   These will then be used as the blocks for the block-diagonal operator B.
     %   In this mode the flag GATHER is REQUIRED to distinguish this from the
     %   previous case.
@@ -37,7 +37,7 @@ classdef oppNumBlockDiag < oppSpot
     properties
         locm; % Local sizes for use when multiplying
         locn;
-        numcols; % number of implied RHS when handling x that is implicitly multidimensional, default to 1
+        ncols; % number of implied RHS when handling x that is implicitly multidimensional, default to 1
         
     end
     
@@ -56,17 +56,17 @@ classdef oppNumBlockDiag < oppSpot
             assert(matlabpool('size') > 0, 'Matlabpool is not open');
             
             % Setting up the variables
-            numcols_x = 1;
-            gather = 0;
+            ncols_x = 1;
+            gather  = 0;
             
             % Arguments Extraction
-            % Extract gather & numcols
+            % Extract gather & ncols
             if isscalar(varargin{end}) % Gather
-                if isscalar(varargin{end-1}) % numcols
-                    numcols_x = varargin{end-1};
+                if isscalar(varargin{end-1}) % ncols
+                    ncols_x         = varargin{end-1};
                     varargin(end-1) = [];
                 end
-                gather = varargin{end};
+                gather        = varargin{end};
                 varargin(end) = [];
             end
             
@@ -121,8 +121,8 @@ classdef oppNumBlockDiag < oppSpot
             m = m*nSlices;  n = n*nSlices;
             cflag = ~isreal(opList) || ~all(isreal(weights));
             linear = 1;
-            % numcols_x for multiple RHS
-            m = m*numcols_x;    n = n*numcols_x;
+            % ncols_x for multiple RHS
+            m = m*ncols_x;    n = n*ncols_x;
                 
             
             % Post-processing and Construction of Operator
@@ -158,10 +158,10 @@ classdef oppNumBlockDiag < oppSpot
             op.weights   = weights;
             op.sweepflag = true;
             op.gather    = gather;
-            if exist('numcols_x','var')
-                op.numcols = numcols_x;
+            if exist('ncols_x','var')
+                op.ncols = ncols_x;
             else
-                op.numcols = 1;
+                op.ncols = 1;
             end
             op.opsn = (n/nSlices)*ones(1,nSlices);
             op.opsm = (m/nSlices)*ones(1,nSlices);
@@ -211,7 +211,7 @@ classdef oppNumBlockDiag < oppSpot
             opweights = op.weights;
             childs = op.children;
             opgather = op.gather;
-            numcols = op.numcols;
+            ncols = op.ncols;
             
             % Matrix x preprocessing
             if size(x,2) ~= 1
@@ -255,8 +255,8 @@ classdef oppNumBlockDiag < oppSpot
             end % end of mode 2
             
             % take into account implied multiple RHS in multidimensional x
-            partition = partition .* op.numcols;
-            finpartition = finpartition .* op.numcols;
+            partition = partition .* op.ncols;
+            finpartition = finpartition .* op.ncols;
             
             % Check for distribution of x and redistribute if necessary
             if isdistributed(x)
@@ -295,15 +295,15 @@ classdef oppNumBlockDiag < oppSpot
                     % reshape x if we have multiple RHS
                     % assertion: this block only executes for 3D matrix input. Therefore, all the sizes (m and n) of all
                     % child operators must be the same at this point.
-                    local_x = reshape(local_x, [], numcols, num_child_ops);
+                    local_x = reshape(local_x, [], ncols, num_child_ops);
                     if mode == 1
-                        tmpy = zeros(size(opchilds,1), numcols, num_child_ops);
+                        tmpy = zeros(size(opchilds,1), ncols, num_child_ops);
                         for k = 1:num_child_ops;
                             A = opchilds(:,:,k);
                             tmpy(:,:,k) = local_weights(k) .* (A * local_x(:,:,k));
                         end
                     else
-                        tmpy = zeros(size(opchilds,2), numcols, num_child_ops);
+                        tmpy = zeros(size(opchilds,2), ncols, num_child_ops);
                         for k = 1:num_child_ops;
                             A = opchilds(:,:,k);
                             tmpy(:,:,k) = conj(local_weights(k)) .* (A' * local_x(:,:,k));
