@@ -53,9 +53,7 @@ classdef oppNumBlockDiag < oppSpot
         function op = oppNumBlockDiag(varargin)
             
             % Check Matlabpool
-            if matlabpool('size') == 0
-                error('Matlabpool is not open');
-            end
+            assert(matlabpool('size') > 0, 'Matlabpool is not open');
             
             % Setting up the variables
             localm = 0;
@@ -84,7 +82,6 @@ classdef oppNumBlockDiag < oppSpot
                 weights = varargin{1};
                 if isempty(weights), weights = 1; end;
                 varargin(1) = []; % Remove
-                nargs = nargs - 1;
             end
             
             % Check weights
@@ -188,25 +185,6 @@ classdef oppNumBlockDiag < oppSpot
                         string = [string,'Matrix(',int2str(m),',',int2str(n),'), '];
                     end
                 end % spmd
-%             else
-%                 spmd
-%                     childs = getLocalPart(childs);
-%                     string = '';
-%                     if ~isempty(childs)
-%                         if ~cellfun(@isnumeric, childs(1))
-%                             for childs = childs
-%                                 string = [string,char(childs{1}),', '];
-%                             end
-%                         else
-%                             [m,n] = cellfun(@size, childs);
-%                             for i=1:length(childs)
-%                                 string = [string,'Matrix(',int2str(m(i)),',', ...
-%                                     int2str(n(i)),'), '];
-%                             end
-%                         end
-%                     end
-%                 end % spmd
-%             end % if dist3D
             
             % Concatenating composite string
             stringy = '';

@@ -1,4 +1,4 @@
-function y = dones(A,varargin)
+function y = dones(op,varargin)
 %DONES Distributed ones vector in operator domain
 %
 %   y = dones(A) generates a ones vector with the size of the operator
@@ -13,29 +13,19 @@ else
     ncols = varargin{1};
 end
 
-scheme = A.opsn;
-if length(scheme) > 1 % Distributed
-    % scheme elements preprocessing
-    nlabs = matlabpool('size');
-    if length(scheme) > nlabs % If more than matlabpool, group
-        newsindex = pSPOT.utils.defaultDistribution(length(scheme));
-        j = 0; % Sum up the scheme elements
-        for k=1:length(newsindex)
-            newscheme(k) = sum(scheme(j+1:j+newsindex(k)));
-            j = j+newsindex(k);
-        end
-        scheme = newscheme;
-    else % nlabs >= length(scheme)
-        % Append zeros at the back to account for empty labs
-        scheme(end+1:end+(nlabs - length(scheme))) = 0;
-    end
+if length(op.opsn) > 1 % Distributed
+    scheme  = pSPOT.utils.compositeDef(op.opsn);
+    glosize = [op.n ncols];
+
     spmd
-        ypart   = ones(scheme(labindex),ncols);
+        scheme  = sum(scheme);
+        ypart   = ones(scheme,ncols);
         ygpart  = codistributed.zeros(1,numlabs);
-        ygpart(labindex) = scheme(labindex);
-        ycodist = codistributor1d(1,ygpart,[sum(scheme),ncols]);
+        ygpart(labindex) = scheme;
+        ycodist = codistributor1d(1,ygpart,glosize);
         y = codistributed.build(ypart,ycodist,'noCommunication');
     end
+    
 else % Non-distributed
-    y = ones(A.n,ncols);
+    y = ones(op.n,ncols);
 end
