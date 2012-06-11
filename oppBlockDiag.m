@@ -83,6 +83,8 @@ classdef oppBlockDiag < oppSpot
                 varargin(1) = []; % delete weights
                 
             else    % no weights
+                % Check for empty children
+                nargs   = sum(~cellfun(@isempty,varargin));
                 weights = ones(nargs,1);
             end
             

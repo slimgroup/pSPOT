@@ -51,15 +51,19 @@ classdef oppDictionary < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppDictionary(varargin)
             
+            % Import utils path
+            import spot.utils.*
+            import pSPOT.utils.*
+            
             % Check Matlabpool
             assert(matlabpool('size') > 0, 'Matlabpool is not on');
                         
             % Check for gather parameter
             if isscalar( varargin{end} ) && ~isa(varargin{end},'opSpot')
-                gather = varargin{end};
+                gather        = varargin{end};
                 varargin(end) = [];
             else
-                gather = 0;
+                gather        = 0;
             end
             
             % Check for weights
@@ -69,46 +73,42 @@ classdef oppDictionary < oppSpot
                 weights = varargin{1};
                 weights = weights(:);
                 
-                if nargs == 2 % Repeating ops
-                    
-                    if spot.utils.isposintscalar(varargin{1}) % repeating N times
-                        weights = ones(weights,1);                        
+                if nargs == 2 % Repeating ops                    
+                    if isposintscalar(varargin{1}) % repeat N times
+                        weights     = ones(weights,1);                        
                     end % Else: Repeating as many times as there are weights
                     
                     for i = 3:length(weights)+1
                         varargin{i} = varargin{2};
                     end
                     
-                else % Non-repeating ops
-                    
+                else % Non-repeating ops                    
                     if isscalar(varargin{1}) % Same weight applied to all
-                        weights = weights*ones(nargs-1,1);
+                        weights     = weights*ones(nargs-1,1);
                         
                     else
-                        if length(varargin{1}) ~= nargs-1
-                            % Incorrect weight size
-                            error('Weights size mismatch');
-                        end
+                        assert(length(varargin{1}) == nargs-1,...
+                            'Weights size mismatch'); % Wrong weight size
                         % Else: Normal weights with normal ops
                     end
                 end
-                varargin(1) = []; % delete weights
-                
+                varargin(1) = []; % delete weights                
             else    % no weights
+                % Check for empty children
+                nargs   = sum(~cellfun(@isempty,varargin));
                 weights = ones(nargs,1);
             end
             
             % Standard pSpot checking and setup sizes
-            [opList,m,n,cflag,linear] = ...
-                pSPOT.utils.stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
             assert( all(m == m(1)), 'Operator sizes are not consistent');
             
             % Construct
             op = op@oppSpot('pDictionary', m(1), sum(n));
             op.cflag       = cflag;
             op.linear      = linear;
-            op.children    = opList;
-            op.weights     = weights;
+            op.children    = compositeDef(opList);
+            op.weights     = compositeDef(weights);
             op.sweepflag   = true;
             op.gather      = gather;
             op.precedence  = 1;
@@ -121,10 +121,11 @@ classdef oppDictionary < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             % Initialize
-            str = ['[',char(op.children{1})];
+            opchildren = [op.children{:}];
+            str = ['[',char(opchildren{1})];
             
-            for ops=op.children(2:end)
-                str = [str, ', ', char(ops{1})];
+            for ops=opchildren(2:end)
+                str = strcat(str,', ',char(ops{1}));
             end
             
             str = [str, ']'];
@@ -141,84 +142,25 @@ classdef oppDictionary < oppSpot
             %    of explicit operators.
             
             % Find the default partition
-            chidist = pSPOT.utils            .defaultDistribution(length(op.children));
-            chicomp = Composite();
-            glosize = [op.m op.n];
-            ind     = 1;
+            childs      = op.children;
+            loc_weights = op.weights;
+            glosize     = [op.m op.n];
             
-            % Send operators to corresponding labs
-            for i = 1:length(chicomp)
-                chicomp{i} = op.children(ind:(ind-1+chidist(i)));
-                ind = ind + chidist(i);
-            end
-            
-            % Actual doubling and rebuilding in spmd
             spmd
-                childn          = 0;
-                partition       = codistributed.zeros(1,numlabs);
-                A               = zeros(glosize(1),childn);
-                if ~isempty(chicomp)
-                    for i = 1:length(chicomp)
-                        child   = chicomp{i};
-                        childn  = childn + child.n;
-                    end
-                    A           = zeros(glosize(1),childn);
-                    partition(labindex) = childn;
-                    k           = 0;
-                    for i = 1:length(chicomp)
-                        child   = chicomp{i};
-                        n       = child.n;
-                        A(:,k+1:k+n) = double(child);
-                        k       = k+n;
-                    end
+                % Setup distribution stuffs
+                part = codistributed.zeros(1,numlabs);
+                                
+                % Doubling
+                if ~isempty(childs)
+                    A = double(opDictionary(loc_weights,childs{:}));
+                    part(labindex) = size(A,2);
                 end
-                partition       = gather(partition);
-                codist = codistributor1d(2,partition,glosize);
-                A = codistributed.build(A,codist,'noCommunication');
+                part = gather(part);
+                cod  = codistributor1d(2,part,glosize);
+                A    = codistributed.build(A,cod,'noCommunication');
             end % spmd
             
         end % double
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Drandn
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function x = drandn(A,Ncols)
-            if nargin == 2 % for easy multivectoring
-                ncols = Ncols;
-            else
-                ncols = 1;
-            end
-            
-            % Forward mode
-            chipart   = pSPOT.utils.defaultDistribution(length(A.children));
-            childnum  = 0;
-            xpart     = zeros(1,matlabpool('size'));
-            for i=1:matlabpool('size')
-                xpart(i) = 0;
-                for j=childnum+1:childnum+chipart(i)
-                    child    = A.children{j};
-                    xpart(i) = xpart(i) + child.n;
-                end
-                childnum     = childnum + chipart(i);
-            end
-            xgsize           = [A.n ncols];
-            
-            if isreal(A)
-                spmd
-                    xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(xgsize,codistributor1d(1));
-                    x = redistribute(x,xcodist);
-                end
-            else
-                spmd
-                    xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(xgsize,codistributor1d(1)) +...
-                        1i*codistributed.randn(xgsize,codistributor1d(1));
-                    x = redistribute(x,xcodist);
-                end
-            end
-            
-        end % drandn
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Rrandn
@@ -247,27 +189,32 @@ classdef oppDictionary < oppSpot
             
             if mode == 2 % Use oppStack, since a transpose of dictionary is
                 % equivalent to a stack with transposed operators
-                tchild = cellfun(@ctranspose,op.children,...
-                    'UniformOutput', false);
+                tchild      = op.children;
+                loc_weights = op.weights;
+                
+                spmd
+                    % Transpose children operators
+                    for i=1:length(tchild)
+                        tchild{i} = tchild{i}';
+                    end
+                    
+                    % conjugate weights
+                    loc_weights = conj(loc_weights);
+                end
                 
                 B = oppStack(opEye(op.n,op.m)); % Pseudo copy constructor
-                B.children    = tchild;
-                B.cflag       = op.cflag;
-                B.sweepflag   = op.sweepflag;
-                B.linear      = op.linear;
-                B.gather      = op.gather;
-                B.weights     = conj(op.weights); % Conj for complex numbers
-                B.opsm        = cellfun(@(x) size(x,1),tchild);
+                B.children  = tchild;
+                B.cflag     = op.cflag;
+                B.sweepflag = op.sweepflag;
+                B.linear    = op.linear;
+                B.gather    = op.gather;
+                B.weights   = loc_weights; % Conj for complex numbers
+                B.opsm      = op.opsn;
                 
                 % Multiply
-                if isdistributed(x)
-                    tmpx = gather(x);
-                else
-                    tmpx = x;
-                end
-                y = B*tmpx;
+%                 if isdistributed(x), x = gather(x); end                
+                y = B*x;
                 clear B;
-                clear tmpx;
                 return;
             end % Mode 2
             
@@ -278,8 +225,7 @@ classdef oppDictionary < oppSpot
             spmd, xcodist = getCodistributor(x); end
             xcodist = xcodist{1};
             xpart   = xcodist.Partition;
-            chipart = pSPOT.utils.defaultDistribution(length(op.children));
-            
+            chipart = pSPOT.utils.defaultDistribution(length(op.opsn));            
             assert(xcodist.Dimension == 1,... % Dimensional check
                 'x is not distributed along dimension 1');
             
@@ -291,14 +237,12 @@ classdef oppDictionary < oppSpot
                     'x size mismatch at lab %d, check your distribution',i);
                 childnum       = childnum + chipart(i);
             end
-            opchildren  = pSPOT.utils.compositeDef(op.children);
-            loc_weights = pSPOT.utils.compositeDef(op.weights);
+            opchildren  = op.children;
+            loc_weights = op.weights;
             
             % Mode 1
             % Setting up preallocation size
             ysize = [op.m size(x,2)];
-            % This "renaming" is required to avoid passing in the whole op,
-            % which for some weird reason stalls spmd
             
             spmd
                 % Setting up local parts
@@ -311,8 +255,7 @@ classdef oppDictionary < oppSpot
                     for i=1:length(opchildren)
                         opchildren{i} = loc_weights(i) * opchildren{i};
                     end
-                    B = opDictionary(opchildren{:});
-                    y = B*local_x;
+                    y = opDictionary(opchildren{:}) * local_x;
                 end
                 
                 % Check for sparsity

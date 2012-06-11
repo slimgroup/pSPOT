@@ -49,6 +49,9 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppStack(varargin)
             
+            import spot.utils.*
+            import pSPOT.utils.*
+            
             % Check Matlabpool
             assert(matlabpool('size') > 0, 'Matlabpool is not on');
             
@@ -67,9 +70,8 @@ classdef oppStack < oppSpot
                 weights = varargin{1};
                 weights = weights(:);
                 
-                if nargs == 2 % Repeating ops
-                    
-                    if spot.utils.isposintscalar(varargin{1}) % repeating N times
+                if nargs == 2 % Repeating ops                    
+                    if isposintscalar(varargin{1}) % repeat N times
                         weights = ones(weights,1);                        
                     end % Else: Repeating as many times as there are weights
                     
@@ -77,35 +79,34 @@ classdef oppStack < oppSpot
                         varargin{i} = varargin{2};
                     end
                     
-                else % Non-repeating ops
-                    
+                else % Non-repeating ops                    
                     if isscalar(varargin{1}) % Same weight applied to all
                         weights = weights*ones(nargs-1,1);
                         
                     else
-                        if length(varargin{1}) ~= nargs-1
-                            % Incorrect weight size
-                            error('Weights size mismatch');
-                        end
+                        assert(length(varargin{1}) == nargs-1,...
+                            'Weights size mismatch');% Wrong weight size
                         % Else: Normal weights with normal ops
                     end
                 end
                 varargin(1) = []; % delete weights
                 
             else    % no weights
+                % Check for empty children
+                nargs   = sum(~cellfun(@isempty,varargin));
                 weights = ones(nargs,1);
             end
             
             % Standard pSpot checking and setup sizes
-            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
             assert( all(n == n(1)), 'Operator sizes are not consistant');
             
             % Construct
             op = op@oppSpot('pStack', sum(m), n(1));
             op.cflag       = cflag;
             op.linear      = linear;
-            op.children    = opList;
-            op.weights     = weights;
+            op.children    = compositeDef(opList);
+            op.weights     = compositeDef(weights);
             op.sweepflag   = true;
             op.gather      = gather;
             op.precedence  = 1;
@@ -121,7 +122,7 @@ classdef oppStack < oppSpot
             str = ['[',char(op.children{1})];
             
             for ops=op.children(2:end)
-                str = [str, '; ', char(ops{1})];
+                str = strcat(str, '; ', char(ops{1}));
             end
             
             str = [str, ']'];
@@ -137,24 +138,24 @@ classdef oppStack < oppSpot
             %    in oppStack, and return a distributed stack of explicit
             %    operators.
             
-            opchildren = pSPOT.utils.compositeDef(op.children);
-            globalsize = [op.m op.n];
+            childs      = op.children;
+            loc_weights = op.weights;
+            glosize     = [op.m op.n];
             spmd
                 % Setup distribution stuffs
-                childm          = 0;
-                partition       = codistributed.zeros(1,numlabs);
+                childm = 0;
+                part   = codistributed.zeros(1,numlabs);
                 
                 % Preallocate
-                A               = zeros(childm,globalsize(2));
-                if ~isempty(opchildren)
-                    A           = double(opStack(opchildren{:}));
-                    partition(labindex) = childm;
+                A      = zeros(childm,glosize(2));
+                if ~isempty(childs)
+                    A  = double(opStack(loc_weights,childs{:}));
+                    part(labindex) = childm;
                 end
-                partition = gather(partition);
-                codist = codistributor1d(1,partition,globalsize);
-                A = codistributed.build(A,codist,'noCommunication');
-            end % spmd
-            
+                part = gather(part);
+                cod  = codistributor1d(1,part,glosize);
+                A    = codistributed.build(A,cod,'noCommunication');
+            end % spmd            
         end % double
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -175,41 +176,6 @@ classdef oppStack < oppSpot
             
         end % drandn
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Rrandn
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function x = rrandn(A,Ncols)
-            % for easy multivectoring
-            if nargin == 2 
-                ncols = Ncols;
-            else
-                ncols = 1;
-            end
-            
-            chipart = pSPOT.utils.defGlobInd(length(A.children));
-            xpart   = zeros(1,matlabpool('size'));
-            for i=1:matlabpool('size')
-                xpart(i) = sum(A.opsm([chipart{i}]));
-            end
-            xgsize = [A.m ncols];
-            
-            if isreal(A)
-                spmd
-                    xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(xgsize,codistributor1d(1));
-                    x = redistribute(x,xcodist);
-                end
-            else
-                spmd
-                    xcodist = codistributor1d(1,xpart,xgsize);
-                    x = codistributed.randn(xgsize,codistributor1d(1)) +...
-                        1i*codistributed.randn(xgsize,codistributor1d(1));
-                    x = redistribute(x,xcodist);
-                end
-            end
-            
-        end % rrandn
-        
     end % Methods    
     
     methods ( Access = protected )
@@ -220,17 +186,27 @@ classdef oppStack < oppSpot
             
             if mode == 2 % Use oppDictionary, since a transpose of stack is
                 % transpose operators
-                tchild = cellfun(@ctranspose,op.children,...
-                    'UniformOutput', false);
+                tchild      = op.children;
+                loc_weights = op.weights;
+                
+                spmd
+                    % Transpose children operators
+                    for i=1:length(tchild)
+                        tchild{i} = tchild{i}';
+                    end
+                    
+                    % conjugate weights
+                    loc_weights = conj(loc_weights);
+                end
                 
                 B = oppDictionary(opEye(op.n,op.m)); % Pseudo copy constructor
-                B.children    = tchild;
-                B.cflag       = op.cflag;
-                B.sweepflag   = op.sweepflag;
-                B.linear      = op.linear;
-                B.gather      = op.gather;
-                B.weights     = conj(op.weights); % Conj for complex numbers                
-                B.opsn        = cellfun(@(x) size(x,2),tchild);
+                B.children  = tchild;
+                B.cflag     = op.cflag;
+                B.sweepflag = op.sweepflag;
+                B.linear    = op.linear;
+                B.gather    = op.gather;
+                B.weights   = loc_weights; % Conj for complex numbers                
+                B.opsn      = op.opsm;
                 
                 % Multiply
                 y = B*x;
@@ -248,27 +224,24 @@ classdef oppStack < oppSpot
             
             % Mode 1
             % Setting up class variables and partition sizes
-            loc_children = pSPOT.utils.compositeDef(op.children);
-            loc_weights  = pSPOT.utils.compositeDef(op.weights);
+            loc_children = op.children;
+            loc_weights  = op.weights;
             fingsize     = [op.m size(x,2)]; % final global size
-            chibind      = pSPOT.utils.defGlobInd(length(op.children));
+            chibind      = pSPOT.utils.defGlobInd(length(op.opsm));
             finpart      = distributed.zeros(1,matlabpool('size'));
             
             for i=1:matlabpool('size')
                 finpart(i) = sum(op.opsm([chibind{i}]));
             end
             
-            spmd
-%                 % Preallocate y
-%                 y = zeros(getLocalPart(finpart),fingsize(2));
-                
+            spmd                
                 if ~isempty(loc_children)                    
                     % Multiply
                     for i=1:length(loc_children)
                         loc_children{i} = loc_weights(i) * loc_children{i};
                     end
-                    B = opStack(loc_children{:});
-                    y = B*x;
+                    
+                    y = opStack(loc_children{:})*x;
                 else
                     y = zeros(0,fingsize(2));
                 end
@@ -286,10 +259,7 @@ classdef oppStack < oppSpot
             
             if op.gather
                 y = gather(y);
-            end    %if we gathered, the data is on master client
-            
-        end % Multiply
-        
-    end % Protected Methods
-    
+            end    %if we gathered, the data is on master client            
+        end % Multiply        
+    end % Protected Methods    
 end % Classdef
