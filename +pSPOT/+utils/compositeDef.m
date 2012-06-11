@@ -7,6 +7,10 @@ function y = compositeDef(x)
 %
 %   x must be a 1 by n array or cell
 
+if isa(x,'Composite')
+    x = [x{:}];
+end
+
 y       = Composite();
 glodist = pSPOT.utils.defaultDistribution(length(x));
 

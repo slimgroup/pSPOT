@@ -41,15 +41,19 @@ classdef oppBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppBlockDiag(varargin)
             
+            % Import utils path
+            import spot.utils.*
+            import pSPOT.utils.*
+            
             % Check Matlabpool
             assert(matlabpool('size') > 0, 'Matlabpool is not on');
             
             % Extract gather
             if isscalar(varargin{end}) && ~isa(varargin{end},'opSpot')
-                gather = varargin{end};
+                gather        = varargin{end};
                 varargin(end) = [];
             else
-                gather = 0;
+                gather        = 0;
             end
             
             % Extract weights and fill in repeating ops
@@ -61,7 +65,7 @@ classdef oppBlockDiag < oppSpot
                 
                 if nargs == 2 % Repeating ops
                     % repeating N times
-                    if spot.utils.isposintscalar(varargin{1}) 
+                    if isposintscalar(varargin{1}) 
                         weights = ones(weights,1);                        
                     end % Else: Repeating as many times as there are weights
                     
@@ -89,14 +93,14 @@ classdef oppBlockDiag < oppSpot
             end
             
             % Standard checking and setup sizes
-            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
             
             % Construct operator
             op = op@oppSpot('pBlockDiag', sum(m), sum(n));
             op.cflag       = cflag;
             op.linear      = linear;
-            op.children    = opList;
-            op.weights     = weights;
+            op.children    = compositeDef(opList);
+            op.weights     = compositeDef(weights);
             op.sweepflag   = true;
             op.gather      = gather;
             op.opsn        = n;
@@ -109,110 +113,21 @@ classdef oppBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             % Initialize
+            opchildren = [op.children{:}];
             str = 'pBlockDiag(';
-            if ~isnumeric( op.children{1} )
-                for child = op.children
-                    str = [str,char(child{1}),', '];
+            if ~isnumeric( opchildren{1} )
+                for child = opchildren
+                    str = strcat(str,char(child{1}),', ');
                 end
             else
-                [m,n] = cellfun(@size, op.children);
-                for i=1:length(op.children)
-                    str = [str,'Matrix(',int2str(m(i)),',', ...
-                        int2str(n(i)),'), '];
+                m = op.opsm; n = op.opsn;
+                for i=1:length(opchildren)
+                    str = strcat(str,'Matrix(',int2str(m(i)),',', ...
+                        int2str(n(i)),'), ');
                 end
             end
             str = [str(1:end-2), ')'];
         end % Display
-        
-%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%         % Drandn
-%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%         function x = drandn(A,Ncols)
-%             ncols = 1;
-%             if nargin == 2 % for easy multivectoring
-%                 ncols = Ncols;
-%             end
-%             
-%             % Distribute children
-%             opchildren = distributed(A.children);
-%             
-%             spmd, chicodist = getCodistributor(opchildren); end
-%             
-%             chicodist = chicodist{1};
-%             chipart = chicodist.Partition;
-%             chinum = 0;
-%             for i=1:matlabpool('size')
-%                 xpart(i) = 0;
-%                 for j=chinum+1:chinum+chipart(i)
-%                     child = A.children{j};
-%                     xpart(i) = xpart(i) + child.n;
-%                 end
-%                 chinum = chinum + chipart(i);
-%             end
-%             xgsize = [A.n ncols];
-%             
-%             n = A.n;
-%             if isreal(A)
-%                 spmd
-%                     xcodist = codistributor1d(1,xpart,xgsize);
-%                     x = codistributed.randn(n,ncols,codistributor1d(1));
-%                     x = redistribute(x,xcodist);
-%                 end
-%             else
-%                 spmd
-%                     xcodist = codistributor1d(1,xpart,xgsize);
-%                     x = codistributed.randn(n,ncols,codistributor1d(1)) +...
-%                         1i*codistributed.randn(n,ncols,codistributor1d(1));
-%                     x = redistribute(x,xcodist);
-%                 end
-%             end
-%             
-%         end % drandn
-%         
-%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%         % Rrandn
-%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%         function x = rrandn(A,Ncols)
-%             ncols = 1;
-%             if nargin == 2 % for easy multivectoring
-%                 ncols = Ncols;
-%             end
-%             
-%             opchildren = distributed(A.children);
-%                         
-%             spmd, chicodist = getCodistributor(opchildren); end
-%             
-%             chicodist = chicodist{1};
-%             chipart = chicodist.Partition;
-%             chinum = 0;
-%             for i=1:matlabpool('size')
-%                 xpart(i) = 0;
-%                 for j=chinum+1:chinum+chipart(i)
-%                     child = A.children{j};
-%                     xpart(i) = xpart(i) + child.m;
-%                 end
-%                 chinum = chinum + chipart(i);
-%             end
-%             xgsize = [A.m ncols];
-%             
-%             m = A.m;
-%             
-%             if isreal(A)
-%                 spmd
-%                     xcodist = codistributor1d(1,xpart,xgsize);
-%                     x = codistributed.randn(m,ncols,codistributor1d(1));
-%                     x = redistribute(x,xcodist);
-%                 end
-%             else
-%                 spmd
-%                     xcodist = codistributor1d(1,xpart,xgsize);
-%                     x = codistributed.randn(m,ncols,codistributor1d(1)) +...
-%                         1i*codistributed.randn(m,ncols,codistributor1d(1));
-%                     x = redistribute(x,xcodist);
-%                 end
-%             end
-%             
-%         end % rrandn
         
     end % Methods
     
@@ -223,15 +138,18 @@ classdef oppBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
             
+            % Import utils path
+            import pSPOT.utils.*
+            
             % Checking x
             assert(isdistributed(x),'x is not distributed');
             
             % Checking size of x
-            spmd, xcodist   = getCodistributor(x); end
-            xcodist   = xcodist{1};
-            xpart     = xcodist.Partition;
-            chipart   = pSPOT.utils.defaultDistribution(length(op.children));
-            nlabs     = matlabpool('size');
+            spmd, xcodist = getCodistributor(x); end
+            xcodist = xcodist{1};
+            xpart   = xcodist.Partition;
+            chipart = defaultDistribution(length(op.opsn));
+            nlabs   = matlabpool('size');
             
             assert(xcodist.Dimension == 1,... % Dimensional check
                 'x is not distributed along dimension 1');
@@ -252,8 +170,8 @@ classdef oppBlockDiag < oppSpot
             end            
             
             % Setting up the variables and partition size
-            loc_children = pSPOT.utils.compositeDef(op.children);
-            loc_weights  = pSPOT.utils.compositeDef(op.weights);            
+            loc_children = op.children;
+            loc_weights  = op.weights;            
             if mode ==  1
                 fingsize = [op.m size(x,2)]; % final global size
             else
@@ -302,11 +220,7 @@ classdef oppBlockDiag < oppSpot
                 
                 % Codistribute y
                 fincodist = codistributor1d(1,finpart,fingsize);
-                y = codistributed.build(y,fincodist,'noCommunication');
-                
-                % Clear unused variables
-                B = []; x = []; loc_children = []; loc_weights = [];
-                aresparse = []; fincodist = []; finpart = [];
+                y = codistributed.build(y,fincodist,'noCommunication');                
             end % spmd
             
             % Gather
@@ -325,6 +239,10 @@ classdef oppBlockDiag < oppSpot
         % Divide
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = divide(op,x,mode)
+            
+            % Import utils path
+            import pSPOT.utils.*
+            
             % Setting up the variables
             gather = op.gather;
             
@@ -335,7 +253,7 @@ classdef oppBlockDiag < oppSpot
             spmd, xcodist   = getCodistributor(x); end
             xcodist   = xcodist{1};
             xpart     = xcodist.Partition;
-            chipart   = pSPOT.utils.defaultDistribution(length(op.children));
+            chipart   = defaultDistribution(length(op.children));
             nlabs     = matlabpool('size');
             
             assert(xcodist.Dimension == 1,... % Dimensional check
@@ -357,13 +275,13 @@ classdef oppBlockDiag < oppSpot
             end
             
             % Setting up the variables and global sizes            
-            loc_children = pSPOT.utils.compositeDef(op.children);            
+            loc_children = op.children;            
             if mode ==  1
-                fingsize = [op.n size(x,2)];
-                loc_weights  = pSPOT.utils.compositeDef(op.weights);
+                fingsize    = [op.n size(x,2)];
+                loc_weights = op.weights;
             else
-                fingsize = [op.m size(x,2)];
-                loc_weights = pSPOT.utils.compositeDef(conj(op.weights));
+                fingsize    = [op.m size(x,2)];
+                loc_weights = compositeDef(conj(vertcat(op.weights{:})));
             end
             
             spmd
