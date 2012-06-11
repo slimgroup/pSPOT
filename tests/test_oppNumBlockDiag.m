@@ -52,22 +52,23 @@ end
 function test_oppNumBlockDiag_weights
 %%
 % Test for negative scalar weights
-B = distributed.randn(5,4,3);
-A = oppNumBlockDiag(-2,B);
-assertEqual(A.weights,[-2;-2;-2]);
+B    = distributed.randn(5,4,3);
+A    = oppNumBlockDiag(-2,B);
+wgts = A.weights;
+assertEqual(vertcat(wgts{:}),[-2;-2;-2]);
 
 % Test for normal weights
-B = randn(5,4,2);
-A = oppNumBlockDiag([3 4],distributed(B),1);
-B1 = B(:,:,1); B2 = B(:,:,2);
+B    = randn(5,4,2);
+A    = oppNumBlockDiag([3 4],distributed(B),1);
+B1   = B(:,:,1); B2 = B(:,:,2);
 C{1} = opMatrix(B1); C{2} = opMatrix(B2);
-A2 = oppBlockDiag([3 4],C{:},1);
+A2   = oppBlockDiag([3 4],C{:},1);
 
-x = A2.drandn;
+x    = A2.drandn;
 
 assertElementsAlmostEqual(A*x, A2*x);
 
-x = A2.rrandn;
+x    = A2.rrandn;
 
 assertElementsAlmostEqual(A'*x, A2'*x);
 
@@ -75,17 +76,17 @@ end
 
 function test_oppNumBlockDiag_xvec
 %% Testing multidimensional x in vector form
-B = randn(5,4,2);
-A = oppNumBlockDiag(distributed(B),3,1);
-B1 = B(:,:,1); B2 = B(:,:,2);
+B    = randn(5,4,2);
+A    = oppNumBlockDiag(distributed(B),3,1);
+B1   = B(:,:,1); B2 = B(:,:,2);
 C{1} = opKron(opDirac(3), opMatrix(B1)); 
 C{2} = opKron(opDirac(3), opMatrix(B2)); 
-A2 = oppBlockDiag(C{:},1);
+A2   = oppBlockDiag(C{:},1);
 
-x = drandn(A2);
+x    = drandn(A2);
 
-y1 = A*x;
-y2 = A2*x;
+y1   = A*x;
+y2   = A2*x;
 
 assertElementsAlmostEqual(y1,y2);
 
