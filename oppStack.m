@@ -149,7 +149,7 @@ classdef oppStack < oppSpot
                 % Preallocate
                 y      = zeros(chi_m,y_size(2));
                 if ~isempty(loc_childs)
-                    y  = double(opStack(loc_wgts,loc_childs{:}));
+                    y = double(opStack(loc_wgts,loc_childs{:}));
                     y_part(labindex) = chi_m;
                 end
                 y_part = gather(y_part);

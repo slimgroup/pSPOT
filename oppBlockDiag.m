@@ -2,13 +2,16 @@ classdef oppBlockDiag < oppSpot
     %OPPBLOCKDIAG   Operator-diagonal operator in parallel.
     %
     %   B = oppBlockDiag(OP1, OP2,...,OPN,GATHER) creates a compound
-    %   block operator with the input operators OP1, OP2,... on the diagonal of
-    %   B, e.g., B = DIAG([OP1 OP2 ... OPN]). When multiplying the operators
-    %   are distributed among the labs and multiplied locally on each.
+    %   block operator with the input operators OP1, OP2,... on the 
+    %   diagonal of B, e.g., B = DIAG([OP1 OP2 ... OPN]). When multiplying 
+    %   the operators are distributed among the labs and multiplied locally
+    %   on each.
+    %
     %   GATHER specifies whether to gather the results to a local array
     %   or leave them distributed, default is 0.
     %   GATHER = 0 will leave them distributed.
-    %   GATHER = 1 will gather the results of forwards or adjoint multiplication.
+    %   GATHER = 1 will gather the results of forwards or adjoint 
+    %            multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
     %
@@ -71,7 +74,7 @@ classdef oppBlockDiag < oppSpot
                     
                 else % Non-repeating ops                    
                     if isscalar(varargin{1}) % Same weight applied to all
-                        weights = weights*ones(nargs-1,1);                        
+                        weights = weights*ones(nargs-1,1);
                     else
                         if length(varargin{1}) ~= nargs-1
                             % Incorrect weight size
@@ -93,14 +96,14 @@ classdef oppBlockDiag < oppSpot
             
             % Construct operator
             op = op@oppSpot('pBlockDiag', sum(m), sum(n));
-            op.cflag       = cflag;
-            op.linear      = linear;
-            op.children    = pSPOT.utils.compositeDef(opList);
-            op.weights     = pSPOT.utils.compositeDef(weights);
-            op.sweepflag   = true;
-            op.gather      = gather;
-            op.opsn        = n;
-            op.opsm        = m;
+            op.cflag     = cflag;
+            op.linear    = linear;
+            op.children  = pSPOT.utils.compositeDef(opList);
+            op.weights   = pSPOT.utils.compositeDef(weights);
+            op.sweepflag = true;
+            op.gather    = gather;
+            op.opsn      = n;
+            op.opsm      = m;
             
         end %Constructor
         
@@ -110,7 +113,8 @@ classdef oppBlockDiag < oppSpot
         function str = char(op)
             % Initialize
             loc_childs = [op.children{:}];
-            str = 'pBlockDiag(';
+            str        = 'pBlockDiag(';
+            
             if ~isnumeric( loc_childs{1} )
                 for child = loc_childs
                     str = strcat(str,char(child{1}),', ');
@@ -142,13 +146,12 @@ classdef oppBlockDiag < oppSpot
             x_cod    = x_cod{1};
             x_part   = x_cod.Partition;
             chi_part = pSPOT.utils.defaultDistribution(length(op.opsn));
-            nlabs    = matlabpool('size');
             
             assert(x_cod.Dimension == 1,... % Dimensional check
                 'x is not distributed along dimension 1');
             
             chi_num = 0;
-            for i=1:nlabs
+            for i=1:matlabpool('size')
                 chi_m = sum(op.opsm(chi_num+1:(chi_num+chi_part(i))));
                 chi_n = sum(op.opsn(chi_num+1:(chi_num+chi_part(i))));
                 
@@ -164,7 +167,8 @@ classdef oppBlockDiag < oppSpot
             
             % Setting up the variables and partition size
             loc_childs = op.children;
-            loc_wgts   = op.weights;            
+            loc_wgts   = op.weights;
+            
             if mode ==  1
                 y_size = [op.m size(x,2)]; % final global size
             else
@@ -211,7 +215,7 @@ classdef oppBlockDiag < oppSpot
                 
                 % Codistribute y
                 y_cod = codistributor1d(1,y_part,y_size);
-                y     = codistributed.build(y,y_cod,'noCommunication');                
+                y     = codistributed.build(y,y_cod,'noCommunication');
             end % spmd
             
             % Gather
@@ -238,7 +242,7 @@ classdef oppBlockDiag < oppSpot
             assert(isdistributed(x),'x is not distributed');
             
             % Checking size of x
-            spmd, x_cod   = getCodistributor(x); end
+            spmd, x_cod = getCodistributor(x); end
             x_cod    = x_cod{1};
             x_part   = x_cod.Partition;
             chi_part = pSPOT.utils.defaultDistribution(length(op.children));
