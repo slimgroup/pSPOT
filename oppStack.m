@@ -132,29 +132,29 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Double
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function A = double(op)
+        function y = double(op)
             %OPPSTACK.DOUBLE Distributed doubling of oppStack
             %    A = double(op) will apply double to each child operator
             %    in oppStack, and return a distributed stack of explicit
             %    operators.
             
-            childs      = op.children;
-            loc_weights = op.weights;
-            glosize     = [op.m op.n];
+            loc_childs = op.children;
+            loc_wgts   = op.weights;
+            y_size     = [op.m op.n];
             spmd
                 % Setup distribution stuffs
-                childm = 0;
-                part   = codistributed.zeros(1,numlabs);
+                chi_m = 0;
+                y_part = codistributed.zeros(1,numlabs);
                 
                 % Preallocate
-                A      = zeros(childm,glosize(2));
-                if ~isempty(childs)
-                    A  = double(opStack(loc_weights,childs{:}));
-                    part(labindex) = childm;
+                y      = zeros(chi_m,y_size(2));
+                if ~isempty(loc_childs)
+                    y  = double(opStack(loc_wgts,loc_childs{:}));
+                    y_part(labindex) = chi_m;
                 end
-                part = gather(part);
-                cod  = codistributor1d(1,part,glosize);
-                A    = codistributed.build(A,cod,'noCommunication');
+                y_part = gather(y_part);
+                y_cod  = codistributor1d(1,y_part,y_size);
+                y      = codistributed.build(y,y_cod,'noCommunication');
             end % spmd            
         end % double
         
@@ -187,33 +187,35 @@ classdef oppStack < oppSpot
             if mode == 1
                 % Checking distribution of x
                 if isdistributed(x)
-                    spmd, xcodist = getCodistributor(x); end
-                    xcodist = xcodist{1};
-                    assert(xcodist.Dimension == 1,...
+                    spmd, x_cod = getCodistributor(x); end
+                    x_cod = x_cod{1};
+                    assert(x_cod.Dimension == 1,...
                         'x cannot be distributed along first dimension');
                 end
 
                 % Mode 1
                 % Setting up class variables and partition sizes
-                loc_children = op.children;
-                loc_weights  = op.weights;
-                fingsize     = [op.m size(x,2)]; % final global size
-                chibind      = pSPOT.utils.defGlobInd(length(op.opsm));
-                finpart      = distributed.zeros(1,matlabpool('size'));
+                loc_childs = op.children;
+                loc_wgts   = op.weights;
+                y_size     = [op.m size(x,2)]; % final global size
+                % Global indices
+                glo_ind    = pSPOT.utils.defGlobInd(length(op.opsm));
+                % Final partition
+                y_part     = distributed.zeros(1,matlabpool('size'));
 
                 for i=1:matlabpool('size')
-                    finpart(i) = sum(op.opsm([chibind{i}]));
+                    y_part(i) = sum(op.opsm([glo_ind{i}]));
                 end
 
                 spmd                
-                    if ~isempty(loc_children)                    
+                    if ~isempty(loc_childs)                    
                         % Multiply
-                        for i=1:length(loc_children)
-                            loc_children{i} = loc_weights(i) * loc_children{i};
+                        for i=1:length(loc_childs)
+                            loc_childs{i} = loc_wgts(i) * loc_childs{i};
                         end
-                        y = opStack(loc_children{:})*x;
+                        y = opStack(loc_childs{:})*x;
                     else
-                        y = zeros(0,fingsize(2));
+                        y = zeros(0,y_size(2));
                     end
 
                     % Check for sparsity
@@ -222,9 +224,9 @@ classdef oppStack < oppSpot
                     if any(aresparse), y = sparse(y); end;
 
                     % Concatenating the results and distribute
-                    finpart   = gather(finpart);
-                    fincodist = codistributor1d(1,finpart,fingsize);
-                    y = codistributed.build(y,fincodist,'noCommunication');                
+                    y_part = gather(y_part);
+                    y_cod  = codistributor1d(1,y_part,y_size);
+                    y = codistributed.build(y,y_cod,'noCommunication');
                 end % spmd mode 1
                 
             else % mode == 2 (copied from oppDictionary)
@@ -232,42 +234,42 @@ classdef oppStack < oppSpot
                 assert(isdistributed(x),'X must be distributed');
 
                 % Checking size of x
-                spmd, xcodist = getCodistributor(x); end
-                xcodist = xcodist{1};
-                xpart   = xcodist.Partition;
-                chipart = pSPOT.utils.defaultDistribution(length(op.opsm));            
-                assert(xcodist.Dimension == 1,... % Dimensional check
+                spmd, x_cod = getCodistributor(x); end
+                x_cod    = x_cod{1};
+                x_part   = x_cod.Partition;
+                chi_part = pSPOT.utils.defaultDistribution(length(op.opsm));
+                assert(x_cod.Dimension == 1,... % Dimensional check
                     'x is not distributed along dimension 1');
 
                 % Size checkings
-                childnum = 0;
+                chi_num = 0;
                 for i=1:matlabpool('size') 
-                    childm = sum(op.opsm(childnum+1:(childnum+chipart(i))));
-                    assert(childm == xpart(i),...
+                    chi_m = sum(op.opsm(chi_num+1:(chi_num+chi_part(i))));
+                    assert(chi_m == x_part(i),...
                         'x size mismatch at lab %d, check your distribution',i);
-                    childnum       = childnum + chipart(i);
+                    chi_num = chi_num + chi_part(i);
                 end
-                opchildren  = op.children;
-                loc_weights = op.weights;
+                loc_childs = op.children;
+                loc_wgts   = op.weights;
 
                 % Mode 1
                 % Setting up preallocation size
-                ysize = [op.n size(x,2)];
+                y_size = [op.n size(x,2)];
 
                 spmd
                     % Setting up local parts
-                    local_x = getLocalPart(x);
+                    loc_x = getLocalPart(x);
 
                     % Preallocate y
-                    y = zeros(ysize);
+                    y = zeros(y_size);
 
-                    if ~isempty(opchildren)
-                        for i=1:length(opchildren)
+                    if ~isempty(loc_childs)
+                        for i=1:length(loc_childs)
                             % conjugate transpose
-                            opchildren{i} = conj(loc_weights(i)) *...
-                                            opchildren{i}';
+                            loc_childs{i} = conj(loc_wgts(i)) *...
+                                            loc_childs{i}';
                         end
-                        y = opDictionary(opchildren{:}) * local_x;
+                        y = opDictionary(loc_childs{:}) * loc_x;
                     end
 
                     % Check for sparsity
@@ -276,7 +278,7 @@ classdef oppStack < oppSpot
                     if any(aresparse), y = sparse(y); end;
 
                     % Summing the results and distribute
-                    y = pSPOT.utils.global_sum(y); % The result now sits on lab 1
+                    y = pSPOT.utils.global_sum(y); % The result is now on lab 1
                     y = codistributed(y,1,codistributor1d(2));
 
                 end % spmd mode 2

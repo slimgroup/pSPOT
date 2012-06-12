@@ -116,32 +116,32 @@ methods
         % Convert distributed attributes to non-distributed scalars
         spmd
             % Check distribution dimension
-            numcodist   = getCodistributor(Cube);            
-            ind         = globalIndices(numcodist,3); % Glo inds for weights
+            num_cod    = getCodistributor(Cube);            
+            glo_ind    = globalIndices(num_cod,3); % Glo inds for weights
             
             % Weights processing
-            loc_weights = weights(ind);
+            loc_wgts   = weights(glo_ind);
 
             % Extract local m and n for future use
-            childs       = getLocalPart(Cube);
-            [mm,nn,ss]   = size(childs);
-            localm       = mm*ss;
-            localn       = nn*ss;
+            loc_childs = getLocalPart(Cube);
+            [mm,nn,ss] = size(loc_childs);
+            loc_m      = mm*ss;
+            loc_n      = nn*ss;
         end
         clear Cube;
-        numcodist = numcodist{1};
-        assert(numcodist.Dimension == 3,...
+        num_cod = num_cod{1};
+        assert(num_cod.Dimension == 3,...
             '3D Matrix is not distributed correctly!');
         
         % Construct operator
         op = op@oppSpot('pnumBlockDiag', m, n);
-        op.locm      = [localm{:}]; % Local sums for operator m
-        op.locn      = [localn{:}]; % Local sums for operator n
+        op.locm      = [loc_m{:}]; % Local sums for operator m
+        op.locn      = [loc_n{:}]; % Local sums for operator n
         op.cflag     = cflag;
         op.linear    = linear;
-        op.children  = childs;
-        op.weights   = loc_weights;
-        op.sweepflag = true;
+        op.children  = loc_childs; % Composite
+        op.weights   = loc_wgts; % Composite
+        op.sweepflag = false;
         op.gather    = gather;
         op.ncols     = ncols_x;
         op.opsn      = (n/nSlices)*ones(1,nSlices);
@@ -176,9 +176,9 @@ methods ( Access = protected )
     function y = multiply(op,x,mode)
 
         % Setting up class variables
-        loc_weights  = op.weights; % is composite
-        childs       = op.children; % also composite
-        numcols      = op.ncols;
+        loc_wgts   = op.weights; % is composite
+        loc_childs = op.children; % also composite
+        n_cols     = op.ncols;
 
         % Matrix x preprocessing
         assert(size(x,2) == 1, 'Please vectorize your x');
@@ -186,37 +186,36 @@ methods ( Access = protected )
         % Forward mode (mode = 1)
         if mode == 1
             % Distributing x into the correct chunks
-            glosize = [op.n 1]; % Setting up the global sizes
-            finsize = [op.m 1];
-            part    = op.locn;
-            finpart = op.locm;
-
+            x_size = [op.n 1]; % Setting up the global sizes
+            y_size = [op.m 1];
+            x_part = op.locn;
+            y_part = op.locm;
         else % mode == 2
-            glosize = [op.m 1];
-            finsize = [op.n 1];
-            part    = op.locm;
-            finpart = op.locn;
+            x_size = [op.m 1];
+            y_size = [op.n 1];
+            x_part = op.locm;
+            y_part = op.locn;
         end % end of mode 2
 
         % take into account implied multiple RHS in multidimensional x
-        part    = part .* numcols;
-        finpart = finpart .* numcols;
+        x_part = x_part .* n_cols;
+        y_part = y_part .* n_cols;
 
         % Check for distribution of x and redistribute if necessary
         if isdistributed(x)
             warnx = {0};
             spmd
-                defcod    = getCodistributor(x);
-                cod       = codistributor1d(1,part,glosize);
-                if defcod.Partition ~= cod.Partition
+                x_ocod = getCodistributor(x);
+                x_ncod = codistributor1d(1,x_part,x_size);
+                if x_ocod.Partition ~= x_ncod.Partition
                     warnx = 1;
-                    x     = redistribute(x,cod);
+                    x     = redistribute(x,x_ncod);
                 end
             end
             if warnx{1}
                 error('x is not distributed correctly!');
             end
-            clear warnx;
+            
         else    % Distribute x
             error('x is not distributed!');
         end
@@ -224,27 +223,27 @@ methods ( Access = protected )
         % Multiplication starts
         spmd
             % Multiply using opBlockDiag locally
-            local_x  = getLocalPart(x);
+            loc_x  = getLocalPart(x);
 
-            if ~isempty(childs)
-                num_child_ops = size(childs,3); % number of blocks local to 
+            if ~isempty(loc_childs)
+                num_ops = size(loc_childs,3); % number of blocks local to 
                                                 % this machine
                 % reshape x if we have multiple RHS
                 % assertion: this block only executes for 3D matrix input. 
                 % Therefore, all the sizes (m and n) of all
                 % child operators must be the same at this point.
-                local_x = reshape(local_x, [], numcols, num_child_ops);
+                loc_x = reshape(loc_x, [], n_cols, num_ops);
                 if mode == 1
-                    y = zeros(size(childs,1), numcols, num_child_ops);
-                    for k = 1:num_child_ops;
-                        A        = childs(:,:,k);
-                        y(:,:,k) = loc_weights(k) .* (A * local_x(:,:,k));
+                    y = zeros(size(loc_childs,1), n_cols, num_ops);
+                    for k = 1:num_ops;
+                        A        = loc_childs(:,:,k);
+                        y(:,:,k) = loc_wgts(k) .* (A * loc_x(:,:,k));
                     end
                 else
-                    y = zeros(size(childs,2), numcols, num_child_ops);
-                    for k = 1:num_child_ops;
-                        A        = childs(:,:,k);
-                        y(:,:,k) = conj(loc_weights(k)).*(A' * local_x(:,:,k));
+                    y = zeros(size(loc_childs,2), n_cols, num_ops);
+                    for k = 1:num_ops;
+                        A        = loc_childs(:,:,k);
+                        y(:,:,k) = conj(loc_wgts(k)).*(A' * loc_x(:,:,k));
                     end
                 end
 
@@ -262,8 +261,8 @@ methods ( Access = protected )
             % labBarrier;
             if any(aresparse), y = sparse(y); end;
 
-            fincod = codistributor1d(1,finpart,finsize);
-            y      = codistributed.build(y,fincod,'noCommunication');
+            y_cod = codistributor1d(1,y_part,y_size);
+            y     = codistributed.build(y,y_cod,'noCommunication');
 
         end % spmd
         if mode == 1
