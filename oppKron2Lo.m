@@ -255,22 +255,23 @@ classdef oppKron2Lo < oppSpot
             
             if perm(1)==2 %Classic multiplication order
                 spmd
-                    % Setup partition of columns
-                    partition = codistributed.zeros(1,numlabs);
+                    % Setup part of columns
+                    part = codistributed.zeros(1,numlabs);
                     
                     if iscodistributed(x)
-                        y = getLocalPart(x);
-                        local_width = length(y)/cB;
-                        assert( mod(local_width,1) == 0, ...
+                        y              = getLocalPart(x);
+                        loc_width      = length(y)/cB;
+                        assert( mod(loc_width,1) == 0, ...
                             'x must be distributed along cols before vec')
-                        y = reshape(y,cB,local_width); % reshape to local 
-                        partition(labindex) = local_width; % matrices
+                        % reshape to local 
+                        y              = reshape(y,cB,loc_width); 
+                        part(labindex) = loc_width; % matrices
                     else
-                        y = reshape(x,cB,cA);
-                        y = codistributed(y);
-                        y = getLocalPart(y);
-                        local_width = size(y,2);
-                        partition(labindex) = local_width;
+                        y              = reshape(x,cB,cA);
+                        y              = codistributed(y);
+                        y              = getLocalPart(y);
+                        loc_width      = size(y,2);
+                        part(labindex) = loc_width;
                     end
                     
                     if ~skipB
@@ -281,45 +282,45 @@ classdef oppKron2Lo < oppSpot
                         y=y.'; % Tranpose
                         % Build y distributed across rows
                         y = codistributed.build(y, codistributor1d...
-                            (1,partition,[cA,rB]));
+                            (1,part,[cA,rB]));
                         y = redistribute(y,codistributor1d(2));%distributed
-                        %along cols
+                        % along cols
                         y = getLocalPart(y);
                         y = A*y;%apply A to local matrices, then transpose
                         y = y.'; % Now y is distributed across rows again
                         % Rebuild y as distributed across rows
                         y = codistributed.build(y,codistributor1d(1,...
-                            codistributor1d.unsetPartition,[rB,rA]));
+                            [],[rB,rA]));
                         % Redistribute y across columns
                         y = redistribute(y,codistributor1d(2));
                         y = getLocalPart(y);
                     end
                     
                     % now vectorize y
-                    local_size = numel(y);
-                    partition(labindex) = local_size;
-                    y = y(:);
+                    local_size     = numel(y);
+                    part(labindex) = local_size;
+                    y              = y(:);
                     y = codistributed.build(y, codistributor1d(1,...
-                        partition, [rA*rB,1]));
+                        part, [rA*rB,1]));
                 end
             else  %Inverted multiplication order
                 spmd
-                    % Setup partition of columns
-                    partition = codistributed.zeros(1,numlabs);
+                    % Setup part of columns
+                    part = codistributed.zeros(1,numlabs);
                     
                     if iscodistributed(x)
-                        y = getLocalPart(x);
-                        local_width = length(y)/cB;
-                        assert( mod(local_width,1) == 0, ...
+                        y              = getLocalPart(x);
+                        loc_width      = length(y)/cB;
+                        assert( mod(loc_width,1) == 0, ...
                             'x must be distributed along cols before vec')
-                        y = reshape(y,cB,local_width); % reshape to local 
-                        partition(labindex) = local_width; % matrices
+                        y = reshape(y,cB,loc_width); % reshape to local 
+                        part(labindex) = loc_width; % matrices
                         
                         if ~skipA
                             y = y.'; % transpose since A is applied first
                             % Build y distributed across rows
                             y = codistributed.build(y, codistributor1d...
-                                (1,partition,[cA,cB]));
+                                (1,part,[cA,cB]));
                             % Redistribute y across cols
                             y = redistribute(y,codistributor1d(2));
                         end
@@ -338,7 +339,7 @@ classdef oppKron2Lo < oppSpot
                         
                         % Rebuild y distributed across rows
                         y = codistributed.build(y,codistributor1d(1,...
-                            codistributor1d.unsetPartition,[cB,rA]));
+                            [],[cB,rA]));
                         % Redistribute y across cols
                         y = redistribute(y,codistributor1d(2));
                         y = getLocalPart(y);
@@ -349,11 +350,11 @@ classdef oppKron2Lo < oppSpot
                     end         % transpose
                     
                     %now vectorize y
-                    local_size = numel(y);
-                    partition(labindex) = local_size;
-                    y = y(:);
+                    local_size     = numel(y);
+                    part(labindex) = local_size;
+                    y              = y(:);
                     y = codistributed.build(y, codistributor1d(1,...
-                        partition, [rA*rB,1]));
+                        part, [rA*rB,1]));
                 end
             end
             % if op.gather, y = gather(y); end %#ok<PROP,CPROP>
@@ -469,7 +470,7 @@ function y = distzeros( sz )
     spmd
         y      = codistributed.zeros(sz);
         codist = getCodistributor(y);
-        part   = codist.Partition;
+        part   = codist.part;
         part   = part.*sz(1);
         y      = getLocalPart(y);
         y      = y(:);
