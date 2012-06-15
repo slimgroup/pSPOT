@@ -49,9 +49,6 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppStack(varargin)
             
-            import spot.utils.*
-            import pSPOT.utils.*
-            
             % Check Matlabpool
             assert(matlabpool('size') > 0, 'Matlabpool is not on');
             
@@ -71,7 +68,7 @@ classdef oppStack < oppSpot
                 weights = weights(:);
                 
                 if nargs == 2 % Repeating ops                    
-                    if isposintscalar(varargin{1}) % repeat N times
+                    if spot.utils.isposintscalar(varargin{1}) % repeat N times
                         weights = ones(weights,1);                        
                     end % Else: Repeating as many times as there are weights
                     
@@ -98,15 +95,15 @@ classdef oppStack < oppSpot
             end
             
             % Standard pSpot checking and setup sizes
-            [opList,m,n,cflag,linear] = stdpspotchk(varargin{:});
+            [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             assert( all(n == n(1)), 'Operator sizes are not consistant');
             
             % Construct
             op = op@oppSpot('pStack', sum(m), n(1));
             op.cflag       = cflag;
             op.linear      = linear;
-            op.children    = compositeDef(opList);
-            op.weights     = compositeDef(weights);
+            op.children    = pSPOT.utils.compositeDef(opList);
+            op.weights     = pSPOT.utils.compositeDef(weights);
             op.sweepflag   = true;
             op.gather      = gather;
             op.precedence  = 1;
@@ -198,16 +195,11 @@ classdef oppStack < oppSpot
                 loc_childs = op.children;
                 loc_wgts   = op.weights;
                 y_size     = [op.m size(x,2)]; % final global size
-                % Global indices
-                glo_ind    = pSPOT.utils.defGlobInd(length(op.opsm));
-                % Final partition
-                y_part     = distributed.zeros(1,matlabpool('size'));
 
-                for i=1:matlabpool('size')
-                    y_part(i) = sum(op.opsm([glo_ind{i}]));
-                end
-
-                spmd                
+                spmd
+                    % setup y parts
+                    y_part = codistributed.zeros(1,numlabs);
+                    
                     if ~isempty(loc_childs)                    
                         % Multiply
                         for i=1:length(loc_childs)
@@ -217,6 +209,9 @@ classdef oppStack < oppSpot
                     else
                         y = zeros(0,y_size(2));
                     end
+                    
+                    % Fill in the yparts
+                    y_part(labindex) = size(y,1);
 
                     % Check for sparsity
                     aresparse = codistributed.zeros(1,numlabs);

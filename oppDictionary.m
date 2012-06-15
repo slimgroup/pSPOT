@@ -252,14 +252,11 @@ classdef oppDictionary < oppSpot
                 loc_childs = op.children;
                 loc_wgts   = op.weights;
                 y_size     = [op.n size(x,2)]; % final global size
-                glo_ind    = pSPOT.utils.defGlobInd(length(op.opsn));
-                y_part     = distributed.zeros(1,matlabpool('size'));
-
-                for i=1:matlabpool('size')
-                    y_part(i) = sum(op.opsn([glo_ind{i}]));
-                end
 
                 spmd
+                    % setup y parts
+                    y_part = codistributed.zeros(1,numlabs);
+                    
                     if ~isempty(loc_childs)                    
                         % Multiply
                         for i=1:length(loc_childs)
@@ -270,6 +267,9 @@ classdef oppDictionary < oppSpot
                     else
                         y = zeros(0,y_size(2));
                     end
+                    
+                    % Fill in y parts
+                    y_part(labindex) = size(y,1);
 
                     % Check for sparsity
                     aresparse = codistributed.zeros(1,numlabs);
