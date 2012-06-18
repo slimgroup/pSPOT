@@ -272,9 +272,6 @@ classdef oppKron2Lo < oppSpot
                     [rA,cA] = size(A);
                     [rB,cB] = size(B);
                     
-                    % Setup part of columns
-                    part = codistributed.zeros(1,numlabs);
-                    
                     if iscodistributed(x)
                         y              = getLocalPart(x);
                         loc_width      = length(y)/cB;
@@ -282,13 +279,10 @@ classdef oppKron2Lo < oppSpot
                             'x must be distributed along cols before vec')
                         % reshape to local 
                         y              = reshape(y,cB,loc_width); 
-                        part(labindex) = loc_width; % matrices
                     else
                         y              = reshape(x,cB,cA);
                         y              = codistributed(y);
                         y              = getLocalPart(y);
-                        loc_width      = size(y,2);
-                        part(labindex) = loc_width;
                     end
                     
                     if ~B.isDirac
@@ -299,26 +293,27 @@ classdef oppKron2Lo < oppSpot
                         y=y.'; % Tranpose
                         % Build y distributed across rows
                         y = codistributed.build(y, codistributor1d...
-                            (1,part,[cA,rB]));
+                            (1,[],[cA,rB]),'noCommunication');
                         y = redistribute(y,codistributor1d(2));%distributed
                         % along cols
                         y = getLocalPart(y);
-                        y = A*y;%apply A to local matrices, then transpose
+                        y = A*y;% apply A to local matrices, then transpose
                         y = y.'; % Now y is distributed across rows again
                         % Rebuild y as distributed across rows
                         y = codistributed.build(y,codistributor1d(1,...
-                            [],[rB,rA]));
+                            [],[rB,rA]),'noCommunication');
                         % Redistribute y across columns
                         y = redistribute(y,codistributor1d(2));
                         y = getLocalPart(y);
                     end
                     
-                    % now vectorize y
-                    local_size     = numel(y);
-                    part(labindex) = local_size;
+                    % now vectorize y                    
+                    % Setup part of columns
+                    part = codistributed.zeros(1,numlabs);
+                    part(labindex) = numel(y);
                     y              = y(:);
                     y = codistributed.build(y, codistributor1d(1,...
-                        part, [rA*rB,1]));
+                        part, [rA*rB,1]),'noCommunication');
                 end
             else  %Inverted multiplication order
                 spmd
@@ -336,23 +331,19 @@ classdef oppKron2Lo < oppSpot
                     %Size of the operators
                     [rA,cA] = size(A);
                     [rB,cB] = size(B);
-                    
-                    % Setup part of columns
-                    part = codistributed.zeros(1,numlabs);
-                    
+                                        
                     if iscodistributed(x)
                         y              = getLocalPart(x);
                         loc_width      = length(y)/cB;
                         assert( mod(loc_width,1) == 0, ...
                             'x must be distributed along cols before vec')
                         y = reshape(y,cB,loc_width); % reshape to local 
-                        part(labindex) = loc_width; % matrices
                         
                         if ~A.isDirac
                             y = y.'; % transpose since A is applied first
                             % Build y distributed across rows
                             y = codistributed.build(y, codistributor1d...
-                                (1,part,[cA,cB]));
+                                (1,[],[cA,cB]),'noCommunication');
                             % Redistribute y across cols
                             y = redistribute(y,codistributor1d(2));
                         end
@@ -366,12 +357,12 @@ classdef oppKron2Lo < oppSpot
                     
                     if ~A.isDirac
                         y = getLocalPart(y);
-                        y = A*y;%apply A to local matrices, then transpose
+                        y = A*y;% apply A to local matrices, then transpose
                         y = y.';
                         
                         % Rebuild y distributed across rows
                         y = codistributed.build(y,codistributor1d(1,...
-                            [],[cB,rA]));
+                            [],[cB,rA]),'noCommunication');
                         % Redistribute y across cols
                         y = redistribute(y,codistributor1d(2));
                         y = getLocalPart(y);
@@ -381,12 +372,13 @@ classdef oppKron2Lo < oppSpot
                         y = B*y;% apply B to local matrices, no need to 
                     end         % transpose
                     
-                    %now vectorize y
-                    local_size     = numel(y);
-                    part(labindex) = local_size;
+                    % now vectorize y
+                    % Setup part of columns
+                    part = codistributed.zeros(1,numlabs);
+                    part(labindex) = numel(y);
                     y              = y(:);
                     y = codistributed.build(y, codistributor1d(1,...
-                        part, [rA*rB,1]));
+                        part, [rA*rB,1]),'noCommunication');
                 end
             end
             % if op.gather, y = gather(y); end %#ok<PROP,CPROP>
