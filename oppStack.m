@@ -273,7 +273,7 @@ classdef oppStack < oppSpot
                     if any(aresparse), y = sparse(y); end;
 
                     % Summing the results and distribute
-                    y = pSPOT.utils.global_sum(y); % The result is now on lab 1
+                    y = gplus(y,1); % The result is now on lab 1
                     y = codistributed(y,1,codistributor1d(2));
 
                 end % spmd mode 2
