@@ -53,12 +53,12 @@ end
 
 function test_oppBlockDiag_divide
 %%
-    n = 3; m = 3;
+    n  = 3; m = 3;
     A1 = opMatrix(randn(m,m));
     A2 = opMatrix(randn(n,n));
-    D = oppBlockDiag(A1,A2);
-    x = drandn(D,2);
-    y = D*x;
+    D  = oppBlockDiag(A1,A2);
+    x  = drandn(D,2);
+    y  = D*x;
     xt = D\y;
     assertElementsAlmostEqual(gather(x),gather(xt));
 end

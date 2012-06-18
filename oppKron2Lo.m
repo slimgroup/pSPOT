@@ -96,7 +96,7 @@ classdef oppKron2Lo < oppSpot
             op.A           = childA;
             op.B           = childB;
             op.gather      = gat;
-            op.permutation = (1:length(opList));
+            op.permutation = [1 2];
             op.opsn        = n;
             op.opsm        = m;
             op.skipA       = opList{1}.isDirac;
@@ -104,9 +104,17 @@ classdef oppKron2Lo < oppSpot
             
             %Evaluate the best permutation to use when a multiplication is
             %applied
-            if ~ (prod(m) == 0 || prod(n) == 0)
-                op.permutation = op.best_permutation();
-            end            
+            if ~(prod(m) == 0 || prod(n) == 0)
+                cost = zeros(1,2);
+                cost(1,1) = (size(opList{1},1)-size(opList{1},2))/...
+                            (size(opList{1},1)*size(opList{1},2));
+                cost(1,2) = (size(opList{2},1)-size(opList{2},2))/...
+                            (size(opList{2},1)*size(opList{2},2));
+                
+                if cost(1,2) < cost(1,1)
+                    op.permutation = [2 1];
+                end
+            end
             
             % Setting up implicit dimensions of output vector
             op.ms = fliplr(cellfun(@(x) size(x,1),varargin)); % Flipped
@@ -408,80 +416,6 @@ classdef oppKron2Lo < oppSpot
         end % Multiply
     end %Protected methods
     
-    methods (Access = private)
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % best_permutation
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        %Returns the best permutation associated to this Kronecker product
-        function perm = best_permutation(op)
-            list = op.children; %List of 'op''s children
-            cost = zeros(1,length(list)); %Computational costs of the
-            %operators (children of 'op'). This is simply a numeric
-            %representation of theirs shapes, which will affect computation
-            %time. Operators with low computational costs should be applied
-            %first.
-            for i=1:length(list)
-                %Cost = (nbr_rows-nbr_columns) / (size of the operator)
-                cost(1,i) = (size(list{i},1)-size(list{i},2))/...
-                            (size(list{i},1)*size(list{i},2));
-            end
-            
-            perm = op.quicksort(cost,1,length(cost),op.permutation);
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % quick_sort
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        %Function doing a quick sort on the vector containing the
-        %computational costs associated to the operators of the Kronecker
-        %product. The corresponding permutation 'perm' is returned as an
-        %output. It contains the indices of the operators which have to be
-        %successively applied to the data vector. These laters are
-        %bracketed from left to right.
-        
-        %n: permutation enabling to follow the transpositions during the
-        %recursive application of the quick sort function.
-        %n initialy rates [1,2,..,n] where n is the number of operators in
-        %the Kronecker product.
-        
-        %start and stop: indices of the sort area in the cost vector.
-        
-        function perm=quicksort(op,cost,start,stop,n)
-            
-            if start<stop
-                left=start;
-                right=stop;
-                pivot=cost(start);
-                
-                while 1
-                    while cost(right)>pivot,right=right-1;
-                    end
-                    if cost(right)==pivot && right>start
-                        right=right-1;
-                    end
-                    while cost(left)<pivot,left=left+1;
-                    end
-                    
-                    if(left<right)
-                        temp=cost(left);
-                        cost(left)=cost(right);
-                        cost(right)=temp;
-                        
-                        temp=n(left);
-                        n(left)=n(right);
-                        n(right)=temp;
-                    else break
-                    end
-                end
-                n=op.quicksort(cost, start, right,n);
-                n=op.quicksort(cost, right+1, stop,n);
-            end
-            perm=n;
-        end
-        
-    end % Private methods
 end % Classdef
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
