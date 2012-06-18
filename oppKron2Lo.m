@@ -80,7 +80,11 @@ classdef oppKron2Lo < oppSpot
             [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             
             spmd
-                loc_childs = opList;
+                if labindex == 1
+                    loc_childs = labBroadcast(1,opList);
+                else
+                    loc_childs = labBroadcast(1);
+                end
             end
             
             % Construct operator
