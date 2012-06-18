@@ -245,7 +245,7 @@ classdef oppBlockDiag < oppSpot
             spmd, x_cod = getCodistributor(x); end
             x_cod    = x_cod{1};
             x_part   = x_cod.Partition;
-            chi_part = pSPOT.utils.defaultDistribution(length(op.children));
+            chi_part = pSPOT.utils.defaultDistribution(length(op.opsn));
             n_labs   = matlabpool('size');
             
             assert(x_cod.Dimension == 1,... % Dimensional check
