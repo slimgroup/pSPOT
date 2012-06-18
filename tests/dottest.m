@@ -39,8 +39,8 @@ for i=1:k
        kpass = kpass + 1;
     else
        ratio = abs(z1) / abs(z2);
-       if ratio < Ratio(1), Ratio(1) = ratio; end;
-       if ratio > Ratio(2), Ratio(2) = ratio; end;
+       if ratio < Ratio(1), Ratio(1) = gather(ratio); end;
+       if ratio > Ratio(2), Ratio(2) = gather(ratio); end;
     end
 end
 
