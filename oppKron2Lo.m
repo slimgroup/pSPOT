@@ -48,8 +48,6 @@ classdef oppKron2Lo < oppSpot
         permutation; %Permutation vector of intergers defining the order to
         %use when the operators (children) of the Kronecker product are
         %applied to a data vector.
-        skipA = false; % Skip flags for dirac skipping
-        skipB = false;
         A; % Child operators
         B;
     end
@@ -99,8 +97,6 @@ classdef oppKron2Lo < oppSpot
             op.permutation = [1 2];
             op.opsn        = n;
             op.opsm        = m;
-            op.skipA       = opList{1}.isDirac;
-            op.skipB       = opList{2}.isDirac;
             
             % Evaluate the best permutation to use when a multiplication is
             % applied
@@ -255,20 +251,16 @@ classdef oppKron2Lo < oppSpot
             %Operators
             childA = op.A;
             childB = op.B;
-            tflag  = op.tflag;
+            mtflag = mode == 2 && ~op.tflag || mode == 1 && op.tflag;
             
-            %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%            
             
-            perm  = op.permutation; %Permutation to take in account.
-            skipA = op.skipA;
-            skipB = op.skipB;
-            
-            if perm(1)==2 %Classic multiplication order
+            if op.permutation(1)==2 %Classic multiplication order
                 spmd
                     % Setup operators
                     % we could have been called through opSpot.applyMultiply,
                     % then we need to pay attention to mode.
-                    if mode == 2 && ~tflag || mode == 1 && tflag
+                    if mtflag
                         A = childA';
                         B = childB';
                     else
@@ -299,11 +291,11 @@ classdef oppKron2Lo < oppSpot
                         part(labindex) = loc_width;
                     end
                     
-                    if ~skipB
+                    if ~B.isDirac
                         y=B*y;% apply B to local matrices
                     end
                     
-                    if ~skipA
+                    if ~A.isDirac
                         y=y.'; % Tranpose
                         % Build y distributed across rows
                         y = codistributed.build(y, codistributor1d...
@@ -333,7 +325,7 @@ classdef oppKron2Lo < oppSpot
                     % Setup operators
                     % we could have been called through opSpot.applyMultiply,
                     % then we need to pay attention to mode.
-                    if mode == 2 && ~tflag || mode == 1 && tflag
+                    if mtflag
                         A = childA';
                         B = childB';
                     else
@@ -356,7 +348,7 @@ classdef oppKron2Lo < oppSpot
                         y = reshape(y,cB,loc_width); % reshape to local 
                         part(labindex) = loc_width; % matrices
                         
-                        if ~skipA
+                        if ~A.isDirac
                             y = y.'; % transpose since A is applied first
                             % Build y distributed across rows
                             y = codistributed.build(y, codistributor1d...
@@ -366,13 +358,13 @@ classdef oppKron2Lo < oppSpot
                         end
                     else
                         y = reshape(x,cB,cA);
-                        if ~skipA
+                        if ~A.isDirac
                             y = y.';
                             y = codistributed(y);
                         end
                     end
                     
-                    if ~skipA
+                    if ~A.isDirac
                         y = getLocalPart(y);
                         y = A*y;%apply A to local matrices, then transpose
                         y = y.';
@@ -385,7 +377,7 @@ classdef oppKron2Lo < oppSpot
                         y = getLocalPart(y);
                     end
                     
-                    if ~skipB
+                    if ~B.isDirac
                         y = B*y;% apply B to local matrices, no need to 
                     end         % transpose
                     
