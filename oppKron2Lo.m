@@ -79,12 +79,17 @@ classdef oppKron2Lo < oppSpot
             % Standard pSpot Check
             [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
             
-            spmd
-                if labindex == 1
-                    loc_childs = labBroadcast(1,opList);
-                else
-                    loc_childs = labBroadcast(1);
-                end
+%             spmd
+%                 if labindex == 1
+%                     loc_childs = labBroadcast(1,opList);
+%                 else
+%                     loc_childs = labBroadcast(1);
+%                 end
+%             end
+
+            loc_childs = Composite();
+            for i=1:matlabpool('size')
+                loc_childs{i} = opList;
             end
             
             % Construct operator
