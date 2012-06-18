@@ -102,16 +102,10 @@ classdef oppKron2Lo < oppSpot
             op.skipA       = opList{1}.isDirac;
             op.skipB       = opList{2}.isDirac;
             
-            %Evaluate the best permutation to use when a multiplication is
-            %applied
-            if ~(prod(m) == 0 || prod(n) == 0)
-                cost = zeros(1,2);
-                cost(1,1) = (size(opList{1},1)-size(opList{1},2))/...
-                            (size(opList{1},1)*size(opList{1},2));
-                cost(1,2) = (size(opList{2},1)-size(opList{2},2))/...
-                            (size(opList{2},1)*size(opList{2},2));
-                
-                if cost(1,2) < cost(1,1)
+            % Evaluate the best permutation to use when a multiplication is
+            % applied
+            if ~(prod(m) == 0 || prod(n) == 0)                
+                if (m(2)-n(2)) / (m(2)*n(2)) < (m(1)-n(1)) / (m(1)*n(1))
                     op.permutation = [2 1];
                 end
             end
