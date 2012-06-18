@@ -48,6 +48,8 @@ classdef oppKron2Lo < oppSpot
         permutation; %Permutation vector of intergers defining the order to
         %use when the operators (children) of the Kronecker product are
         %applied to a data vector.
+        skipA = false; % Skip flags for dirac skipping
+        skipB = false;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,20 +78,27 @@ classdef oppKron2Lo < oppSpot
             
             % Standard pSpot Check
             [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
-            m = prod(m); n = prod(n);
+            
+            spmd
+                loc_childs = opList;
+            end
             
             % Construct operator
-            op = op@oppSpot('pKron', m, n);
+            op = op@oppSpot('pKron', prod(m), prod(n));
             op.cflag       = cflag;
             op.linear      = linear;
             op.sweepflag   = true;
-            op.children    = opList;
+            op.children    = loc_childs;
             op.gather      = gat;
             op.permutation = (1:length(opList));
+            op.opsn        = n;
+            op.opsm        = m;
+            op.skipA       = opList{1}.isDirac;
+            op.skipB       = opList{2}.isDirac;
             
             %Evaluate the best permutation to use when a multiplication is
             %applied
-            if ~ (m == 0 || n == 0)
+            if ~ (prod(m) == 0 || prod(n) == 0)
                 op.permutation = op.best_permutation();
             end            
             
@@ -104,11 +113,13 @@ classdef oppKron2Lo < oppSpot
         % Display
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
-            str=['pKron(',char(op.children{1})];
+            
+            childs = op.children{1};
+            str=['pKron(',char(childs{1})];
             
             % Get operators
-            for i=2:length(op.children)
-                str=strcat(str,[', ',char(op.children{i})]);
+            for i=2:length(childs)
+                str=strcat(str,[', ',char(childs{i})]);
             end
             str=strcat(str,')');
             if op.tflag
@@ -169,7 +180,8 @@ classdef oppKron2Lo < oppSpot
                     ' The explicit representation will likely be very '...
                     ' large, \nuse double(x,1)  to proceed anyway']);
             end
-            y = double(kron(op.children{1},op.children{2}));
+            childs = op.children{1};
+            y = double(kron(childs{1},childs{2}));
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -179,36 +191,36 @@ classdef oppKron2Lo < oppSpot
         function y = drandn(op)
         %DRANDN Random vector in operator domain
             if ~op.tflag
-                dims = [op.children{2}.n, op.children{1}.n];
+                dims = [op.opsn(2), op.opsn(1)];
             else
-                dims = [op.children{2}.m, op.children{1}.m];
+                dims = [op.opsm(2), op.opsm(1)];
             end
             y = distrandnvec( dims );
         end
         function y = rrandn(op)
             %RRANDN Random vector in operator range
             if ~op.tflag
-                dims = [op.children{2}.m, op.children{1}.m];
+                dims = [op.opsm(2), op.opsm(1)];
             else
-                dims = [op.children{2}.n, op.children{1}.n];
+                dims = [op.opsn(2), op.opsn(1)];
             end
             y = distrandnvec( dims );
         end
         function y = dzeros(op)
             %DZEROS Zero vector in operator domain
             if ~op.tflag
-                dims = [op.children{2}.n, op.children{1}.n];
+                dims = [op.opsn(2), op.opsn(1)];
             else
-                dims = [op.children{2}.m, op.children{1}.m];
+                dims = [op.opsm(2), op.opsm(1)];
             end
             y = distzeros( dims );
         end
         function y = rzeros(op)
             %RZEROS Zero vector in operator range
             if ~op.tflag
-                dims = [op.children{2}.m, op.children{1}.m];
+                dims = [op.opsm(2), op.opsm(1)];
             else
-                dims = [op.children{2}.n, op.children{1}.n];
+                dims = [op.opsn(2), op.opsn(1)];
             end
             y = distzeros( dims );
         end
@@ -233,28 +245,32 @@ classdef oppKron2Lo < oppSpot
             % B.
             
             %Operators
-            A = op.children{1};
-            B = op.children{2};
-                        
-            % we could have been called through opSpot.applyMultiply, then
-            % we need to pay attention to mode.
-            if mode == 2 && ~op.tflag || mode ==1 && op.tflag
-                A = A';
-                B = B';
-            end
-            
-            %Size of the operators
-            [rA,cA] = size(A);
-            [rB,cB] = size(B);
+            childs = op.children;
+            tflag  = op.tflag;
             
             %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             perm  = op.permutation; %Permutation to take in account.
-            skipA = A.isDirac;
-            skipB = B.isDirac;
+            skipA = op.skipA;
+            skipB = op.skipB;
             
             if perm(1)==2 %Classic multiplication order
                 spmd
+                    % Setup operators
+                    % we could have been called through opSpot.applyMultiply,
+                    % then we need to pay attention to mode.
+                    if mode == 2 && ~tflag || mode == 1 && tflag
+                        A = childs{1}';
+                        B = childs{2}';
+                    else
+                        A = childs{1};
+                        B = childs{2};
+                    end
+                    
+                    %Size of the operators
+                    [rA,cA] = size(A);
+                    [rB,cB] = size(B);
+                    
                     % Setup part of columns
                     part = codistributed.zeros(1,numlabs);
                     
@@ -305,6 +321,21 @@ classdef oppKron2Lo < oppSpot
                 end
             else  %Inverted multiplication order
                 spmd
+                    % Setup operators
+                    % we could have been called through opSpot.applyMultiply,
+                    % then we need to pay attention to mode.
+                    if mode == 2 && ~tflag || mode == 1 && tflag
+                        A = childs{1}';
+                        B = childs{2}';
+                    else
+                        A = childs{1};
+                        B = childs{2};
+                    end
+                    
+                    %Size of the operators
+                    [rA,cA] = size(A);
+                    [rB,cB] = size(B);
+                    
                     % Setup part of columns
                     part = codistributed.zeros(1,numlabs);
                     
