@@ -50,6 +50,8 @@ classdef oppKron2Lo < oppSpot
         %applied to a data vector.
         skipA = false; % Skip flags for dirac skipping
         skipB = false;
+        A; % Child operators
+        B;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,18 +80,11 @@ classdef oppKron2Lo < oppSpot
             
             % Standard pSpot Check
             [opList,m,n,cflag,linear] = pSPOT.utils.stdpspotchk(varargin{:});
-            
-%             spmd
-%                 if labindex == 1
-%                     loc_childs = labBroadcast(1,opList);
-%                 else
-%                     loc_childs = labBroadcast(1);
-%                 end
-%             end
-
-            loc_childs = Composite();
-            for i=1:matlabpool('size')
-                loc_childs{i} = opList;
+            opA = opList{1};
+            opB = opList{2};
+            spmd
+                childA = opA;
+                childB = opB;
             end
             
             % Construct operator
@@ -97,7 +92,9 @@ classdef oppKron2Lo < oppSpot
             op.cflag       = cflag;
             op.linear      = linear;
             op.sweepflag   = true;
-            op.children    = loc_childs;
+            op.children    = [];
+            op.A           = childA;
+            op.B           = childB;
             op.gather      = gat;
             op.permutation = (1:length(opList));
             op.opsn        = n;
@@ -123,7 +120,7 @@ classdef oppKron2Lo < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             
-            childs = op.children{1};
+            childs = [op.A{1} op.B{1}];
             str=['pKron(',char(childs{1})];
             
             % Get operators
@@ -189,8 +186,8 @@ classdef oppKron2Lo < oppSpot
                     ' The explicit representation will likely be very '...
                     ' large, \nuse double(x,1)  to proceed anyway']);
             end
-            childs = op.children{1};
-            y = double(kron(childs{1},childs{2}));
+            
+            y = double(kron(op.A{1},op.B{1}));
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -254,7 +251,8 @@ classdef oppKron2Lo < oppSpot
             % B.
             
             %Operators
-            childs = op.children;
+            childA = op.A;
+            childB = op.B;
             tflag  = op.tflag;
             
             %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -269,11 +267,11 @@ classdef oppKron2Lo < oppSpot
                     % we could have been called through opSpot.applyMultiply,
                     % then we need to pay attention to mode.
                     if mode == 2 && ~tflag || mode == 1 && tflag
-                        A = childs{1}';
-                        B = childs{2}';
+                        A = childA';
+                        B = childB';
                     else
-                        A = childs{1};
-                        B = childs{2};
+                        A = childA;
+                        B = childB;
                     end
                     
                     %Size of the operators
@@ -334,11 +332,11 @@ classdef oppKron2Lo < oppSpot
                     % we could have been called through opSpot.applyMultiply,
                     % then we need to pay attention to mode.
                     if mode == 2 && ~tflag || mode == 1 && tflag
-                        A = childs{1}';
-                        B = childs{2}';
+                        A = childA';
+                        B = childB';
                     else
-                        A = childs{1};
-                        B = childs{2};
+                        A = childA;
+                        B = childB;
                     end
                     
                     %Size of the operators
