@@ -128,7 +128,7 @@ classdef oppKron2Lo < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             
-            childs = [op.A{1} op.B{1}];
+            childs = {op.A{1} op.B{1}};
             str=['pKron(',char(childs{1})];
             
             % Get operators
