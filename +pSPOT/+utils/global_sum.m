@@ -1,17 +1,14 @@
-function y = global_sum(y)
-% loop through labs checking if its ready to send data, and receive if it
-% is
+function y = global_sum(varargin)
+%GLOBAL SUM    (SPMD only) Global Summation
+%   y = global_sum(x) returns the addition of the x's from each lab.
+%   The result is replicated on all labs.
+%
+%   y = global_sum(x, labtarget) places all of the results on lab labtarget. Y
+%   will be equal to [] on all other labs.
+%
+%   This is actually a wrapper to the PCT funcion gplus which is more
+%   performance-y compared to our old implementation of the concept.
+%
+%   type "help gplus" for more information and examples
 
-if labindex == 1   %sum all results on lab 1
-    labs = 2:numlabs;
-    while ~isempty(labs)
-        if( labProbe(labs(1)) )
-            y = y + labReceive(labs(1));
-            labs(1) = [];
-        else
-            labs = circshift( labs, [0 -1] );
-        end
-    end
-else % Other labs
-    labSend(y,1);
-end
+y = gplus(varargin);
