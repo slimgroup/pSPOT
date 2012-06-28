@@ -11,4 +11,4 @@ function y = global_sum(varargin)
 %
 %   type "help gplus" for more information and examples
 
-y = gplus(varargin);
+y = gplus(varargin{:});
