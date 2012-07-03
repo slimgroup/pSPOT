@@ -154,6 +154,8 @@ classdef oppDictionary < oppSpot
                 if ~isempty(loc_childs)
                     y = double(opDictionary(loc_wgts,loc_childs{:}));
                     part(labindex) = size(y,2);
+                else
+                    y = zeros(y_size(1),0);
                 end
                 part = gather(part);
                 cod  = codistributor1d(2,part,y_size);
