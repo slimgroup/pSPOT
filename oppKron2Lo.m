@@ -420,7 +420,7 @@ function y = distzeros( sz )
     spmd
         y      = codistributed.zeros(sz);
         codist = getCodistributor(y);
-        part   = codist.part;
+        part   = codist.Partition;
         part   = part.*sz(1);
         y      = getLocalPart(y);
         y      = y(:);

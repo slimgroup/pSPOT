@@ -93,66 +93,86 @@ classdef oppDistFun < oppSpot
             warning('off','distcomp:codistributed:InvalidNumberOfLabs');
             
             % Store all ops as codistributed arrays inside cells
-            ops = cell(1,length(varargin));
-            for i = 1:length(varargin)
-               d = varargin{i};
-               spmd, ops{i} = d; end
-            end
-            opss = ops{1};
-            % clear('varargin');
+%             ops = cell(1,length(varargin));
+%             for i = 1:length(varargin)
+%                d = varargin{i};
+%                spmd, ops{i} = d; end
+%             end
+%             opss = ops{1};
+%             % clear('varargin');
             
-            % Check for stuffs
-            c = opss{1};
-            lastdim  = size(c);
-            lastdim  = lastdim(end);
-            lastpart = getCodistributor(c);
-            lastpart = lastpart.Partition;
-            for i = 2:length(opss)
-                % Check for the consistency of the last dimension
-                sc = size(opss{i});
-                assert(sc(end) == lastdim,...
-                  'The last dimension must be of the same length')
-                
-                % Check for isdistributed
-                assert(iscodistributed(opss{i}),'A must be distributed')
-                
-                % Check for the distributed dimension
-                cc = getCodistributor(opss{i});
-                assert(length(sc) == cc.Dimension,...
-                    'A must be distributed along the last dimension')
-                
-                % Check for partition
-                assert(all(cc.Partition == lastpart),...
-                    'Partition of distributed dimension must be the same')                
+            spmd
+                ops = varargin; 
+                if labindex == 1
+                    lastdim = cellfun(@(x) size(x,ndims(x)),varargin);
+                    assert(all(lastdim == lastdim(1)),...
+                    'The last dimension must be of the same length');
+                    assert(all(cellfun(@iscodistributed, varargin)),...
+                    'A must be distributed');
+                    codist = cellfun(@getCodistributor, varargin);
+                    assert(all(cellfun(@(x) x,Dimension) == ndims(varargin{1})),...
+                    'A must be distributed along the last dimension');
+                    lastpart = cellfun(@(x) x.Partition, codist,...
+                    'UniformOutput',false);
+                    assert(all(lastpart == lastpart(1)),...
+                    'Partition of distributed dimension must be the same') ;
+                    
+                end
             end
+            
+%             % Check for stuffs
+%             c = opss{1};
+%             lastdim  = size(c);
+%             lastdim  = lastdim(end);
+%             lastpart = getCodistributor(c);
+%             lastpart = lastpart.Partition;
+%             for i = 2:length(opss)
+%                 % Check for the consistency of the last dimension
+%                 sc = size(opss{i});
+%                 assert(sc(end) == lastdim,...
+%                   'The last dimension must be of the same length')
+%                 
+%                 % Check for isdistributed
+%                 assert(iscodistributed(opss{i}),'A must be distributed')
+%                 
+%                 % Check for the distributed dimension
+%                 cc = getCodistributor(opss{i});
+%                 assert(length(sc) == cc.Dimension,...
+%                     'A must be distributed along the last dimension')
+%                 
+%                 % Check for partition
+%                 assert(all(cc.Partition == lastpart),...
+%                     'Partition of distributed dimension must be the same')                
+%             end
                                     
             % Extract parameters from function
             cell_padding = cell(1,nargin(F)-1);
-            func_info = F(cell_padding{:},0);
-            m = func_info(1); n = func_info(2); cflag = func_info(3); linflag = func_info(4);
+            func_info    = F(cell_padding{:},0);
+            m     = func_info(1); n       = func_info(2); 
+            cflag = func_info(3); linflag = func_info(4);
             
             if ~isposintscalar(m) || ~isposintscalar(n) % check m and n
               error('Dimensions of operator must be positive integers.');
             end
             
             % Setup sizes
-            sizA = size(opss{1});
-            m_total    = m*sizA(end);
-            n_total    = n*sizA(end);
-            clear opss;
+            sizA    = size(varargin{1});
+            m_total = m*sizA(end);
+            n_total = n*sizA(end);
+            clear varargin;
                         
             % Construct oppCompositexun
-            op             = op@oppSpot('DistFun', m_total, n_total);
-            op.local_m     = m;
-            op.local_n     = n;
-            op.children    = ops;
-            op.fun         = F;
-            op.cflag       = cflag;
-            op.linear      = linflag;
-            op.sweepflag   = true;
-            op.gather      = opgather;
-            op.opsn = n*ones(1,sizA(end));
-            op.opsm = m*ones(1,sizA(end));
+            op           = op@oppSpot('DistFun', m_total, n_total);
+            op.local_m   = m;
+            op.local_n   = n;
+            op.children  = ops;
+            op.fun       = F;
+            op.cflag     = cflag;
+            op.linear    = linflag;
+            op.sweepflag = true;
+            op.gather    = opgather;
+            op.opsn      = n*ones(1,sizA(end));
+            op.opsm      = m*ones(1,sizA(end));
             
         end % constructor
         
@@ -177,7 +197,7 @@ classdef oppDistFun < oppSpot
                 error('Left multiplication not taken in account')
             else
                 assert( isvector(x) , 'Please use vectorized matrix')
-                y=mtimes@opSpot(op,x);
+                y = mtimes@opSpot(op,x);
             end
         end
         
@@ -222,6 +242,7 @@ classdef oppDistFun < oppSpot
                 % Loop over the slices and apply F
                 n = 0;
                 for i=1:sizeA(end)
+                    slice = cell(1,length(ops));
                     for j = 1:length(ops) % Get last-dimensional slice
                        slice{j} = pSPOT.utils.ldind(ops{j},i); 
                     end
@@ -252,26 +273,3 @@ classdef oppDistFun < oppSpot
     end % Protected methods
     
 end % classdef
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
