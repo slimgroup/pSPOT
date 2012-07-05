@@ -92,32 +92,40 @@ classdef oppDistFun < oppSpot
             % Turn off stupid warning
             warning('off','distcomp:codistributed:InvalidNumberOfLabs');
             
-            % Store all ops as codistributed arrays inside cells
-%             ops = cell(1,length(varargin));
-%             for i = 1:length(varargin)
-%                d = varargin{i};
-%                spmd, ops{i} = d; end
-%             end
-%             opss = ops{1};
-%             % clear('varargin');
+            % Store all ops as codistributed arrays inside cells            
+            lenvar  = length(varargin);
+            lastdim = zeros(1,lenvar);
+            codist  = cell(1,lenvar);
+            coddims = zeros(1,lenvar);
+            codpart = cell(1,lenvar);
+            ops = cell(1,lenvar);
+            for i = 1:lenvar
+               d = varargin{i};
+               spmd 
+                   ops{i} = d;
+                   assert(iscodistributed(d), 'A must be distributed');
+                   codd   = getCodistributor(d);
+                   sized  = size(d);
+               end
+               sized      = sized{1};
+               lastdim(i) = sized(end);
+               codist{i}  = codd{1};
+               coddims(i) = codist{i}.Dimension;
+               if isempty(codist{i}.Partition)
+                   codpart(i) = 0; % 0 means default partition
+               else
+                   codpart{i} = codist{i}.Partition;
+               end
+            end
             
-            spmd
-                ops = varargin; 
-                if labindex == 1
-                    lastdim = cellfun(@(x) size(x,ndims(x)),varargin);
-                    assert(all(lastdim == lastdim(1)),...
-                    'The last dimension must be of the same length');
-                    assert(all(cellfun(@iscodistributed, varargin)),...
-                    'A must be distributed');
-                    codist = cellfun(@getCodistributor, varargin);
-                    assert(all(cellfun(@(x) x,Dimension) == ndims(varargin{1})),...
-                    'A must be distributed along the last dimension');
-                    lastpart = cellfun(@(x) x.Partition, codist,...
-                    'UniformOutput',false);
-                    assert(all(lastpart == lastpart(1)),...
-                    'Partition of distributed dimension must be the same') ;
-                    
-                end
+            % Check for stuffs
+            assert(all(lastdim == lastdim(1)),...
+            'The last dimension must be of the same length');
+            assert(all(coddims == ndims(varargin{1})),...
+            'A must be distributed along the last dimension');
+            for i=1:lenvar
+                assert(all(codpart{i} == codpart{1}),...
+            'Partition of distributed dimension must be the same');
             end
             
 %             % Check for stuffs
