@@ -42,9 +42,11 @@ end
 
 function test_opdWindowLast1Halo
 %%
-   for n=20:6:32
+   labs = matlabpool('size');
+   for t=1:3
        for h=1:2
-               A=opdWindowLast1Halo(n*n,n,matlabpool('size'),h);
+               n = labs*4*h+round(labs/2);
+               A=opdWindowLast1Halo(t*n,n,labs,h);
                utest(A);
        end
    end
@@ -52,9 +54,11 @@ end
 
 function test_opdWindowLast1HaloAverage
 %%
-   for n=20:6:32
+   labs = matlabpool('size');
+   for t=1:3
        for h=1:2
-               A=opdWindowLast1HaloAverage(n*n,n,matlabpool('size'),h);
+               n = labs*4*h+round(labs/2);
+               A=opdWindowLast1HaloAverage(t*n,n,labs,h);
                utest(A);
        end
    end
