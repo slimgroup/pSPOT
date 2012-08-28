@@ -67,7 +67,43 @@ elseif ~isa(B,'opSpot')
       % Raise an error when the matrices do not commute. We make an
       % exception for 1-by-1 operators.
       if A.n ~= p
-         if A.m == 1 && A.n == 1
+         if A.m == 1 && A.n == 1op.counter.plus1(mode);
+
+                % For border case: empty x
+                if isempty(x)
+                    if mode == 1
+                        y = zeros(op.m,0);
+                    else
+                        y = zeros(op.n,0);
+                    end
+                    return
+                end
+
+                if op.sweepflag
+                    y = op.multiply(x,mode);
+                else
+                    q = size(x,2);
+
+                    % Preallocate y
+                    if q > 1
+                        if isscalar(op)
+                            % special case: allocate result size of x
+                            y = zeros(size(x));
+                        elseif mode==1
+                            y = zeros(op.m,q);
+                        else
+                            y = zeros(op.n,q);
+                        end
+                    end
+
+                    if q == 1
+                        y = op.multiply(x,mode);
+                    else
+                        for i=1:q
+                            y(:,i) = op.multiply(x(:,i),mode);
+                        end
+                    end
+                end
             % relax
          else
             error(...

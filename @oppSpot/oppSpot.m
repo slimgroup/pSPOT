@@ -1,4 +1,4 @@
-classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
+classdef oppSpot < opSpot
    %oppSpot pSpot operator super class.
    %
         
