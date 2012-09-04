@@ -124,9 +124,9 @@ classdef oppCTranspose < oppSpot
        function y = divide(op,x,mode)
           A = op.children{1};
           if mode == 1
-             y = applyDivide(A,x,2);
+             y = divide(A,x,2);
           else
-             y = applyDivide(A,x,1);
+             y = divide(A,x,1);
           end
        end % function divide
 
