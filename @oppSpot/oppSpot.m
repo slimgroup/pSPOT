@@ -31,10 +31,6 @@ classdef oppSpot < opSpot
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    methods( Access = protected )
       
-      function x = applyDivide(op,x,mode)
-         x = divide(op,x,mode);
-      end
-      
       % Signature of external protected functions
       x = divide(op,x,mode);
       
