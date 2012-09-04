@@ -7,7 +7,6 @@ classdef oppSpot < opSpot
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    properties
       gather = 0;
-      weights;
       opsn = []; % Distribution scheme of operator domain
       opsm = []; % Distribution scheme of operator range
    end %properties
