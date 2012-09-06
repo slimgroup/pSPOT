@@ -131,33 +131,33 @@ classdef oppKron2Lo < oppSpot
             end
         end % Char
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % mtimes
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % mtimes is overloaded so as to call multiplication on a
-        % distributed array. This multiplication will do the expected 2D
-        % transform on 'x'.
-        % For the moment mtimes is only implemented for right
-        % multiplication
-        function y=mtimes(op,x)
-            if isa(x,'SeisDataContainer')
-                y = mtimes(x,op,'swap');
-            else
-                
-                if ~isa(op,'oppKron2Lo')
-                    error('Left multiplication not taken in account')
-                elseif isa(x,'opSpot')    
-                    y = opFoG(op,x);
-                elseif ~isa(x,'oppKron2Lo')
-                    assert( isvector(x) , 'Please use vectorized matrix')
-                    op.counter.plus1(op.tflag + 1 );
-                    y=op.multiply(x, 1 ); % use tflag to determine mode
-                                          % within multiply
-                else
-                    error(['unsupported data type: ' class(x)]);
-                end
-            end % catch
-        end
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         % mtimes
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         % mtimes is overloaded so as to call multiplication on a
+%         % distributed array. This multiplication will do the expected 2D
+%         % transform on 'x'.
+%         % For the moment mtimes is only implemented for right
+%         % multiplication
+%         function y=mtimes(op,x)
+%             if isa(x,'SeisDataContainer')
+%                 y = mtimes(x,op,'swap');
+%             else
+%                 
+%                 if ~isa(op,'oppKron2Lo')
+%                     error('Left multiplication not taken in account')
+%                 elseif isa(x,'opSpot')    
+%                     y = opFoG(op,x);
+%                 elseif ~isa(x,'oppKron2Lo')
+%                     assert( isvector(x) , 'Please use vectorized matrix')
+%                     op.counter.plus1(op.tflag + 1 );
+%                     y=op.multiply(x, 1 ); % use tflag to determine mode
+%                                           % within multiply
+%                 else
+%                     error(['unsupported data type: ' class(x)]);
+%                 end
+%             end % catch
+%         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % transpose
@@ -247,6 +247,10 @@ classdef oppKron2Lo < oppSpot
             % The Kronecker product (KP) is applied to the right-hand matrix
             % taking in account the best order to apply the operators A and
             % B.
+            
+            % Check for op and  x
+            assert(isa(op,'oppKron2Lo'),'Left multiplication not taken in account')
+            assert( isvector(x) , 'Please use vectorized matrix')
             
             %Operators
             childA = op.A;
