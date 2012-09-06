@@ -192,22 +192,22 @@ classdef oppDistFun < oppSpot
             
         end % Display
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % mtimes
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % mtimes is overloaded so as to call multiplication on a
-        % distributed array. This multiplication will do the expected 2D
-        % transform on 'x'.
-        % For the moment mtimes is only implemented for right
-        % multiplication
-        function y=mtimes(op,x)
-            if ~isa(op,'oppDistFun')
-                error('Left multiplication not taken in account')
-            else
-                assert( isvector(x) , 'Please use vectorized matrix')
-                y = mtimes@opSpot(op,x);
-            end
-        end
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         % mtimes
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         % mtimes is overloaded so as to call multiplication on a
+%         % distributed array. This multiplication will do the expected 2D
+%         % transform on 'x'.
+%         % For the moment mtimes is only implemented for right
+%         % multiplication
+%         function y=mtimes(op,x)
+%             if ~isa(op,'oppDistFun')
+%                 error('Left multiplication not taken in account')
+%             else
+%                 assert( isvector(x) , 'Please use vectorized matrix')
+%                 y = mtimes@opSpot(op,x);
+%             end
+%         end
         
     end % methods
     
@@ -220,6 +220,13 @@ classdef oppDistFun < oppSpot
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
+            
+            if ~isa(op,'oppDistFun')
+                error('Left multiplication not taken in account')
+            else
+                assert( isvector(x) , 'Please use vectorized matrix')
+            end
+            
             % Setup variables
             ops = op.children;
             F   = op.fun;

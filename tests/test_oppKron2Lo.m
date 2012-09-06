@@ -91,7 +91,7 @@ x2 = distributed(x1);
 y1 = K1*x1(:);
 y2 = K2*x2(:);
 
-assertEqual(y1,y2);
+assertElementsAlmostEqual(y1,y2);
 
 end % dirac special
 
