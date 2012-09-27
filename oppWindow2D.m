@@ -35,7 +35,7 @@ classdef oppWindow2D < oppSpot
             op.global_size = gsize;
             op.sweepflag   = true;
             op.cflag       = 1;
-            op.linear      = 1;
+            op.linear      = false;
             
         end % constructor
     end % Public methods
@@ -52,6 +52,8 @@ classdef oppWindow2D < oppSpot
             
             if mode == 1
                 % Checks and assertions
+                m = op.global_size(1);
+                n = op.global_size(2);
                 if isdistributed(x)
                     spmd, cod = getCodistributor(x); end
                     cod = cod{1};
@@ -64,10 +66,6 @@ classdef oppWindow2D < oppSpot
                 else
                     error('x must be distributed')
                 end
-                
-                % Prepare variables
-                m = op.global_size(1);
-                n = op.global_size(2);
                 
                 % SPMD
                 spmd
@@ -95,7 +93,46 @@ classdef oppWindow2D < oppSpot
                 end % spmd
                 
             else % mode 2
+                % Checks and assertions
+                m = op.global_size(1);
+                n = op.global_size(2);
+                if isdistributed(x)
+                    spmd, cod = getCodistributor(x); end
+                    cod = cod{1};
+                    assert(cod.Dimension == 2,...
+                        'x must be distributed in the second dimension');
+                    assert(all(cod.Partition == cod.Partition(1)),...
+                        'Partition size must be the same across all labs');
+                    assert(all(cod.Cached.GlobalSize == [m/2 n*2]),...
+                        'Global size of data must be consistent with operator');
+                else
+                    error('x must be distributed')
+                end
                 
+                % SPMD
+                spmd
+                    loc_x = getLocalPart(x);
+                    
+                    % assign lab partners and swap data
+                    switch labindex
+                        case 1
+                            rec_x = labSendReceive(2,2,loc_x(:,n/4+1:end));
+                            loc_x = [loc_x(:,1:n/4); rec_x];
+                        case 2
+                            rec_x = labSendReceive(1,1,loc_x(:,1:n/4));
+                            loc_x = [rec_x; loc_x(:,n/4+1:end)];
+                        case 3
+                            rec_x = labSendReceive(4,4,loc_x(:,n/4+1:end));
+                            loc_x = [loc_x(:,1:n/4); rec_x];
+                        case 4
+                            rec_x = labSendReceive(3,3,loc_x(:,1:n/4));
+                            loc_x = [rec_x; loc_x(:,n/4+1:end)];
+                    end
+                    
+                    % Rebuild codistributed
+                    codist = codistributor1d(2,(n/4)*ones(1,numlabs),[m n]);
+                    y = codistributed.build(loc_x,codist,'noCommunication');
+                end % spmd
             end % if mode == 1
             
         end % Multiply
