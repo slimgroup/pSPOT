@@ -31,7 +31,7 @@ classdef oppWindow2D < oppSpot
             assert(mod(gsize(2),2) == 0, 'gsize dimensions must be even');
             
             % Build operator
-            op             = op@oppSpot('Window2D',gsize(1)/2, gsize(1));
+            op             = op@oppSpot('Window2D',prod(gsize), prod(gsize));
             op.global_size = gsize;
             op.sweepflag   = true;
             op.cflag       = 1;
@@ -52,24 +52,24 @@ classdef oppWindow2D < oppSpot
             
             if mode == 1
                 % Checks and assertions
+                assert(all(size(x) == [prod(op.global_size) 1]),...
+                    'Number of elements must be conserved');
                 m = op.global_size(1);
                 n = op.global_size(2);
                 if isdistributed(x)
                     spmd, cod = getCodistributor(x); end
                     cod = cod{1};
-                    assert(cod.Dimension == 2,...
-                        'x must be distributed in the second dimension');
                     assert(all(cod.Partition == cod.Partition(1)),...
                         'Partition size must be the same across all labs');
-                    assert(all(cod.Cached.GlobalSize == op.global_size),...
-                        'Global size of data must be consistent with operator');
                 else
                     error('x must be distributed')
                 end
                 
                 % SPMD
                 spmd
+                    % Get local part and reshape to correct chunk
                     loc_x = getLocalPart(x);
+                    loc_x = reshape(loc_x,[m n/4]);
                     
                     % assign lab partners and swap data
                     switch labindex
@@ -88,30 +88,30 @@ classdef oppWindow2D < oppSpot
                     end
                     
                     % Rebuild codistributed
-                    codist = codistributor1d(2,(n/2)*ones(1,numlabs),[m/2 2*n]);
-                    y = codistributed.build(loc_x,codist,'noCommunication');
+                    codist = codistributor1d(1,((m*n)/4)*ones(1,numlabs),[m*n 1]);
+                    y = codistributed.build(loc_x(:),codist,'noCommunication');
                 end % spmd
                 
             else % mode 2
                 % Checks and assertions
+                assert(all(size(x) == [prod(op.global_size) 1]),...
+                    'Number of elements must be conserved');
                 m = op.global_size(1);
                 n = op.global_size(2);
                 if isdistributed(x)
                     spmd, cod = getCodistributor(x); end
                     cod = cod{1};
-                    assert(cod.Dimension == 2,...
-                        'x must be distributed in the second dimension');
                     assert(all(cod.Partition == cod.Partition(1)),...
                         'Partition size must be the same across all labs');
-                    assert(all(cod.Cached.GlobalSize == [m/2 n*2]),...
-                        'Global size of data must be consistent with operator');
                 else
                     error('x must be distributed')
                 end
                 
                 % SPMD
                 spmd
+                    % Get local part and reshape
                     loc_x = getLocalPart(x);
+                    loc_x = reshape(loc_x,[m/2 n/2]);
                     
                     % assign lab partners and swap data
                     switch labindex
@@ -130,8 +130,8 @@ classdef oppWindow2D < oppSpot
                     end
                     
                     % Rebuild codistributed
-                    codist = codistributor1d(2,(n/4)*ones(1,numlabs),[m n]);
-                    y = codistributed.build(loc_x,codist,'noCommunication');
+                    codist = codistributor1d(1,((m*n)/4)*ones(1,numlabs),[m*n 1]);
+                    y = codistributed.build(loc_x(:),codist,'noCommunication');
                 end % spmd
             end % if mode == 1
             
