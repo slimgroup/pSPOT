@@ -67,7 +67,7 @@ classdef oppWindow2D < oppSpot
                 
                 % SPMD
                 spmd
-                    % Get local part and reshape to correct chunk
+                    % Get local part and reshape to correct chunksize
                     loc_x = getLocalPart(x);
                     loc_x = reshape(loc_x,[m n/4]);
                     
@@ -109,7 +109,7 @@ classdef oppWindow2D < oppSpot
                 
                 % SPMD
                 spmd
-                    % Get local part and reshape
+                    % Get local part and reshape to correct chunksize
                     loc_x = getLocalPart(x);
                     loc_x = reshape(loc_x,[m/2 n/2]);
                     
