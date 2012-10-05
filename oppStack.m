@@ -116,9 +116,10 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             % Initialize
-            str = ['[',char(op.children{1})];
+            opchildren = [op.children{:}];
+            str = ['[',char(opchildren{1})];
             
-            for ops=op.children(2:end)
+            for ops=opchildren(2:end)
                 str = strcat(str, '; ', char(ops{1}));
             end
             
