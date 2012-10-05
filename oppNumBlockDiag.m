@@ -121,6 +121,11 @@ methods
             
             % Weights processing
             loc_wgts   = weights(glo_ind);
+            % Gather weights
+            wgts_size  = codistributed.zeros(1,numlabs);
+            wgts_size(labindex) = length(loc_wgts);
+            wgts_cod   = codistributor1d(1,wgts_size,[sum(wgts_size) 1]);
+            loc_wgts   = codistributed.build(loc_wgts(:),wgts_cod);
 
             % Extract local m and n for future use
             loc_childs = getLocalPart(Cube);
@@ -140,7 +145,7 @@ methods
         op.cflag     = cflag;
         op.linear    = linear;
         op.children  = loc_childs; % Composite
-        op.weights   = loc_wgts; % Composite
+        op.weights   = loc_wgts; % Distributed
         op.sweepflag = false;
         op.gather    = gather;
         op.ncols     = ncols_x;
@@ -224,6 +229,7 @@ methods ( Access = protected )
         spmd
             % Multiply using opBlockDiag locally
             loc_x  = getLocalPart(x);
+            loc_wgts = getLocalPart(loc_wgts);
 
             if ~isempty(loc_childs)
                 num_ops = size(loc_childs,3); % number of blocks local to 
@@ -265,6 +271,7 @@ methods ( Access = protected )
             y     = codistributed.build(y,y_cod,'noCommunication');
 
         end % spmd
+        
         if mode == 1
             if op.gather == 1 || op.gather == 2
                 y = gather(y);

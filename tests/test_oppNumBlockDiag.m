@@ -54,8 +54,8 @@ function test_oppNumBlockDiag_weights
 % Test for negative scalar weights
 B    = distributed.randn(5,4,3);
 A    = oppNumBlockDiag(-2,B);
-wgts = A.weights;
-assertEqual(vertcat(wgts{:}),[-2;-2;-2]);
+wgts = gather(A.weights);
+assertEqual(wgts(:),[-2;-2;-2]);
 
 % Test for normal weights
 B    = randn(5,4,2);
