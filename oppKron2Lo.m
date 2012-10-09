@@ -106,9 +106,30 @@ classdef oppKron2Lo < oppSpot
                 end
             end
             
-            % Setting up implicit dimensions of output vector
-            op.ms = fliplr(cellfun(@(x) size(x,1),varargin)); % Flipped
-            op.ns = fliplr(cellfun(@(x) size(x,2),varargin));
+             % Setting up implicit dimensions of output vector
+            % Flipped
+            op.ms = {[] []}; op.ns = {[] []};
+            if length(opB.ms) > 1
+                op.ms{1} = [op.ms{1} opB.ms(:)'];
+            else
+                op.ms{1} = [op.ms{1} opB.ms{:}];
+            end
+            if length(opB.ns) > 1
+                op.ns{1} = [op.ns{1} opB.ns(:)'];
+            else
+                op.ns{1} = [op.ns{1} opB.ns{:}];
+            end
+            
+            if length(opA.ms) > 1
+                op.ms{2} = [op.ms{2} opA.ms(:)'];
+            else
+                op.ms{2} = [op.ms{2} opA.ms{:}];
+            end
+            if length(opA.ns) > 1
+                op.ns{2} = [op.ns{2} opA.ns(:)'];
+            else
+                op.ns{2} = [op.ns{2} opA.ns{:}];
+            end
             
         end % Constructor
         
@@ -130,34 +151,6 @@ classdef oppKron2Lo < oppSpot
                 str = strcat(str, '''');
             end
         end % Char
-        
-%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%         % mtimes
-%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%         % mtimes is overloaded so as to call multiplication on a
-%         % distributed array. This multiplication will do the expected 2D
-%         % transform on 'x'.
-%         % For the moment mtimes is only implemented for right
-%         % multiplication
-%         function y=mtimes(op,x)
-%             if isa(x,'SeisDataContainer')
-%                 y = mtimes(x,op,'swap');
-%             else
-%                 
-%                 if ~isa(op,'oppKron2Lo')
-%                     error('Left multiplication not taken in account')
-%                 elseif isa(x,'opSpot')    
-%                     y = opFoG(op,x);
-%                 elseif ~isa(x,'oppKron2Lo')
-%                     assert( isvector(x) , 'Please use vectorized matrix')
-%                     op.counter.plus1(op.tflag + 1 );
-%                     y=op.multiply(x, 1 ); % use tflag to determine mode
-%                                           % within multiply
-%                 else
-%                     error(['unsupported data type: ' class(x)]);
-%                 end
-%             end % catch
-%         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % transpose
