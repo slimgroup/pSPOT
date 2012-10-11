@@ -439,8 +439,8 @@ classdef oppKron2Lo < oppSpot
                     [rB,cB] = size(B);
                                         
                     if iscodistributed(x)
-                        y              = getLocalPart(x);
-                        loc_width      = length(y)/cB;
+                        y         = getLocalPart(x);
+                        loc_width = length(getLocalPart(x))/cB;
                         assert( mod(loc_width,1) == 0, ...
                             'x must be distributed along cols before vec')
                         y = reshape(y,cB,loc_width); % reshape to local 
