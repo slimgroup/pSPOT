@@ -298,5 +298,6 @@ classdef oppDictionary < oppSpot
             % Sweepable
             x = matldivide(op,b,mode);
         end % divide
+        
     end % Protected Methods    
 end % Classdef
