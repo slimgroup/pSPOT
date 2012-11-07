@@ -282,5 +282,13 @@ methods ( Access = protected )
             end
         end % gather
     end % Multiply
+    
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Divide
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = divide(op,b,mode)
+            % Non-Sweepable
+            x = lsqrdivide(op,b,mode);
+        end % divide
 end % Protected Methods    
 end % Classdef

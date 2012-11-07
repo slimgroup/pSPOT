@@ -283,6 +283,14 @@ classdef oppStack < oppSpot
             if op.gather
                 y = gather(y);
             end    %if we gathered, the data is on master client            
-        end % Multiply        
+        end % Multiply
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Divide
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = divide(op,b,mode)
+            % Sweepable
+            x = matldivide(op,b,mode);
+        end % divide
     end % Protected Methods    
 end % Classdef

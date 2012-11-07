@@ -44,11 +44,11 @@ classdef oppSweep < oppSpot
             
             % Construct
             op = op@oppSpot('pSweep', m, n);
-            op.cflag    = cflag;
-            op.linear   = linear;
-            op.children = opList;
-            op.sweepflag= true;
-            op.gather   = gather;
+            op.cflag     = cflag;
+            op.linear    = linear;
+            op.children  = opList;
+            op.sweepflag = true;
+            op.gather    = gather;
             
         end % constructor
         
@@ -155,6 +155,14 @@ classdef oppSweep < oppSpot
             end % gather
             
         end % Multiply
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Divide
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = divide(op,b,mode)
+            % Sweepable
+            x = matldivide(op,b,mode);
+        end % divide
         
     end % Protected methods
     
