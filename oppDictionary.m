@@ -221,7 +221,7 @@ classdef oppDictionary < oppSpot
                     loc_x = getLocalPart(x);
 
                     % Preallocate y
-                    y = zeros(y_size);
+                    y = zeros(y_size, class(loc_x));
 
                     if ~isempty(loc_childs)
                         for i=1:length(loc_childs)
@@ -267,7 +267,7 @@ classdef oppDictionary < oppSpot
 
                         y = opStack(loc_childs{:})*x;
                     else
-                        y = zeros(0,y_size(2));
+                        y = zeros(0,y_size(2), class(x));
                     end
                     
                     % Fill in y parts

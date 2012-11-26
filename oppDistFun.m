@@ -127,31 +127,6 @@ classdef oppDistFun < oppSpot
                 assert(all(codpart{i} == codpart{1}),...
             'Partition of distributed dimension must be the same');
             end
-            
-%             % Check for stuffs
-%             c = opss{1};
-%             lastdim  = size(c);
-%             lastdim  = lastdim(end);
-%             lastpart = getCodistributor(c);
-%             lastpart = lastpart.Partition;
-%             for i = 2:length(opss)
-%                 % Check for the consistency of the last dimension
-%                 sc = size(opss{i});
-%                 assert(sc(end) == lastdim,...
-%                   'The last dimension must be of the same length')
-%                 
-%                 % Check for isdistributed
-%                 assert(iscodistributed(opss{i}),'A must be distributed')
-%                 
-%                 % Check for the distributed dimension
-%                 cc = getCodistributor(opss{i});
-%                 assert(length(sc) == cc.Dimension,...
-%                     'A must be distributed along the last dimension')
-%                 
-%                 % Check for partition
-%                 assert(all(cc.Partition == lastpart),...
-%                     'Partition of distributed dimension must be the same')                
-%             end
                                     
             % Extract parameters from function
             cell_padding = cell(1,nargin(F)-1);

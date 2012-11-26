@@ -205,7 +205,7 @@ classdef oppBlockDiag < oppSpot
                         
                     end
                 else
-                    y = zeros(0,size(x,2));
+                    y = zeros(0,size(x,2), class(loc_x));
                 end
                 
                 % Check for sparsity
@@ -295,7 +295,7 @@ classdef oppBlockDiag < oppSpot
                         y_part(labindex) = loc_n;
                         
                         % Preallocate y
-                        y = zeros(loc_n,size(x,2));
+                        y = zeros(loc_n,size(x,2), class(loc_x));
                         
                         % Divide
                         j = 0; k = 0;
@@ -311,7 +311,7 @@ classdef oppBlockDiag < oppSpot
                         y_part(labindex) = loc_m;
                         
                         % Preallocate y
-                        y = zeros(loc_m,size(x,2));
+                        y = zeros(loc_m,size(x,2), class(loc_x));
                         
                         % Divide
                         j = 0; k = 0;

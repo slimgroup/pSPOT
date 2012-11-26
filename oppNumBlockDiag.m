@@ -240,13 +240,13 @@ methods ( Access = protected )
                 % child operators must be the same at this point.
                 loc_x = reshape(loc_x, [], n_cols, num_ops);
                 if mode == 1
-                    y = zeros(size(loc_childs,1), n_cols, num_ops);
+                    y = zeros(size(loc_childs,1), n_cols, num_ops, class(loc_x));
                     for k = 1:num_ops;
                         A        = loc_childs(:,:,k);
                         y(:,:,k) = loc_wgts(k) .* (A * loc_x(:,:,k));
                     end
                 else
-                    y = zeros(size(loc_childs,2), n_cols, num_ops);
+                    y = zeros(size(loc_childs,2), n_cols, num_ops, class(loc_x));
                     for k = 1:num_ops;
                         A        = loc_childs(:,:,k);
                         y(:,:,k) = conj(loc_wgts(k)).*(A' * loc_x(:,:,k));
@@ -258,7 +258,7 @@ methods ( Access = protected )
             else
                 % local part of distributed vector for nodes that do not 
                 % contain data is of size (0,1) for some reason
-                y = zeros(0,1);
+                y = zeros(0,1, class(loc_x));
             end
 
             % Check for sparsity
