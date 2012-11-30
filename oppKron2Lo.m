@@ -44,7 +44,6 @@ classdef oppKron2Lo < oppSpot
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     properties
-        tflag = 0;
         permutation; %Permutation vector of intergers defining the order to
         %use when the operators (children) of the Kronecker product are
         %applied to a data vector.
@@ -256,25 +255,7 @@ classdef oppKron2Lo < oppSpot
                 str=strcat(str,[', ',char(childs{i})]);
             end
             str=strcat(str,')');
-%             if op.tflag
-%                 str = strcat(str, '''');
-%             end
         end % Char
-        
-%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%         % transpose
-%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%         % transpose is overloaded to avoid wrapping the operator in an
-%         % opTranspose.
-%         function y = transpose(op)
-%             [m,n] = size(op);
-%             y = op; y.m = n; y.n = m;
-%             y.tflag =  ~op.tflag;
-%             y.permutation = op.permutation(end:-1:1);
-%         end
-%         function y = ctranspose(op)
-%             y = transpose(op);
-%         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % double
@@ -296,38 +277,22 @@ classdef oppKron2Lo < oppSpot
         % drandn is overloaded to create a distributed random vector
         function y = drandn(op,varargin)
         %DRANDN Random vector in operator domain
-%             if ~op.tflag
                 dims = [op.opsn(2), op.opsn(1)];
-%             else
-%                 dims = [op.opsm(2), op.opsm(1)];
-%             end
             y = distrandnvec( dims );
         end
         function y = rrandn(op,varargin)
             %RRANDN Random vector in operator range
-%             if ~op.tflag
                 dims = [op.opsm(2), op.opsm(1)];
-%             else
-%                 dims = [op.opsn(2), op.opsn(1)];
-%             end
             y = distrandnvec( dims );
         end
         function y = dzeros(op,varargin)
             %DZEROS Zero vector in operator domain
-%             if ~op.tflag
                 dims = [op.opsn(2), op.opsn(1)];
-%             else
-%                 dims = [op.opsm(2), op.opsm(1)];
-%             end
             y = distzeros( dims );
         end
         function y = rzeros(op,varargin)
             %RZEROS Zero vector in operator range
-%             if ~op.tflag
                 dims = [op.opsm(2), op.opsm(1)];
-%             else
-%                 dims = [op.opsn(2), op.opsn(1)];
-%             end
             y = distzeros( dims );
         end
         
@@ -357,19 +322,22 @@ classdef oppKron2Lo < oppSpot
             %Operators
             opA = op.A;
             opB = op.B;
-%             mtflag = mode == 2 && ~op.tflag || mode == 1 && op.tflag;
 
             % Transpose checking
             if mode == 2
-                op.permutation = op.permutation(end:-1:1);
-                opA = opA';
-                opB = opB';
+                op.permutation = fliplr(op.permutation);
             end
             
             %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%            
             
             if op.permutation(1)==2 %Classic multiplication order
                 spmd
+                    % For transpose case
+                    if mode == 2
+                        opA = opA';
+                        opB = opB';
+                    end
+                    
                     % Size of the operators
                     [rA,cA] = size(opA);
                     [rB,cB] = size(opB);
@@ -419,7 +387,13 @@ classdef oppKron2Lo < oppSpot
                 end
             else  %Inverted multiplication order
                 spmd
-                    %Size of the operators
+                    % For transpose case
+                    if mode == 2
+                        opA = opA';
+                        opB = opB';
+                    end
+                    
+                    % Size of the operators
                     [rA,cA] = size(opA);
                     [rB,cB] = size(opB);
                                         

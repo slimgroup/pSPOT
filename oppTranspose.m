@@ -94,11 +94,8 @@ classdef oppTranspose < oppSpot
            if size(varargin) == 1 % for easy multivectoring
                ncols = varargin{1};
            else
-               ncols = [];
+               ncols = 1;
            end
-%            tmp = A.children{1}.opsm;
-%            A.children{1}.opsm = A.children{1}.opsn;
-%            A.children{1}.opsn = tmp;
            x = rrandn(A.children{1},ncols);
        end
        
@@ -109,11 +106,8 @@ classdef oppTranspose < oppSpot
            if size(varargin) == 1 % for easy multivectoring
                ncols = varargin{1};
            else
-               ncols = [];
+               ncols = 1;
            end
-%            tmp = A.children{1}.opsm;
-%            A.children{1}.opsm = A.children{1}.opsn;
-%            A.children{1}.opsn = tmp;
            x = drandn(A.children{1},ncols);
        end
        
@@ -121,9 +115,6 @@ classdef oppTranspose < oppSpot
        % Dzeros
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function y = dzeros(op)
-%            tmp = op.children{1}.opsm;
-%            op.children{1}.opsm = op.children{1}.opsn;
-%            op.children{1}.opsn = tmp;
            y = rzeros(op.children{1});
        end
        
@@ -131,9 +122,6 @@ classdef oppTranspose < oppSpot
        % Rzeros
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function y = rzeros(op)
-%            tmp = op.children{1}.opsm;
-%            op.children{1}.opsm = op.children{1}.opsn;
-%            op.children{1}.opsn = tmp;
            y = dzeros(op.children{1});
        end
     

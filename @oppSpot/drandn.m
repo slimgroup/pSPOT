@@ -7,10 +7,9 @@ function y = drandn(op,varargin)
 %
 %   y = drandn(A,NCOLS) generates NCOLS vectors
 
-if isempty(varargin)
+ncols = [varargin{:}];
+if isempty(ncols)
     ncols = 1;
-else
-    ncols = varargin{1};
 end
 
 if length(op.opsn) > 1 % Distributed

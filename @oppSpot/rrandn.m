@@ -7,10 +7,9 @@ function y = rrandn(op,varargin)
 %
 %   y = rrandn(A,NCOLS) generates NCOLS vectors
 
-if isempty(varargin)
+ncols = [varargin{:}];
+if isempty(ncols)
     ncols = 1;
-else
-    ncols = varargin{1};
 end
 
 if length(op.opsm) > 1 % Distributed
