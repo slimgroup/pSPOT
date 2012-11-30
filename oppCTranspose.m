@@ -88,6 +88,9 @@ classdef oppCTranspose < oppSpot
            else
                ncols = [];
            end
+%            tmp = A.children{1}.opsm;
+%            A.children{1}.opsm = A.children{1}.opsn;
+%            A.children{1}.opsn = tmp;
            x = rrandn(A.children{1},ncols);
        end
        
@@ -100,6 +103,9 @@ classdef oppCTranspose < oppSpot
            else
                ncols = [];
            end
+%            tmp = A.children{1}.opsm;
+%            A.children{1}.opsm = A.children{1}.opsn;
+%            A.children{1}.opsn = tmp;
            x = drandn(A.children{1},ncols);
        end
        
@@ -107,14 +113,20 @@ classdef oppCTranspose < oppSpot
        % Dzeros
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function y = dzeros(op)
-          y = rzeros(op.children{1});
+%            tmp = A.children{1}.opsm;
+%            A.children{1}.opsm = A.children{1}.opsn;
+%            A.children{1}.opsn = tmp;
+           y = rzeros(op.children{1});
        end
        
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Rzeros
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function y = rzeros(op)
-          y = dzeros(op.children{1});
+%            tmp = A.children{1}.opsm;
+%            A.children{1}.opsm = A.children{1}.opsn;
+%            A.children{1}.opsn = tmp;
+           y = dzeros(op.children{1});
        end
        
     end % methods - public

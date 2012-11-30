@@ -58,33 +58,33 @@ classdef oppTranspose < oppSpot
        % Display
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function str = char(op)
-          op1 = op.children{1};
-          str = char(op1);
-          if op1.precedence > op.precedence
-             str = ['(', str, ')'];
-          end
-          str = [str ,'.'''];
+           op1 = op.children{1};
+           str = char(op1);
+           if op1.precedence > op.precedence
+               str = ['(', str, ')'];
+           end
+           str = [str ,'.'''];
        end % function char
        
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Conj
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function opOut = conj(op)
-          opOut = ctranspose(op.children{1});
+           opOut = ctranspose(op.children{1});
        end % function conj
        
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % CTranspose
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function opOut = ctranspose(op)
-          opOut = conj(op.children{1});
+           opOut = conj(op.children{1});
        end % function ctranspose
 
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Transpose
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function opOut = transpose(op)
-          opOut = op.children{1};
+           opOut = op.children{1};
        end % function transpose
        
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,6 +96,9 @@ classdef oppTranspose < oppSpot
            else
                ncols = [];
            end
+%            tmp = A.children{1}.opsm;
+%            A.children{1}.opsm = A.children{1}.opsn;
+%            A.children{1}.opsn = tmp;
            x = rrandn(A.children{1},ncols);
        end
        
@@ -108,6 +111,9 @@ classdef oppTranspose < oppSpot
            else
                ncols = [];
            end
+%            tmp = A.children{1}.opsm;
+%            A.children{1}.opsm = A.children{1}.opsn;
+%            A.children{1}.opsn = tmp;
            x = drandn(A.children{1},ncols);
        end
        
@@ -115,14 +121,20 @@ classdef oppTranspose < oppSpot
        % Dzeros
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function y = dzeros(op)
-          y = rzeros(op.children{1});
+%            tmp = op.children{1}.opsm;
+%            op.children{1}.opsm = op.children{1}.opsn;
+%            op.children{1}.opsn = tmp;
+           y = rzeros(op.children{1});
        end
        
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        % Rzeros
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function y = rzeros(op)
-          y = dzeros(op.children{1});
+%            tmp = op.children{1}.opsm;
+%            op.children{1}.opsm = op.children{1}.opsn;
+%            op.children{1}.opsn = tmp;
+           y = dzeros(op.children{1});
        end
     
     end % methods - public
