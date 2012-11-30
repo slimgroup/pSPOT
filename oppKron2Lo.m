@@ -256,25 +256,25 @@ classdef oppKron2Lo < oppSpot
                 str=strcat(str,[', ',char(childs{i})]);
             end
             str=strcat(str,')');
-            if op.tflag
-                str = strcat(str, '''');
-            end
+%             if op.tflag
+%                 str = strcat(str, '''');
+%             end
         end % Char
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % transpose
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % transpose is overloaded to avoid wrapping the operator in an
-        % opTranspose.
-        function y = transpose(op)
-            [m,n] = size(op);
-            y = op; y.m = n; y.n = m;
-            y.tflag =  ~op.tflag;
-            y.permutation = op.permutation(end:-1:1);
-        end
-        function y = ctranspose(op)
-            y = transpose(op);
-        end
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         % transpose
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         % transpose is overloaded to avoid wrapping the operator in an
+%         % opTranspose.
+%         function y = transpose(op)
+%             [m,n] = size(op);
+%             y = op; y.m = n; y.n = m;
+%             y.tflag =  ~op.tflag;
+%             y.permutation = op.permutation(end:-1:1);
+%         end
+%         function y = ctranspose(op)
+%             y = transpose(op);
+%         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % double
@@ -294,44 +294,44 @@ classdef oppKron2Lo < oppSpot
         % drandn/rrandn/zeros
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % drandn is overloaded to create a distributed random vector
-        function y = drandn(op)
+        function y = drandn(op,varargin)
         %DRANDN Random vector in operator domain
-            if ~op.tflag
+%             if ~op.tflag
                 dims = [op.opsn(2), op.opsn(1)];
-            else
-                dims = [op.opsm(2), op.opsm(1)];
-            end
+%             else
+%                 dims = [op.opsm(2), op.opsm(1)];
+%             end
             y = distrandnvec( dims );
         end
-        function y = rrandn(op)
+        function y = rrandn(op,varargin)
             %RRANDN Random vector in operator range
-            if ~op.tflag
+%             if ~op.tflag
                 dims = [op.opsm(2), op.opsm(1)];
-            else
-                dims = [op.opsn(2), op.opsn(1)];
-            end
+%             else
+%                 dims = [op.opsn(2), op.opsn(1)];
+%             end
             y = distrandnvec( dims );
         end
-        function y = dzeros(op)
+        function y = dzeros(op,varargin)
             %DZEROS Zero vector in operator domain
-            if ~op.tflag
+%             if ~op.tflag
                 dims = [op.opsn(2), op.opsn(1)];
-            else
-                dims = [op.opsm(2), op.opsm(1)];
-            end
+%             else
+%                 dims = [op.opsm(2), op.opsm(1)];
+%             end
             y = distzeros( dims );
         end
-        function y = rzeros(op)
+        function y = rzeros(op,varargin)
             %RZEROS Zero vector in operator range
-            if ~op.tflag
+%             if ~op.tflag
                 dims = [op.opsm(2), op.opsm(1)];
-            else
-                dims = [op.opsn(2), op.opsn(1)];
-            end
+%             else
+%                 dims = [op.opsn(2), op.opsn(1)];
+%             end
             y = distzeros( dims );
         end
         
-    end% Methods
+    end % Methods
     
     
     
@@ -355,28 +355,24 @@ classdef oppKron2Lo < oppSpot
             assert( isvector(x) , 'Please use vectorized matrix')
             
             %Operators
-            childA = op.A;
-            childB = op.B;
-            mtflag = mode == 2 && ~op.tflag || mode == 1 && op.tflag;
+            opA = op.A;
+            opB = op.B;
+%             mtflag = mode == 2 && ~op.tflag || mode == 1 && op.tflag;
+
+            % Transpose checking
+            if mode == 2
+                op.permutation = op.permutation(end:-1:1);
+                opA = opA';
+                opB = opB';
+            end
             
             %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%            
             
             if op.permutation(1)==2 %Classic multiplication order
                 spmd
-                    % Setup operators
-                    % we could have been called through opSpot.applyMultiply,
-                    % then we need to pay attention to mode.
-                    if mtflag
-                        A = childA';
-                        B = childB';
-                    else
-                        A = childA;
-                        B = childB;
-                    end
-                    
-                    %Size of the operators
-                    [rA,cA] = size(A);
-                    [rB,cB] = size(B);
+                    % Size of the operators
+                    [rA,cA] = size(opA);
+                    [rB,cB] = size(opB);
                     
                     if iscodistributed(x)
                         y              = getLocalPart(x);
@@ -391,11 +387,11 @@ classdef oppKron2Lo < oppSpot
                         y              = getLocalPart(y);
                     end
                     
-                    if ~B.isDirac
-                        y=B*y;% apply B to local matrices
+                    if ~opB.isDirac
+                        y=opB*y;% apply B to local matrices
                     end
                     
-                    if ~A.isDirac
+                    if ~opA.isDirac
                         y=y.'; % Tranpose
                         % Build y distributed across rows
                         y = codistributed.build(y, codistributor1d...
@@ -403,7 +399,7 @@ classdef oppKron2Lo < oppSpot
                         y = redistribute(y,codistributor1d(2));%distributed
                         % along cols
                         y = getLocalPart(y);
-                        y = A*y;% apply A to local matrices, then transpose
+                        y = opA*y;% apply A to local matrices, then transpose
                         y = y.'; % Now y is distributed across rows again
                         % Rebuild y as distributed across rows
                         y = codistributed.build(y,codistributor1d(1,...
@@ -423,20 +419,9 @@ classdef oppKron2Lo < oppSpot
                 end
             else  %Inverted multiplication order
                 spmd
-                    % Setup operators
-                    % we could have been called through opSpot.applyMultiply,
-                    % then we need to pay attention to mode.
-                    if mtflag
-                        A = childA';
-                        B = childB';
-                    else
-                        A = childA;
-                        B = childB;
-                    end
-                    
                     %Size of the operators
-                    [rA,cA] = size(A);
-                    [rB,cB] = size(B);
+                    [rA,cA] = size(opA);
+                    [rB,cB] = size(opB);
                                         
                     if iscodistributed(x)
                         y         = getLocalPart(x);
@@ -445,7 +430,7 @@ classdef oppKron2Lo < oppSpot
                             'x must be distributed along cols before vec')
                         y = reshape(y,cB,loc_width); % reshape to local 
                         
-                        if ~A.isDirac
+                        if ~opA.isDirac
                             y = y.'; % transpose since A is applied first
                             % Build y distributed across rows
                             y = codistributed.build(y, codistributor1d...
@@ -455,15 +440,15 @@ classdef oppKron2Lo < oppSpot
                         end
                     else
                         y = reshape(x,cB,cA);
-                        if ~A.isDirac
+                        if ~opA.isDirac
                             y = y.';
                             y = codistributed(y);
                         end
                     end
                     
-                    if ~A.isDirac
+                    if ~opA.isDirac
                         y = getLocalPart(y);
-                        y = A*y;% apply A to local matrices, then transpose
+                        y = opA*y;% apply A to local matrices, then transpose
                         y = y.';
                         
                         % Rebuild y distributed across rows
@@ -474,8 +459,8 @@ classdef oppKron2Lo < oppSpot
                         y = getLocalPart(y);
                     end
                     
-                    if ~B.isDirac
-                        y = B*y;% apply B to local matrices, no need to 
+                    if ~opB.isDirac
+                        y = opB*y;% apply B to local matrices, no need to 
                     end         % transpose
                     
                     % now vectorize y
@@ -488,10 +473,10 @@ classdef oppKron2Lo < oppSpot
                 end
             end
             % if op.gather, y = gather(y); end %#ok<PROP,CPROP>
-            if mode == 2 && ~op.tflag || mode ==1 && op.tflag % this is the
-                if op.gather == 1 || op.gather == 3           % correct
-                    y = gather(y);                            % adjoint
-                end                                           % case
+            if mode == 2 
+                if op.gather == 1 || op.gather == 3           
+                    y = gather(y);                            
+                end                                           
             else % this is the forward case
                 if op.gather == 1 || op.gather == 2
                     y = gather(y);

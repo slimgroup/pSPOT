@@ -42,8 +42,8 @@ classdef oppCTranspose < oppSpot
           op.linear      = A.linear;
           op.sweepflag   = true;
           op.children    = {A};
-          op.opsn = A.opsm;
-          op.opsm = A.opsn;
+          op.opsn        = A.opsm;
+          op.opsm        = A.opsn;
        end % function opCTranspose
       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -86,7 +86,7 @@ classdef oppCTranspose < oppSpot
            if size(varargin) == 1 % for easy multivectoring
                ncols = varargin{1};
            else
-               ncols = 1;
+               ncols = [];
            end
            x = rrandn(A.children{1},ncols);
        end
@@ -98,9 +98,23 @@ classdef oppCTranspose < oppSpot
            if size(varargin) == 1 % for easy multivectoring
                ncols = varargin{1};
            else
-               ncols = 1;
+               ncols = [];
            end
            x = drandn(A.children{1},ncols);
+       end
+       
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       % Dzeros
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function y = dzeros(op)
+          y = rzeros(op.children{1});
+       end
+       
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       % Rzeros
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function y = rzeros(op)
+          y = dzeros(op.children{1});
        end
        
     end % methods - public
