@@ -127,31 +127,6 @@ classdef oppDistFun < oppSpot
                 assert(all(codpart{i} == codpart{1}),...
             'Partition of distributed dimension must be the same');
             end
-            
-%             % Check for stuffs
-%             c = opss{1};
-%             lastdim  = size(c);
-%             lastdim  = lastdim(end);
-%             lastpart = getCodistributor(c);
-%             lastpart = lastpart.Partition;
-%             for i = 2:length(opss)
-%                 % Check for the consistency of the last dimension
-%                 sc = size(opss{i});
-%                 assert(sc(end) == lastdim,...
-%                   'The last dimension must be of the same length')
-%                 
-%                 % Check for isdistributed
-%                 assert(iscodistributed(opss{i}),'A must be distributed')
-%                 
-%                 % Check for the distributed dimension
-%                 cc = getCodistributor(opss{i});
-%                 assert(length(sc) == cc.Dimension,...
-%                     'A must be distributed along the last dimension')
-%                 
-%                 % Check for partition
-%                 assert(all(cc.Partition == lastpart),...
-%                     'Partition of distributed dimension must be the same')                
-%             end
                                     
             % Extract parameters from function
             cell_padding = cell(1,nargin(F)-1);
@@ -192,23 +167,6 @@ classdef oppDistFun < oppSpot
             
         end % Display
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % mtimes
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % mtimes is overloaded so as to call multiplication on a
-        % distributed array. This multiplication will do the expected 2D
-        % transform on 'x'.
-        % For the moment mtimes is only implemented for right
-        % multiplication
-        function y=mtimes(op,x)
-            if ~isa(op,'oppDistFun')
-                error('Left multiplication not taken in account')
-            else
-                assert( isvector(x) , 'Please use vectorized matrix')
-                y = mtimes@opSpot(op,x);
-            end
-        end
-        
     end % methods
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -220,6 +178,13 @@ classdef oppDistFun < oppSpot
         % Multiply
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function y = multiply(op,x,mode)
+            
+            if ~isa(op,'oppDistFun')
+                error('Left multiplication not taken in account')
+            else
+                assert( isvector(x) , 'Please use vectorized matrix')
+            end
+            
             % Setup variables
             ops = op.children;
             F   = op.fun;
@@ -277,6 +242,14 @@ classdef oppDistFun < oppSpot
             y = pSPOT.utils.gatherchk(y,mode,op.gather);
             
         end % multiply
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Divide
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = divide(op,b,mode)
+            % Sweepable
+            x = matldivide(op,b,mode);
+        end % divide
         
     end % Protected methods
     

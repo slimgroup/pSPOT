@@ -42,8 +42,8 @@ classdef oppCTranspose < oppSpot
           op.linear      = A.linear;
           op.sweepflag   = true;
           op.children    = {A};
-          op.opsn = A.opsm;
-          op.opsm = A.opsn;
+          op.opsn        = A.opsm;
+          op.opsm        = A.opsn;
        end % function opCTranspose
       
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -103,6 +103,20 @@ classdef oppCTranspose < oppSpot
            x = drandn(A.children{1},ncols);
        end
        
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       % Dzeros
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function y = dzeros(op)
+           y = rzeros(op.children{1});
+       end
+       
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       % Rzeros
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       function y = rzeros(op)
+           y = dzeros(op.children{1});
+       end
+       
     end % methods - public
 
     methods( Access = protected )
@@ -112,9 +126,9 @@ classdef oppCTranspose < oppSpot
        function y = multiply(op,x,mode)
            A = op.children{1};
            if mode == 1
-              y = applyMultiply(A,x,2);
+              y = multiply(A,x,2);
            else
-              y = applyMultiply(A,x,1);
+              y = multiply(A,x,1);
            end
        end % function multiply
 
@@ -124,9 +138,9 @@ classdef oppCTranspose < oppSpot
        function y = divide(op,x,mode)
           A = op.children{1};
           if mode == 1
-             y = applyDivide(A,x,2);
+             y = divide(A,x,2);
           else
-             y = applyDivide(A,x,1);
+             y = divide(A,x,1);
           end
        end % function divide
 

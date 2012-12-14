@@ -44,7 +44,6 @@ classdef oppKron2Lo < oppSpot
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     properties
-        tflag = 0;
         permutation; %Permutation vector of intergers defining the order to
         %use when the operators (children) of the Kronecker product are
         %applied to a data vector.
@@ -106,12 +105,142 @@ classdef oppKron2Lo < oppSpot
                 end
             end
             
-            % Setting up implicit dimensions of output vector
-            op.ms = fliplr(cellfun(@(x) size(x,1),varargin)); % Flipped
-            op.ns = fliplr(cellfun(@(x) size(x,2),varargin));
+             % Setting up implicit dimensions of output vector
+            % Flipped
+            op.ms = {[] []}; op.ns = {[] []};
+            if length(opB.ms) > 1
+                op.ms{1} = [op.ms{1} opB.ms(:)'];
+            else
+                op.ms{1} = [op.ms{1} opB.ms{:}];
+            end
+            if length(opB.ns) > 1
+                op.ns{1} = [op.ns{1} opB.ns(:)'];
+            else
+                op.ns{1} = [op.ns{1} opB.ns{:}];
+            end
+            
+            if length(opA.ms) > 1
+                op.ms{2} = [op.ms{2} opA.ms(:)'];
+            else
+                op.ms{2} = [op.ms{2} opA.ms{:}];
+            end
+            if length(opA.ns) > 1
+                op.ns{2} = [op.ns{2} opA.ns(:)'];
+            else
+                op.ns{2} = [op.ns{2} opA.ns{:}];
+            end
             
         end % Constructor
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % headerMod
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function h = headerMod(op,header,mode)
+            % Extract explicit size indices
+            exsize = header.exsize;
+            href   = @spot.data.headerRef; % Used function handles because its shorter
+            hasg   = @spot.data.headerAsgn;
+
+            if mode == 1
+                
+                % Setup variables
+                opList = {op.B{1} op.A{1}}; % Last op applied first
+                % Number of output dimensions
+                n_out_dims = length(spot.utils.uncell(op.ms)) + size(exsize,2) - 1;
+                
+                % Preallocate and setup header
+                header_out        = header;
+                header_out.dims   = n_out_dims;
+                header_out.size   = zeros(1,n_out_dims);
+                header_out.origin = zeros(1,n_out_dims);
+                header_out.delta  = zeros(1,n_out_dims);
+                header_out.unit   = zeros(1,n_out_dims);
+                header_out.label  = zeros(1,n_out_dims);
+                
+                % Fill in the non-first-dimension header parts
+                if size(exsize,2) > 1
+                    h_part = href(header,exsize(1,2):exsize(end,end));
+                    header_out = hasg(header_out,h_part,...
+                        length(spot.utils.uncell(op.ms))+1:...
+                        length(header_out.size));
+                end
+                
+                % Replace old first (collapsed) dimensional sizes with operator sizes.
+                i = 1;
+                x = 1;
+                % Extract collapsed first dims from header.
+                first_header = href(header,exsize(:,1));
+                for u = 1:2
+                    % Input header (including collapsed)
+                    y            = length(spot.utils.uncell(op.ns{u})) + x - 1;
+                    in_header    = href(first_header,x:y);
+                    in_header.exsize = [1;y-x+1];
+                    % child header
+                    child_header = headerMod(opList{u},in_header,mode);
+                    % Assignment indices
+                    j            = length(spot.utils.uncell(op.ms{u})) + i - 1;
+                    % header assignment
+                    oldsize      = length(header_out.size);
+                    header_out   = hasg(header_out,child_header,i:j);
+                    newsize      = length(header_out.size);
+                    i            = j + 1 + newsize - oldsize;
+                    x            = y + 1;
+                end
+                exsize_out = 1:length(header_out.size);
+                exsize_out = [exsize_out;exsize_out];
+                h = header_out;
+                h.exsize = exsize_out;
+            else
+                % Setup variables
+                opList = {op.B{1} op.A{1}}; % Last op applied first
+                % Number of output dimensions
+                n_out_dims = length(spot.utils.uncell(op.ns)) + size(exsize,2) - 1;
+                
+                % Preallocate and setup header
+                header_out        = header;
+                header_out.dims   = n_out_dims;
+                header_out.size   = zeros(1,n_out_dims);
+                header_out.origin = zeros(1,n_out_dims);
+                header_out.delta  = zeros(1,n_out_dims);
+                header_out.unit   = zeros(1,n_out_dims);
+                header_out.label  = zeros(1,n_out_dims);
+                
+                % Fill in the non-first-dimension header parts
+                if size(exsize,2) > 1
+                    h_part = href(header,exsize(1,2):exsize(end,end));
+                    header_out = hasg(header_out,h_part,...
+                        length(spot.utils.uncell(op.ms))+1:...
+                        length(header_out.size));
+                end
+                
+                % Replace old first (collapsed) dimensional sizes with operator sizes.
+                i = 1;
+                x = 1;
+                % Extract collapsed first dims from header.
+                first_header = href(header,exsize(:,1));
+                for u = 1:2
+                    % Input header (including collapsed)
+                    y            = length(spot.utils.uncell(op.ms{u})) + x - 1;
+                    in_header    = href(first_header,x:y);
+                    in_header.exsize = [1;y-x+1];
+                    % child header
+                    child_header = headerMod(opList{u},in_header,mode);
+                    % Assignment indices
+                    j            = length(spot.utils.uncell(op.ns{u})) + i - 1;
+                    % header assignment
+                    oldsize      = length(header_out.size);
+                    header_out   = hasg(header_out,child_header,i:j);
+                    newsize      = length(header_out.size);
+                    i            = j + 1 + newsize - oldsize;
+                    x            = y + 1;
+                end
+                exsize_out = 1:length(header_out.size);
+                exsize_out = [exsize_out;exsize_out];
+                h = header_out;
+                h.exsize = exsize_out;
+            end
+            
+        end % headerMod
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Display
@@ -126,53 +255,7 @@ classdef oppKron2Lo < oppSpot
                 str=strcat(str,[', ',char(childs{i})]);
             end
             str=strcat(str,')');
-            if op.tflag
-                str = strcat(str, '''');
-            end
         end % Char
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % mtimes
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % mtimes is overloaded so as to call multiplication on a
-        % distributed array. This multiplication will do the expected 2D
-        % transform on 'x'.
-        % For the moment mtimes is only implemented for right
-        % multiplication
-        function y=mtimes(op,x)
-            if isa(x,'SeisDataContainer')
-                y = mtimes(x,op,'swap');
-            else
-                
-                if ~isa(op,'oppKron2Lo')
-                    error('Left multiplication not taken in account')
-                elseif isa(x,'opSpot')    
-                    y = opFoG(op,x);
-                elseif ~isa(x,'oppKron2Lo')
-                    assert( isvector(x) , 'Please use vectorized matrix')
-                    op.counter.plus1(op.tflag + 1 );
-                    y=op.multiply(x, 1 ); % use tflag to determine mode
-                                          % within multiply
-                else
-                    error(['unsupported data type: ' class(x)]);
-                end
-            end % catch
-        end
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % transpose
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % transpose is overloaded to avoid wrapping the operator in an
-        % opTranspose.
-        function y = transpose(op)
-            [m,n] = size(op);
-            y = op; y.m = n; y.n = m;
-            y.tflag =  ~op.tflag;
-            y.permutation = op.permutation(end:-1:1);
-        end
-        function y = ctranspose(op)
-            y = transpose(op);
-        end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % double
@@ -192,44 +275,28 @@ classdef oppKron2Lo < oppSpot
         % drandn/rrandn/zeros
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % drandn is overloaded to create a distributed random vector
-        function y = drandn(op)
+        function y = drandn(op,varargin)
         %DRANDN Random vector in operator domain
-            if ~op.tflag
                 dims = [op.opsn(2), op.opsn(1)];
-            else
-                dims = [op.opsm(2), op.opsm(1)];
-            end
             y = distrandnvec( dims );
         end
-        function y = rrandn(op)
+        function y = rrandn(op,varargin)
             %RRANDN Random vector in operator range
-            if ~op.tflag
                 dims = [op.opsm(2), op.opsm(1)];
-            else
-                dims = [op.opsn(2), op.opsn(1)];
-            end
             y = distrandnvec( dims );
         end
-        function y = dzeros(op)
+        function y = dzeros(op,varargin)
             %DZEROS Zero vector in operator domain
-            if ~op.tflag
                 dims = [op.opsn(2), op.opsn(1)];
-            else
-                dims = [op.opsm(2), op.opsm(1)];
-            end
             y = distzeros( dims );
         end
-        function y = rzeros(op)
+        function y = rzeros(op,varargin)
             %RZEROS Zero vector in operator range
-            if ~op.tflag
                 dims = [op.opsm(2), op.opsm(1)];
-            else
-                dims = [op.opsn(2), op.opsn(1)];
-            end
             y = distzeros( dims );
         end
         
-    end% Methods
+    end % Methods
     
     
     
@@ -248,29 +315,32 @@ classdef oppKron2Lo < oppSpot
             % taking in account the best order to apply the operators A and
             % B.
             
+            % Check for op and  x
+            assert(isa(op,'oppKron2Lo'),'Left multiplication not taken in account')
+            assert( isvector(x) , 'Please use vectorized matrix')
+            
             %Operators
-            childA = op.A;
-            childB = op.B;
-            mtflag = mode == 2 && ~op.tflag || mode == 1 && op.tflag;
+            opA = op.A;
+            opB = op.B;
+
+            % Transpose checking
+            if mode == 2
+                op.permutation = fliplr(op.permutation);
+            end
             
             %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%            
             
             if op.permutation(1)==2 %Classic multiplication order
                 spmd
-                    % Setup operators
-                    % we could have been called through opSpot.applyMultiply,
-                    % then we need to pay attention to mode.
-                    if mtflag
-                        A = childA';
-                        B = childB';
-                    else
-                        A = childA;
-                        B = childB;
+                    % For transpose case
+                    if mode == 2
+                        opA = opA';
+                        opB = opB';
                     end
                     
-                    %Size of the operators
-                    [rA,cA] = size(A);
-                    [rB,cB] = size(B);
+                    % Size of the operators
+                    [rA,cA] = size(opA);
+                    [rB,cB] = size(opB);
                     
                     if iscodistributed(x)
                         y              = getLocalPart(x);
@@ -285,11 +355,11 @@ classdef oppKron2Lo < oppSpot
                         y              = getLocalPart(y);
                     end
                     
-                    if ~B.isDirac
-                        y=B*y;% apply B to local matrices
+                    if ~opB.isDirac
+                        y=opB*y;% apply B to local matrices
                     end
                     
-                    if ~A.isDirac
+                    if ~opA.isDirac
                         y=y.'; % Tranpose
                         % Build y distributed across rows
                         y = codistributed.build(y, codistributor1d...
@@ -297,7 +367,7 @@ classdef oppKron2Lo < oppSpot
                         y = redistribute(y,codistributor1d(2));%distributed
                         % along cols
                         y = getLocalPart(y);
-                        y = A*y;% apply A to local matrices, then transpose
+                        y = opA*y;% apply A to local matrices, then transpose
                         y = y.'; % Now y is distributed across rows again
                         % Rebuild y as distributed across rows
                         y = codistributed.build(y,codistributor1d(1,...
@@ -317,29 +387,24 @@ classdef oppKron2Lo < oppSpot
                 end
             else  %Inverted multiplication order
                 spmd
-                    % Setup operators
-                    % we could have been called through opSpot.applyMultiply,
-                    % then we need to pay attention to mode.
-                    if mtflag
-                        A = childA';
-                        B = childB';
-                    else
-                        A = childA;
-                        B = childB;
+                    % For transpose case
+                    if mode == 2
+                        opA = opA';
+                        opB = opB';
                     end
                     
-                    %Size of the operators
-                    [rA,cA] = size(A);
-                    [rB,cB] = size(B);
+                    % Size of the operators
+                    [rA,cA] = size(opA);
+                    [rB,cB] = size(opB);
                                         
                     if iscodistributed(x)
-                        y              = getLocalPart(x);
-                        loc_width      = length(y)/cB;
+                        y         = getLocalPart(x);
+                        loc_width = length(getLocalPart(x))/cB;
                         assert( mod(loc_width,1) == 0, ...
                             'x must be distributed along cols before vec')
                         y = reshape(y,cB,loc_width); % reshape to local 
                         
-                        if ~A.isDirac
+                        if ~opA.isDirac
                             y = y.'; % transpose since A is applied first
                             % Build y distributed across rows
                             y = codistributed.build(y, codistributor1d...
@@ -349,15 +414,15 @@ classdef oppKron2Lo < oppSpot
                         end
                     else
                         y = reshape(x,cB,cA);
-                        if ~A.isDirac
+                        if ~opA.isDirac
                             y = y.';
                             y = codistributed(y);
                         end
                     end
                     
-                    if ~A.isDirac
+                    if ~opA.isDirac
                         y = getLocalPart(y);
-                        y = A*y;% apply A to local matrices, then transpose
+                        y = opA*y;% apply A to local matrices, then transpose
                         y = y.';
                         
                         % Rebuild y distributed across rows
@@ -368,8 +433,8 @@ classdef oppKron2Lo < oppSpot
                         y = getLocalPart(y);
                     end
                     
-                    if ~B.isDirac
-                        y = B*y;% apply B to local matrices, no need to 
+                    if ~opB.isDirac
+                        y = opB*y;% apply B to local matrices, no need to 
                     end         % transpose
                     
                     % now vectorize y
@@ -382,16 +447,24 @@ classdef oppKron2Lo < oppSpot
                 end
             end
             % if op.gather, y = gather(y); end %#ok<PROP,CPROP>
-            if mode == 2 && ~op.tflag || mode ==1 && op.tflag % this is the
-                if op.gather == 1 || op.gather == 3           % correct
-                    y = gather(y);                            % adjoint
-                end                                           % case
+            if mode == 2 
+                if op.gather == 1 || op.gather == 3           
+                    y = gather(y);                            
+                end                                           
             else % this is the forward case
                 if op.gather == 1 || op.gather == 2
                     y = gather(y);
                 end
             end % gather
         end % Multiply
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Divide
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = divide(op,b,mode)
+            % Sweepable
+            x = matldivide(op,b,mode);
+        end % divide
     end %Protected methods
     
 end % Classdef

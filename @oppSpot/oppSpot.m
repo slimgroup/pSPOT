@@ -1,4 +1,4 @@
-classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
+classdef oppSpot < opSpot
    %oppSpot pSpot operator super class.
    %
         
@@ -7,7 +7,6 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    properties
       gather = 0;
-      weights;
       opsn = []; % Distribution scheme of operator domain
       opsm = []; % Distribution scheme of operator range
    end %properties
@@ -30,10 +29,6 @@ classdef (InferiorClasses = {?opSpot}) oppSpot < opSpot
    % Protected methods
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    methods( Access = protected )
-      
-      function x = applyDivide(op,x,mode)
-         x = divide(op,x,mode);
-      end
       
       % Signature of external protected functions
       x = divide(op,x,mode);

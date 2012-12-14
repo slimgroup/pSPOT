@@ -221,7 +221,7 @@ classdef oppDictionary < oppSpot
                     loc_x = getLocalPart(x);
 
                     % Preallocate y
-                    y = zeros(y_size);
+                    y = zeros(y_size, class(loc_x));
 
                     if ~isempty(loc_childs)
                         for i=1:length(loc_childs)
@@ -246,7 +246,7 @@ classdef oppDictionary < oppSpot
                 if isdistributed(x)
                     spmd, x_cod = getCodistributor(x); end
                     x_cod = x_cod{1};
-                    assert(x_cod.Dimension == 1,...
+                    assert(~(x_cod.Dimension == 1),...
                         'x cannot be distributed along first dimension');
                 end
 
@@ -267,7 +267,7 @@ classdef oppDictionary < oppSpot
 
                         y = opStack(loc_childs{:})*x;
                     else
-                        y = zeros(0,y_size(2));
+                        y = zeros(0,y_size(2), class(x));
                     end
                     
                     % Fill in y parts
@@ -289,6 +289,15 @@ classdef oppDictionary < oppSpot
                 y = gather(y);
             end % if we gathered, the data is on master client
             
-        end % Multiply        
+        end % Multiply
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Divide
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = divide(op,b,mode)
+            % Sweepable
+            x = matldivide(op,b,mode);
+        end % divide
+        
     end % Protected Methods    
 end % Classdef

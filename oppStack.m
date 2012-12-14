@@ -116,9 +116,10 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function str = char(op)
             % Initialize
-            str = ['[',char(op.children{1})];
+            opchildren = [op.children{:}];
+            str = ['[',char(opchildren{1})];
             
-            for ops=op.children(2:end)
+            for ops=opchildren(2:end)
                 str = strcat(str, '; ', char(ops{1}));
             end
             
@@ -207,7 +208,7 @@ classdef oppStack < oppSpot
                         end
                         y = opStack(loc_childs{:})*x;
                     else
-                        y = zeros(0,y_size(2));
+                        y = zeros(0,y_size(2), class(x));
                     end
                     
                     % Fill in the yparts
@@ -256,7 +257,7 @@ classdef oppStack < oppSpot
                     loc_x = getLocalPart(x);
 
                     % Preallocate y
-                    y = zeros(y_size);
+                    y = zeros(y_size, class(loc_x));
 
                     if ~isempty(loc_childs)
                         for i=1:length(loc_childs)
@@ -282,6 +283,14 @@ classdef oppStack < oppSpot
             if op.gather
                 y = gather(y);
             end    %if we gathered, the data is on master client            
-        end % Multiply        
+        end % Multiply
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Divide
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function x = divide(op,b,mode)
+            % Sweepable
+            x = matldivide(op,b,mode);
+        end % divide
     end % Protected Methods    
 end % Classdef
