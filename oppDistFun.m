@@ -134,7 +134,7 @@ classdef oppDistFun < oppSpot
             m     = func_info(1); n       = func_info(2); 
             cflag = func_info(3); linflag = func_info(4);
             
-            if ~isposintscalar(m) || ~isposintscalar(n) % check m and n
+            if ~spot.utils.isposintscalar(m) || ~spot.utils.isposintscalar(n) % check m and n
               error('Dimensions of operator must be positive integers.');
             end
             
