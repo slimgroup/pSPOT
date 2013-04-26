@@ -74,7 +74,7 @@ classdef oppDictionary < oppSpot
                 weights = weights(:);
                 
                 if nargs == 2 % Repeating ops                    
-                    if isposintscalar(varargin{1}) % repeat N times
+                    if spot.utils.isposintscalar(varargin{1}) % repeat N times
                         weights     = ones(weights,1);                        
                     end % Else: Repeating as many times as there are weights
                     

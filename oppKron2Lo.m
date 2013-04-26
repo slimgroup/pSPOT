@@ -4,7 +4,7 @@ classdef oppKron2Lo < oppSpot
     %   oppKron2Lo(A,B, gather)A and B are Spot operators or numeric 
     %   matrices. Optional param gather specifies whether the output vector
     %   should be gathered to local lab.
-    %   GATHER = 0 will not gather
+    %   GATHER = 0 will not gather (default)
     %   GATHER = 1 will gather the results of forwards or adjoint
     %   multiplication.
     %   GATHER = 2 will gather only in forward mode.
