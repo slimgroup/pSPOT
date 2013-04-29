@@ -413,10 +413,15 @@ classdef oppKron2Lo < oppSpot
                             y = redistribute(y,codistributor1d(2));
                         end
                     else
-                        y = reshape(x,cB,cA);
+                        y = codistributed(reshape(x,cB,cA),...
+                            codistributor1d(2));
+                        y = getLocalPart(y);
                         if ~opA.isDirac
                             y = y.';
-                            y = codistributed(y);
+                            y = codistributed.build(y, codistributor1d...
+                                (1,[],[cA,cB]),'noCommunication');
+                            % Redistribute y across cols
+                            y = codistributed(y,codistributor1d(2));
                         end
                     end
                     
