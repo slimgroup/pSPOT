@@ -1,4 +1,4 @@
-classdef oppSpot < opSpot
+classdef (HandleCompatible) oppSpot < opSpot
    %oppSpot pSpot operator super class.
    %
         

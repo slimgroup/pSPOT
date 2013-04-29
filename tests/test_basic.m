@@ -13,10 +13,10 @@ function test_basic_mtimesdistribution
     end
     
     y1 = 2*x;
-    y1 = opDirac(10)*y1;
+    y1 = oppDirac(10)*y1;
     y1 = 0.1*y1;
     
-    y2 = 0.5*opDirac(10)*2*x;
+    y2 = 0.5*oppDirac(10)*2*x;
     
     spmd
         l1 = length(getLocalPart(y1));
