@@ -246,8 +246,9 @@ classdef oppDictionary < oppSpot
                 if isdistributed(x)
                     spmd, x_cod = getCodistributor(x); end
                     x_cod = x_cod{1};
-                    assert(~(x_cod.Dimension == 1),...
+                    assert(x_cod.Dimension ~= 1,...
                         'x cannot be distributed along first dimension');
+                    x = gather(x);
                 end
 
                 % Setting up class variables and partition sizes
