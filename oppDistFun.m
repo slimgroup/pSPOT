@@ -60,6 +60,8 @@ classdef oppDistFun < oppSpot
         fun;
         local_m;
         local_n;
+        sizA;
+        ndimA;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,6 +143,7 @@ classdef oppDistFun < oppSpot
             
             % Setup sizes
             sizA    = size(varargin{1});
+            ndimA   = ndims(varargin{1});
             m_total = m*sizA(end);
             n_total = n*sizA(end);
             clear varargin;
@@ -157,6 +160,8 @@ classdef oppDistFun < oppSpot
             op.gather    = opgather;
             op.opsn      = n*ones(1,sizA(end));
             op.opsm      = m*ones(1,sizA(end));
+            op.sizA      = sizA;
+            op.ndimA     = ndimA;
             
         end % constructor
         
@@ -194,6 +199,7 @@ classdef oppDistFun < oppSpot
             else
                 xsize = op.local_m;
             end
+            ndimA = op.ndimA;
             
             % distribute x if necessary
             x = pSPOT.utils.scatterchk(x,mode,op.gather);
@@ -201,34 +207,47 @@ classdef oppDistFun < oppSpot
             
             % Check for the distribution of x
             assert(isdistributed(x),'X must be distributed')
-                                                
+            
             spmd
                 % Setup local parts
                 xloc = getLocalPart(x);
                 for i = 1:length(ops)
-                   ops{i} = getLocalPart(ops{i}); 
+                   ops{i} = getLocalPart(ops{i});
                 end
                 
-                % Setup y
-                sizeA = size(ops{1});
-                y     = cell(1,sizeA(end));
+                % determine local size in the distributed dimension
+                if ndims(ops{1}) < ndimA
+                  % happens when loacal size == 1
+                  nSliceA_local = 1;
+                else
+                  sizeA = size(ops{1});
+                  nSliceA_local = sizeA(end);
+                end
                 
-                % Loop over the slices and apply F
-                n = 0;
-                for i=1:sizeA(end)
-                    slice = cell(1,length(ops));
-                    for j = 1:length(ops) % Get last-dimensional slice
-                       slice{j} = pSPOT.utils.ldind(ops{j},i); 
-                    end
+                if nSliceA_local > 0
+                  % Setup y (not sure what the sizes of the other dims will be, so we initialize with cell arrays)
+                  y = cell(1,nSliceA_local);
+                
+                  % Loop over the slices and apply F
+                  n = 0;
+                  for i=1:nSliceA_local
+                      slice = cell(1,length(ops));
+                      for j = 1:length(ops) % Get last-dimensional slice
+                         slice{j} = pSPOT.utils.ndind(ops{j},ndimA,ndimA,i);
+                      end
                     
-                    % Get x slice
-                    xslice = xloc(1 + n : xsize + n);
-                    y{i} = F(slice{:},xslice,mode);
-                    n = n + xsize;
-                end
+                      % Get x slice
+                      xslice = xloc(1 + n : xsize + n);
+                      y{i} = F(slice{:},xslice,mode);
+                      n = n + xsize;
+                  end
                 
-                % Stack y together
-                y = vertcat(y{:});
+                  % Stack y together
+                  y = vertcat(y{:});
+                else
+                  % this worker recieved no slices, so will contribute an empty y (needs to be 2d because codistributor1d expects at least 2d)
+                  y = zeros(0,1);
+                end
                 
                 % Build y
                 ypart = codistributed.zeros(1,numlabs);
@@ -236,7 +255,6 @@ classdef oppDistFun < oppSpot
                 ygsize = [sum(gather(ypart)) 1];
                 ycod = codistributor1d(1,ypart,ygsize);
                 y = codistributed.build(y,ycod,'noCommunication');
-                
             end % spmd
             
             % gather
