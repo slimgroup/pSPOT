@@ -1,5 +1,5 @@
 classdef oppDistFun < oppSpot
-    %OPPDISTFUN     Becuz u noe dis'fun!
+    %OPPDISTFUN     Fun(ction) evaluation over slices of distributed arrays
     %
     %   Q = oppDistFun(A1,A2,...,AN,F,GATHER), where A1,A2,...,AN are 
     %   distributed arrays and F is a function handle that takes in local 
@@ -24,32 +24,33 @@ classdef oppDistFun < oppSpot
     %            multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
-    %
-    %   Use case to keep in mind:
-    %   (Ax - s)
-    %
-    %     A = length m x n
-    %     s = length n
+    %   
+    %   ## Example use case:
+    %   
+    %   Computing expression over distributed index k
+    %     y_k = (A_k * x_k - s_k)
+    %   where
+    %     A = size m by n by k
+    %     x = size n by k
+    %     s = size k
+    %     (A, x, s are all distributed over the last dimension where size=k)
     % 
-    %     P <---- constructs like oppFunComposite({A,s},F)
+    %   We write a custom function F that performs (Ax-s) for each k
+    %     F <-- function y = F(A, B, x, mode)
+    %               if mode==1
+    %               y = A * x - B;
+    %               elseif mode==2
+    %               y = A' * x - conj(B);
+    %               elseif mode=='0'
+    %               retrun {m, n}
+    %           end
     % 
-    %     F <-- function  y = functionF(A, B, x, mode)
-    %            if mode==1
-    %            y = A * x - B;
-    %            elseif mode==2
-    %            y = A' * x - conj(B);
-    %            elseif mode=='0'
-    %            retrun {m, n}
-    %          end
+    %     P <---- constructed with `oppDistFun({A,s},F)`
     % 
-    %     A distributed over last dim (2)
-    %     s distributed over last dim (1)
+    %     Then y = P*x will perform:
     % 
-    %     want P to do
-    % 
-    %     for each A(:,k), s(k), k = 1:n distributed
-    %        y(k) = F(A(:,k),s(k),x(k))
-    
+    %     for each A(:,k), s(k), k = 1:n (distributed)
+    %        y(k) = F(A(:,k),s(k),x(k),1)
     %     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -144,7 +145,7 @@ classdef oppDistFun < oppSpot
             n_total = n*sizA(end);
             clear varargin;
                         
-            % Construct oppCompositexun
+            % Construct oppDistFun
             op           = op@oppSpot('DistFun', m_total, n_total);
             op.local_m   = m;
             op.local_n   = n;
