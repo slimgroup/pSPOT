@@ -1,5 +1,5 @@
 classdef oppDistFun < oppSpot
-    %OPPDISTFUN     Becuz u noe dis'fun!
+    %OPPDISTFUN     Fun(ction) evaluation over slices of distributed arrays
     %
     %   Q = oppDistFun(A1,A2,...,AN,F,GATHER), where A1,A2,...,AN are 
     %   distributed arrays and F is a function handle that takes in local 
@@ -24,32 +24,33 @@ classdef oppDistFun < oppSpot
     %            multiplication.
     %   GATHER = 2 will gather only in forward mode.
     %   GATHER = 3 will gather only in backward (adjoint) mode.
-    %
-    %   Use case to keep in mind:
-    %   (Ax - s)
-    %
-    %     A = length m x n
-    %     s = length n
+    %   
+    %   ## Example use case:
+    %   
+    %   Computing expression over distributed index k
+    %     y_k = (A_k * x_k - s_k)
+    %   where
+    %     A = size m by n by k
+    %     x = size n by k
+    %     s = size k
+    %     (A, x, s are all distributed over the last dimension where size=k)
     % 
-    %     P <---- constructs like oppFunComposite({A,s},F)
+    %   We write a custom function F that performs (Ax-s) for each k
+    %     F <-- function y = F(A, B, x, mode)
+    %               if mode==1
+    %               y = A * x - B;
+    %               elseif mode==2
+    %               y = A' * x - conj(B);
+    %               elseif mode=='0'
+    %               retrun {m, n}
+    %           end
     % 
-    %     F <-- function  y = functionF(A, B, x, mode)
-    %            if mode==1
-    %            y = A * x - B;
-    %            elseif mode==2
-    %            y = A' * x - conj(B);
-    %            elseif mode=='0'
-    %            retrun {m, n}
-    %          end
+    %     P <---- constructed with `oppDistFun({A,s},F)`
     % 
-    %     A distributed over last dim (2)
-    %     s distributed over last dim (1)
+    %     Then y = P*x will perform:
     % 
-    %     want P to do
-    % 
-    %     for each A(:,k), s(k), k = 1:n distributed
-    %        y(k) = F(A(:,k),s(k),x(k))
-    
+    %     for each A(:,k), s(k), k = 1:n (distributed)
+    %        y(k) = F(A(:,k),s(k),x(k),1)
     %     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -59,6 +60,8 @@ classdef oppDistFun < oppSpot
         fun;
         local_m;
         local_n;
+        sizA;
+        ndimA;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,11 +143,12 @@ classdef oppDistFun < oppSpot
             
             % Setup sizes
             sizA    = size(varargin{1});
+            ndimA   = ndims(varargin{1});
             m_total = m*sizA(end);
             n_total = n*sizA(end);
             clear varargin;
                         
-            % Construct oppCompositexun
+            % Construct oppDistFun
             op           = op@oppSpot('DistFun', m_total, n_total);
             op.local_m   = m;
             op.local_n   = n;
@@ -156,6 +160,8 @@ classdef oppDistFun < oppSpot
             op.gather    = opgather;
             op.opsn      = n*ones(1,sizA(end));
             op.opsm      = m*ones(1,sizA(end));
+            op.sizA      = sizA;
+            op.ndimA     = ndimA;
             
         end % constructor
         
@@ -193,6 +199,7 @@ classdef oppDistFun < oppSpot
             else
                 xsize = op.local_m;
             end
+            ndimA = op.ndimA;
             
             % distribute x if necessary
             x = pSPOT.utils.scatterchk(x,mode,op.gather);
@@ -200,34 +207,47 @@ classdef oppDistFun < oppSpot
             
             % Check for the distribution of x
             assert(isdistributed(x),'X must be distributed')
-                                                
+            
             spmd
                 % Setup local parts
                 xloc = getLocalPart(x);
                 for i = 1:length(ops)
-                   ops{i} = getLocalPart(ops{i}); 
+                   ops{i} = getLocalPart(ops{i});
                 end
                 
-                % Setup y
-                sizeA = size(ops{1});
-                y     = cell(1,sizeA(end));
+                % determine local size in the distributed dimension
+                if ndims(ops{1}) < ndimA
+                  % happens when loacal size == 1
+                  nSliceA_local = 1;
+                else
+                  sizeA = size(ops{1});
+                  nSliceA_local = sizeA(end);
+                end
                 
-                % Loop over the slices and apply F
-                n = 0;
-                for i=1:sizeA(end)
-                    slice = cell(1,length(ops));
-                    for j = 1:length(ops) % Get last-dimensional slice
-                       slice{j} = pSPOT.utils.ldind(ops{j},i); 
-                    end
+                if nSliceA_local > 0
+                  % Setup y (not sure what the sizes of the other dims will be, so we initialize with cell arrays)
+                  y = cell(1,nSliceA_local);
+                
+                  % Loop over the slices and apply F
+                  n = 0;
+                  for i=1:nSliceA_local
+                      slice = cell(1,length(ops));
+                      for j = 1:length(ops) % Get last-dimensional slice
+                         slice{j} = pSPOT.utils.ndind(ops{j},ndimA,ndimA,i);
+                      end
                     
-                    % Get x slice
-                    xslice = xloc(1 + n : xsize + n);
-                    y{i} = F(slice{:},xslice,mode);
-                    n = n + xsize;
-                end
+                      % Get x slice
+                      xslice = xloc(1 + n : xsize + n);
+                      y{i} = F(slice{:},xslice,mode);
+                      n = n + xsize;
+                  end
                 
-                % Stack y together
-                y = vertcat(y{:});
+                  % Stack y together
+                  y = vertcat(y{:});
+                else
+                  % this worker recieved no slices, so will contribute an empty y (needs to be 2d because codistributor1d expects at least 2d)
+                  y = zeros(0,1);
+                end
                 
                 % Build y
                 ypart = codistributed.zeros(1,numlabs);
@@ -235,7 +255,6 @@ classdef oppDistFun < oppSpot
                 ygsize = [sum(gather(ypart)) 1];
                 ycod = codistributor1d(1,ypart,ygsize);
                 y = codistributed.build(y,ycod,'noCommunication');
-                
             end % spmd
             
             % gather
