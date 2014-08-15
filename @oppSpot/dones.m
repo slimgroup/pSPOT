@@ -1,4 +1,4 @@
-function y = dones(op,varargin)
+function y = dones(op, ncols)
 %DONES Distributed ones vector in operator domain
 %
 %   y = dones(A) generates a ones vector with the size of the operator
@@ -7,10 +7,8 @@ function y = dones(op,varargin)
 %
 %   y = dones(A,NCOLS) generates NCOLS vectors
 
-if isempty(varargin)
+if isempty(ncols)
     ncols = 1;
-else
-    ncols = varargin{1};
 end
 
 if length(op.opsn) > 1 % Distributed

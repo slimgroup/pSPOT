@@ -64,7 +64,7 @@ for i = 1:N
     oplist{i} = OP;
 end
 S1 = oppDictionary(N,OP,1);
-S2 =  opDictionary(oplist{:});
+S2 = opDictionary(oplist{:});
 x1 = S1.drandn;
 x2 = S1.rrandn;
 y1 = S1*x1;

@@ -61,8 +61,13 @@ function out = pspottests(varargin)
 %   Copyright 2009 The MathWorks, Inc.
 
 % Make sure matlabpool is open
-if matlabpool('size') == 0
-    error('Matlab pool is not on!');
+% Grab names of installed toolboxes
+v = ver;
+[inst{1:length(v)}] = deal(v.Name);
+if ismember('Parallel Computing Toolbox', inst)
+    if matlabpool('size') == 0
+        error('Matlab pool is not on!');
+    end
 end
 
 % Make sure that xUnit is on the path.

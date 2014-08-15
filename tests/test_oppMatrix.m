@@ -7,7 +7,7 @@ end
 function test_oppMatrix_builtin
 %% Built-in tests for oppMatrix
 m = 3; n = 3;
-a = distributed.randn(m,n);
+a = distributed(randn(m,n));
 A = oppMatrix(a);
 utest(A,3);
 
