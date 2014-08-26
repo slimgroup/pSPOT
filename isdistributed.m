@@ -12,7 +12,6 @@ v = ver;
 
 if ismember('Parallel Computing Toolbox', inst) % parallel installed
     addpath(builtInIsdistributedPath);
-    %tf = builtin(isdistributed, x);
     tf = isdistributed(x);
     addpath(newIsdistributedPath);
 else

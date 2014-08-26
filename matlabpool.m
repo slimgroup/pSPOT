@@ -12,7 +12,6 @@ v = ver;
 
 if ismember('Parallel Computing Toolbox', inst) % parallel installed
     addpath(builtInMatlabpoolPath);
-    %[varargout{1:nargout}] = builtin('matlabpool', varargin{:});
     [varargout{1:nargout}] = matlabpool(varargin{:});
     addpath(newMatlabpoolPath);
 else
