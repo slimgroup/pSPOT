@@ -1,5 +1,5 @@
 function test_funWindowLast1()
-    p=matlabpool('size');
+    p=parpool_size();
     for h=1:1:5
         for m=100:100:500
             for t=1:3

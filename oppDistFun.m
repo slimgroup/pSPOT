@@ -73,8 +73,8 @@ classdef oppDistFun < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppDistFun(varargin)
                         
-            if matlabpool('size') == 0 % Check for matlabpool
-                error('Matlabpool is not open');
+            if parpool_size() == 0 % Check for parallel pool
+                error('Parallel pool is not open');
             end
             
             % Setup and extract variables

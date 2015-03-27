@@ -2,7 +2,7 @@ function test_funWindowLast1()
     hh=[1 1 3];
     mm=[100 100 1000];
     tt=[1 2];
-    p=matlabpool('size');
+    p=parpool_size();
 
     fprintf('%3s | %4s %4s %4s %4s | %s |','p','h','m','l','N','t');
     fprintf('%6s %6s %5s %6s %5s %6s %5s\n','td','tc','tc/td','to','to/td','tk','tk/td')

@@ -3,7 +3,7 @@ function y = compositeDef(x)
 %   
 %   y = compositeDef(x) returns a Composite array with the list of ops, x
 %   stored in the default distribution configuration given the current
-%   matlabpool conditions.
+%   parallel poll conditions.
 %
 %   x must be a 1 by n array or cell
 

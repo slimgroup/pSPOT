@@ -31,9 +31,9 @@ classdef oppKron < oppSpot
         % Constructor
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppKron(varargin)
-            % Check Matlabpool
-            if matlabpool('size') == 0
-                error('Matlabpool is not on');
+            % Check parallel pool
+            if parpool_size() == 0
+                error('Parallel pool is not on');
             end
             
             % Settin' up the variables

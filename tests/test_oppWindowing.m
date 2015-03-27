@@ -42,7 +42,7 @@ end
 
 function test_opdWindowLast1Halo
 %%
-   labs = matlabpool('size');
+   labs = parpool_size();
    for t=1:3
        for h=1:2
                n = labs*4*h+round(labs/2);
@@ -54,7 +54,7 @@ end
 
 function test_opdWindowLast1HaloAverage
 %%
-   labs = matlabpool('size');
+   labs = parpool_size();
    for t=1:3
        for h=1:2
                n = labs*4*h+round(labs/2);

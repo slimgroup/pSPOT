@@ -44,8 +44,8 @@ classdef oppBlockDiag < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppBlockDiag(varargin)
             
-            % Check Matlabpool
-            assert(matlabpool('size') > 0, 'Matlabpool is not on');
+            % Check parallel pool
+            assert(parpool_size() > 0, 'Parallel pool is not on');
             
             % Extract gather
             if isscalar(varargin{end}) && ~isa(varargin{end},'opSpot')
@@ -151,7 +151,7 @@ classdef oppBlockDiag < oppSpot
                 'x is not distributed along dimension 1');
             
             chi_num = 0;
-            for i=1:matlabpool('size')
+            for i=1:parpool_size()
                 chi_m = sum(op.opsm(chi_num+1:(chi_num+chi_part(i))));
                 chi_n = sum(op.opsn(chi_num+1:(chi_num+chi_part(i))));
                 
@@ -246,7 +246,7 @@ classdef oppBlockDiag < oppSpot
             x_cod    = x_cod{1};
             x_part   = x_cod.Partition;
             chi_part = pSPOT.utils.defaultDistribution(length(op.opsn));
-            n_labs   = matlabpool('size');
+            n_labs   = parpool_size();
             
             assert(x_cod.Dimension == 1,... % Dimensional check
                 'x is not distributed along dimension 1');

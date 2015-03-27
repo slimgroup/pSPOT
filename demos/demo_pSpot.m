@@ -8,12 +8,17 @@
 % 2)Ability to hadle larger dataset by distributing amongst the memory space of multiple computers
 %% 
 % The examples below serve to illustrate these points.
-% Note: For this demo, please use an even number of matlabpool
+% Note: For this demo, please use an even number of workers in parallel pool
 
 %% Example 1: Inverting a large block-diagonal linear system with multiple data-columns
 %
-if matlabpool('size') == 0 % Setup matlabpool
-    matlabpool('open','2');
+if parpool_size() == 0 % Setup parallel pool
+    dcv = ver('distcomp');
+    if str2double(dcv.Version) < 6.3
+        matlabpool('open','2');
+    else
+        pool=parpool(2);
+    end
 end
 
 n   = 1000;

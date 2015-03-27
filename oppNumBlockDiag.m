@@ -55,8 +55,8 @@ methods
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     function op = oppNumBlockDiag(varargin)
 
-        % Check Matlabpool
-        assert(matlabpool('size') > 0, 'Matlabpool is not open');
+        % Check parallel pool
+        assert(parpool_size() > 0, 'Parallel pool is not open');
 
         % Setting up the variables
         ncols_x = 1;

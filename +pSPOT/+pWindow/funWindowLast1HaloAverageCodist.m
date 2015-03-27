@@ -15,7 +15,7 @@ function Y = funWindowLast1HaloAverageCodist( x, n, p, h )
 
     assert(isvector(x),'Fatal error: x has to be vector')
     assert(iscodistributed(x),'Fatal error: x has to be codistributed')
-    assert(numlabs==p,'Fatal error: p does not match matlabpool size')
+    assert(numlabs==p,'Fatal error: p does not match parallel pool size')
     assert(h>0,'Fatal error: half-halo has to be beger than 0')
     N=n+(p-1)*2*h;
     mN=prod(size(x));

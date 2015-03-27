@@ -23,7 +23,7 @@ classdef oppWindow2D < oppSpot
         function op = oppWindow2D(gsize,labshape,varargin)
             
             % Checks and assertions
-            assert(matlabpool('size') == 4,...
+            assert(parpool_size() == 4,...
                 '4 and only 4 labs are supported as of now.');
             assert(all(labshape == [2 2]), 'LABSHAPE must be [2 2] for now');
             assert(all(size(gsize) == [1 2]), 'GLOBALSIZE must be a 1 x 2 vector');

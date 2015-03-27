@@ -22,9 +22,9 @@ classdef oppSweep < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppSweep(varargin)
                         
-            % Check for matlabpool
-            if matlabpool('size') == 0
-                error('Matlabpool is not on');
+            % Check for parallel pool
+            if parpool_size() == 0
+                error('Parallel pool is not on');
             end
             
             % Settin' up the variables
@@ -88,7 +88,7 @@ classdef oppSweep < oppSpot
             % Setup variables
             A = op.children{1};
             opm = op.m; opn = op.n;
-            nlabs = matlabpool('size');
+            nlabs = parpool_size();
             size_x = size(x);
             size_rest = size_x(2:end);
             

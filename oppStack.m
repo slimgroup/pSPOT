@@ -49,8 +49,8 @@ classdef oppStack < oppSpot
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function op = oppStack(varargin)
             
-            % Check Matlabpool
-            assert(matlabpool('size') > 0, 'Matlabpool is not on');
+            % Check parallel pool
+            assert(parpool_size() > 0, 'parallel pool is not on');
             
             % Check for gather parameter
             if isscalar( varargin{end} ) && ~isa(varargin{end},'opSpot')
@@ -240,7 +240,7 @@ classdef oppStack < oppSpot
 
                 % Size checkings
                 chi_num = 0;
-                for i=1:matlabpool('size') 
+                for i=1:parpool_size() 
                     chi_m = sum(op.opsm(chi_num+1:(chi_num+chi_part(i))));
                     assert(chi_m == x_part(i),...
                         'x size mismatch at lab %d, check your distribution',i);

@@ -1,10 +1,7 @@
 function test_DistPermute
 
-x = matlabpool('size');
-if ~x
-    matlabpool 10;
-    x = 10;
-end
+x = parpool_size();
+assert(x>0,'parallel pool not opened')
 x = 5*x;
 
 for i = 3:5

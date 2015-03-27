@@ -10,7 +10,7 @@ function part = defaultDistribution(dsize)
 %   
 %   See codistributor1d.defaultPartition for more details
 
-nlabs = matlabpool('size');
+nlabs = parpool_size();
 r     = rem(dsize,nlabs);
 c     = ceil(dsize/nlabs);
 f     = floor(dsize/nlabs);
