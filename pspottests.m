@@ -62,7 +62,7 @@ function out = pspottests(varargin)
 
 % Make sure parallel pool  is open
 if parpool_size() == 0
-    error('Matlab pool is not on!');
+    error('Parallel pool is not on!');
 end
 
 % Make sure that xUnit is on the path.
