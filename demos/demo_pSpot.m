@@ -13,12 +13,7 @@
 %% Example 1: Inverting a large block-diagonal linear system with multiple data-columns
 %
 if parpool_size() == 0 % Setup parallel pool
-    dcv = ver('distcomp');
-    if str2double(dcv.Version) < 6.3
-        matlabpool('open','2');
-    else
-        pool=parpool(2);
-    end
+    pool=parpool_open(2);
 end
 
 n   = 1000;
