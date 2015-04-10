@@ -3,7 +3,7 @@ function parpool_close()
 
 dcv=ver('distcomp');
 if str2double(dcv.Version) < 6.3
-    matlabpool close;
+    matlabpool('close');
 else
     delete(gcp('nocreate'));
 end
