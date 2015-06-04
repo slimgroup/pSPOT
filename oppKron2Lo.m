@@ -49,6 +49,8 @@ classdef oppKron2Lo < oppSpot
         %applied to a data vector.
         A; % Child operators
         B;
+        sizeA;
+        sizeB;
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,6 +98,8 @@ classdef oppKron2Lo < oppSpot
             op.permutation = [1 2];
             op.opsn        = n;
             op.opsm        = m;
+            op.sizeA       = size(opA);
+            op.sizeB       = size(opB);
             
             % Evaluate the best permutation to use when a multiplication is
             % applied
@@ -331,6 +335,22 @@ classdef oppKron2Lo < oppSpot
             %%%%%%%%%%%%%%%%%%%%%%Multiplication%%%%%%%%%%%%%%%%%%%%%%%%%%%            
             
             if op.permutation(1)==2 %Classic multiplication order
+                % Distribute if necessary
+                if ~isdistributed(x)
+                    if mode == 2
+                        sizeA=fliplr(op.sizeA); sizeB=fliplr(op.sizeB);
+                    else
+                        sizeA=op.sizeA; sizeB=op.sizeB;
+                    end
+                    rA = sizeA(1); cA = sizeA(2);
+                    rB = sizeB(1); cB = sizeB(2);
+                    %fprintf('0c:(%d,%d)(%d,%d)\n',rA,cA,rB,cB)
+                    y=reshape(x,cB,cA);
+                    y=distributed(y);
+                else
+                    y=x;
+                end
+                    
                 spmd
                     % For transpose case
                     if mode == 2
@@ -341,19 +361,13 @@ classdef oppKron2Lo < oppSpot
                     % Size of the operators
                     [rA,cA] = size(opA);
                     [rB,cB] = size(opB);
+                    %fprintf('1c:(%d,%d)(%d,%d)\n',rA,cA,rB,cB)
                     
-                    if iscodistributed(x)
-                        y              = getLocalPart(x);
-                        loc_width      = length(y)/cB;
-                        assert( mod(loc_width,1) == 0, ...
-                            'x must be distributed along cols before vec')
-                        % reshape to local 
-                        y              = reshape(y,cB,loc_width); 
-                    else
-                        y              = reshape(x,cB,cA);
-                        y              = codistributed(y);
-                        y              = getLocalPart(y);
-                    end
+                    y         = getLocalPart(y);
+                    loc_width = prod(size(y))/cB;
+                    assert( mod(loc_width,1) == 0, ...
+                        'x must be distributed along cols before vec')
+                    y         = reshape(y,cB,loc_width); % reshape to local 
                     
                     if ~opB.isDirac
                         y=opB*y;% apply B to local matrices
@@ -386,6 +400,22 @@ classdef oppKron2Lo < oppSpot
                         part, [rA*rB,1]),'noCommunication');
                 end
             else  %Inverted multiplication order
+                % Distribute if necessary
+                if ~isdistributed(x)
+                    if mode == 2
+                        sizeA=fliplr(op.sizeA); sizeB=fliplr(op.sizeB);
+                    else
+                        sizeA=op.sizeA; sizeB=op.sizeB;
+                    end
+                    rA = sizeA(1); cA = sizeA(2);
+                    rB = sizeB(1); cB = sizeB(2);
+                    %fprintf('0i:(%d,%d)(%d,%d)\n',rA,cA,rB,cB)
+                    y=reshape(x,cB,cA);
+                    y=distributed(y);
+                else
+                    y=x;
+                end
+                                        
                 spmd
                     % For transpose case
                     if mode == 2
@@ -396,33 +426,21 @@ classdef oppKron2Lo < oppSpot
                     % Size of the operators
                     [rA,cA] = size(opA);
                     [rB,cB] = size(opB);
-                                        
-                    if iscodistributed(x)
-                        y         = getLocalPart(x);
-                        loc_width = length(getLocalPart(x))/cB;
-                        assert( mod(loc_width,1) == 0, ...
-                            'x must be distributed along cols before vec')
-                        y = reshape(y,cB,loc_width); % reshape to local 
-                        
-                        if ~opA.isDirac
-                            y = y.'; % transpose since A is applied first
-                            % Build y distributed across rows
-                            y = codistributed.build(y, codistributor1d...
-                                (1,[],[cA,cB]),'noCommunication');
-                            % Redistribute y across cols
-                            y = redistribute(y,codistributor1d(2));
-                        end
-                    else
-                        y = codistributed(reshape(x,cB,cA),...
-                            codistributor1d(2));
-                        y = getLocalPart(y);
-                        if ~opA.isDirac
-                            y = y.';
-                            y = codistributed.build(y, codistributor1d...
-                                (1,[],[cA,cB]),'noCommunication');
-                            % Redistribute y across cols
-                            y = codistributed(y,codistributor1d(2));
-                        end
+                    %fprintf('1i:(%d,%d)(%d,%d)\n',rA,cA,rB,cB)
+
+                    y         = getLocalPart(y);
+                    loc_width = prod(size(y))/cB;
+                    assert( mod(loc_width,1) == 0, ...
+                        'x must be distributed along cols before vec')
+                    y         = reshape(y,cB,loc_width); % reshape to local 
+                    
+                    if ~opA.isDirac
+                        y = y.'; % transpose since A is applied first
+                        % Build y distributed across rows
+                        y = codistributed.build(y, codistributor1d...
+                            (1,[],[cA,cB]),'noCommunication');
+                        % Redistribute y across cols
+                        y = redistribute(y,codistributor1d(2));
                     end
                     
                     if ~opA.isDirac
