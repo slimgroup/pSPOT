@@ -12,7 +12,7 @@ function OUT = PTranspose(Data, dim1, dim2, dist)
 % dustributed along 3rd dimension
 
 %check input arguments
-error(nargchk(3, 4, nargin))
+narginchk(3, 4)
 if nargin == 3,    dist = -1;   end
 if numlabs ~= 1
     error('This function is not meant to be called from an spmd block')

@@ -9,7 +9,7 @@ numdims = ndims(Data);
 if ~(nargin == 5 && ischar( varargin{1} ) && ...
         strcmp( varargin{1}, 'internalcall' ))
     %no need to check inputs for internal calls
-    error(nargchk(2,3, nargin))
+    narginchk(2,3)
     if nargin == 2,     dist = perm(numdims);  end
     if numlabs ~= 1
         error('This function is not meant to be called from an spmd block')
