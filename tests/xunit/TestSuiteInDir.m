@@ -1,21 +1,20 @@
-%TestSuiteInDir Test suite requiring temporary directory change
-%   The TestSuiteInDir class defines a test suite that has to be run by first
-%   changing to a specified directory.
-%
-%   The setUp method adds the starting directory to the path and then uses cd to
-%   change into the specified directory.  The tearDown method restores the
-%   original path and directory.
-%
-%   TestSuiteInDir methods:
-%       TestSuiteInDir  - Constructor
-%       gatherTestCases - Add test cases found in the target directory
-%
-%   See also TestSuite
-
-%   Steven L. Eddins
-%   Copyright 2009 The MathWorks, Inc.
-
 classdef TestSuiteInDir < TestSuite & TestComponentInDir
+    %TestSuiteInDir Test suite requiring temporary directory change
+    %   The TestSuiteInDir class defines a test suite that has to be run by first
+    %   changing to a specified directory.
+    %
+    %   The setUp method adds the starting directory to the path and then uses cd to
+    %   change into the specified directory.  The tearDown method restores the
+    %   original path and directory.
+    %
+    %   TestSuiteInDir methods:
+    %       TestSuiteInDir  - Constructor
+    %       gatherTestCases - Add test cases found in the target directory
+    %
+    %   See also TestSuite
+    
+    %   Steven L. Eddins
+    %   Copyright 2009 The MathWorks, Inc.
     
     methods
         function self = TestSuiteInDir(testDirectory)
@@ -24,9 +23,14 @@ classdef TestSuiteInDir < TestSuite & TestComponentInDir
             %   using the specified name and located in the specified directory.
             self = self@TestComponentInDir(testDirectory);
             
-            [pathstr, name] = fileparts(testDirectory);
-            self.Name = name;
-            self.Location = testDirectory;
+            if strcmp(testDirectory, '.')
+                self.Name = pwd;
+                self.Location = pwd;
+            else
+                [pathstr, name] = fileparts(testDirectory);
+                self.Name = name;
+                self.Location = testDirectory;
+            end
         end
         
         function gatherTestCases(self)

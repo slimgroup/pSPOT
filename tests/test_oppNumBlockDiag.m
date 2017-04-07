@@ -1,6 +1,6 @@
 function test_suite = test_oppNumBlockDiag
 % test_oppNumBlockDiag  Unit tests for the oppNumBlockDiag operator
-initTestSuite;
+test_suite=buildFunctionHandleTestSuite(localfunctions);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

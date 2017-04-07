@@ -8,5 +8,8 @@ function tf = isTestString(str)
 %   Steven L. Eddins
 %   Copyright 2008-2009 The MathWorks, Inc.
 
-test_exp = '^[tT]est';
-tf = xunit.utils.containsRegexp(str, test_exp);
+test_at_beginning = '^[tT]est';
+test_at_end = '[tT]est$';
+
+tf = xunit.utils.containsRegexp(str, test_at_beginning) | ...
+    xunit.utils.containsRegexp(str, test_at_end);

@@ -1,6 +1,6 @@
 function test_suite = test_oppStack
 %test_oppStack  Unit tests for the Stack meta operator
-initTestSuite;
+test_suite=buildFunctionHandleTestSuite(localfunctions);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  

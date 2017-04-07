@@ -1,6 +1,6 @@
 function test_suite = test_oppWindowing
 %test_oppWindowing  Unit tests for 1d windowing operators
-initTestSuite;
+test_suite=buildFunctionHandleTestSuite(localfunctions);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  

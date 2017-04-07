@@ -17,17 +17,17 @@ function assertTrue(condition, message)
 %   See also assertEqual, assertFalse
 
 %   Steven L. Eddins
-%   Copyright 2008-2009 The MathWorks, Inc.
+%   Copyright 2008-2010 The MathWorks, Inc.
 
 if nargin < 2
-   message = 'Asserted condition is not true.';
+    message = 'Asserted condition is not true.';
 end
 
 if ~isscalar(condition) || ~islogical(condition)
-   throwAsCaller(MException('assertTrue:invalidCondition', ...
-      'CONDITION must be a scalar logical value.'));
+    throwAsCaller(MException('assertTrue:invalidCondition', ...
+        'CONDITION must be a scalar logical value.'));
 end
 
 if ~condition
-   throwAsCaller(MException('assertTrue:falseCondition', message));
+    throwAsCaller(MException('assertTrue:falseCondition', '%s', message));
 end

@@ -1,6 +1,6 @@
 function test_suite = test_basic
 %test_oppBlockDiag  Unit tests for the opBlockDiag operator
-initTestSuite;
+test_suite=buildFunctionHandleTestSuite(localfunctions);
 end
 
 function test_basic_mtimesdistribution

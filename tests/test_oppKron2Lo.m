@@ -1,5 +1,5 @@
 function test_suite = test_oppKron2Lo
-    initTestSuite;
+    test_suite=buildFunctionHandleTestSuite(localfunctions);
 end
     
 function test_oppKron2Lo_builtin

@@ -17,7 +17,7 @@ function assertEqual(A, B, custom_message)
 %   See also assertElementsAlmostEqual, assertVectorsAlmostEqual
 
 %   Steven L. Eddins
-%   Copyright 2008-2009 The MathWorks, Inc.
+%   Copyright 2008-2010 The MathWorks, Inc.
 
 if nargin < 3
     custom_message = '';
@@ -26,18 +26,18 @@ end
 if ~ (issparse(A) == issparse(B))
     message = xunit.utils.comparisonMessage(custom_message, ...
         'One input is sparse and the other is not.', A, B);
-    throwAsCaller(MException('assertEqual:sparsityNotEqual', message));
+    throwAsCaller(MException('assertEqual:sparsityNotEqual', '%s', message));
 end
 
 if ~strcmp(class(A), class(B))
     message = xunit.utils.comparisonMessage(custom_message, ...
         'The inputs differ in class.', A, B);
-    throwAsCaller(MException('assertEqual:classNotEqual', message));
+    throwAsCaller(MException('assertEqual:classNotEqual', '%s', message));
 end
 
 if ~isequalwithequalnans(A, B)
     message = xunit.utils.comparisonMessage(custom_message, ...
         'Inputs are not equal.', A, B);
-    throwAsCaller(MException('assertEqual:nonEqual', message));
+    throwAsCaller(MException('assertEqual:nonEqual', '%s', message));
 end
 

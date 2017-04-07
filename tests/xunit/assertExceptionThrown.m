@@ -24,7 +24,7 @@ function assertExceptionThrown(f, expectedId, custom_message)
 %   assertExceptionThrown(@() sin(pi), 'MATLAB:foo');
 
 %   Steven L. Eddins
-%   Copyright 2008-2009 The MathWorks, Inc.
+%   Copyright 2008-2010 The MathWorks, Inc.
 
 noException = false;
 try
@@ -38,7 +38,8 @@ catch exception
         if nargin >= 3
             message = sprintf('%s\n%s', custom_message, message);
         end
-        throwAsCaller(MException('assertExceptionThrown:wrongException', message));
+        throwAsCaller(MException('assertExceptionThrown:wrongException', ...
+            '%s', message));
     end
 end
 
@@ -48,5 +49,5 @@ if noException
     if nargin >= 3
         message = sprintf('%s\n%s', custom_message, message);
     end
-    throwAsCaller(MException('assertExceptionThrown:noException', message));
+    throwAsCaller(MException('assertExceptionThrown:noException', '%s', message));
 end

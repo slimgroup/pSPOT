@@ -35,6 +35,11 @@ function result = compareFloats(varargin)
 %
 %   If A or B is complex, then the tolerance test is applied independently to
 %   the real and imaginary parts.
+%
+%   For elementwise comparisons, compareFloats returns true for two elements
+%   that are both NaN, or for two infinite elements that have the same sign.
+%   For vector comparisons, compareFloats returns false if any input elements
+%   are infinite or NaN.
 
 %   Steven L. Eddins
 %   Copyright 2008-2009 The MathWorks, Inc.
@@ -57,8 +62,6 @@ params = xunit.utils.parseFloatAssertInputs(varargin{:});
 A = params.A(:);
 B = params.B(:);
 
-[A, B] = preprocessNanInf(A, B);
-
 switch compare_type
     case 'elementwise'
         magFcn = @abs;
@@ -73,16 +76,26 @@ end
 
 switch params.ToleranceType
     case 'relative'
-        compareFcn = @(A, B) magFcn(A - B) <= ...
-            params.Tolerance * max(magFcn(A), magFcn(B)) + ...
-            params.FloorTolerance;
+        coreCompareFcn = @(A, B) magFcn(A - B) <= ...
+              params.Tolerance * max(magFcn(A), magFcn(B)) + ...
+              params.FloorTolerance;
         
     case 'absolute'
-        compareFcn = @(A, B) magFcn(A - B) <= params.Tolerance;
+        coreCompareFcn = @(A, B) magFcn(A - B) <= params.Tolerance;
         
     otherwise
         error('compareFloats:unrecognizedToleranceType', ...
             'TOL_TYPE must be ''relative'' or ''absolute''.');
+end
+
+if strcmp(compare_type, 'elementwise')
+    compareFcn = @(A, B) ( coreCompareFcn(A, B) | bothNaN(A, B) | sameSignInfs(A, B) ) & ...
+        ~oppositeSignInfs(A, B) & ...
+        ~finiteAndInfinite(A, B);
+else
+    compareFcn = @(A, B)  coreCompareFcn(A, B) & ...
+        isfinite(magFcn(A)) & ...
+        isfinite(magFcn(B));
 end
 
 if isreal(A) && isreal(B)
@@ -94,11 +107,22 @@ end
 result = all(result);
 
 %===============================================================================
-function [A, B] = preprocessNanInf(A, B)
+function out = bothNaN(A, B)
 
-make_zero = isnan(A) & isnan(B);
-make_zero = make_zero | ((A == Inf) & (B == Inf));
-make_zero = make_zero | ((A == -Inf) & (B == -Inf));
+out = isnan(A) & isnan(B);
 
-A(make_zero) = 0;
-B(make_zero) = 0;
+%===============================================================================
+function out = oppositeSignInfs(A, B)
+
+out = isinf(A) & isinf(B) & (sign(A) ~= sign(B));
+
+%===============================================================================
+function out = sameSignInfs(A, B)
+
+out = isinf(A) & isinf(B) & (sign(A) == sign(B));
+
+%===============================================================================
+function out = finiteAndInfinite(A, B)
+
+out = xor(isinf(A), isinf(B));
+

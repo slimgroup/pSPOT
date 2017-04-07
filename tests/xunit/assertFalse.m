@@ -15,17 +15,17 @@ function assertFalse(condition, message)
 %   See also assertTrue
 
 %   Steven L. Eddins
-%   Copyright 2008-2009 The MathWorks, Inc.
+%   Copyright 2008-2010 The MathWorks, Inc.
 
 if nargin < 2
-   message = 'Asserted condition is not false.';
+    message = 'Asserted condition is not false.';
 end
 
 if ~isscalar(condition) || ~islogical(condition)
-   throwAsCaller(MException('assertFalse:invalidCondition', ...
-      'CONDITION must be a scalar logical value.'));
+    throwAsCaller(MException('assertFalse:invalidCondition', ...
+        'CONDITION must be a scalar logical value.'));
 end
 
 if condition
-   throwAsCaller(MException('assertFalse:trueCondition', message));
+    throwAsCaller(MException('assertFalse:trueCondition', '%s', message));
 end

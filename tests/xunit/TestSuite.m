@@ -1,58 +1,65 @@
-%TestSuite Collection of TestComponent objects
-%   The TestSuite class defines a collection of TestComponent objects.
-%
-%   TestSuite methods:
-%       TestSuite             - Constructor
-%       add                   - Add test component to test suite
-%       print                 - Display test suite summary to Command Window
-%       run                   - Run the test suite
-%       keepMatchingTestCase  - Keep only the named test component
-%       fromName              - Construct test suite from directory or MATLAB function file name
-%       fromTestCaseClassName - Construct test suite from TestCase class name
-%       fromPwd               - Construct test suite from present directory
-%
-%   TestSuite properties:
-%       TestComponents - Cell array of TestComponent objects
-%
-%   Examples
-%   --------
-%   Run all the test cases in the SampleTests1 class.  Display test suite
-%   progress and a summary of results in the Command Window.
-%
-%       TestSuite('SampleTests1').run()
-%
-%   Construct a test suite from all test components found in the current
-%   directory.
-%
-%       suite = TestSuite.fromPwd();
-%
-%   Run all the test cases in the SampleTests class.  Display no output to the
-%   Command Window.  Upon completion, query the number of test failures and test
-%   errors.
-%
-%       logger = TestRunLogger();
-%       TestSuite('SampleTests1').run(logger);
-%       numFailures = logger.NumFailures
-%       numErrors = logger.NumErrors
-%
-%   See also CommandWindowTestRunDisplay, TestCase, TestComponent, TestRunLogger
-
-%   Steven L. Eddins
-%   Copyright 2008-2009 The MathWorks, Inc.
-
 classdef TestSuite < TestComponent
+    %TestSuite Collection of TestComponent objects
+    %   The TestSuite class defines a collection of TestComponent objects.
+    %
+    %   TestSuite methods:
+    %       TestSuite             - Constructor
+    %       add                   - Add test component to test suite
+    %       print                 - Display test suite summary to Command Window
+    %       run                   - Run the test suite
+    %       keepMatchingTestCase  - Keep only the named test component
+    %       fromName              - Construct test suite from directory or MATLAB function file name
+    %       fromTestCaseClassName - Construct test suite from TestCase class name
+    %       fromPackageName       - Construct test suite from package name
+    %       fromPwd               - Construct test suite from present directory
+    %
+    %   TestSuite properties:
+    %       TestComponents - Cell array of TestComponent objects
+    %
+    %   Examples
+    %   --------
+    %   Run all the test cases in the SampleTests1 class.  Display test suite
+    %   progress and a summary of results in the Command Window.
+    %
+    %       TestSuite('SampleTests1').run()
+    %
+    %   Construct a test suite from all test components found in the current
+    %   directory.
+    %
+    %       suite = TestSuite.fromPwd();
+    %
+    %   Construct a test suite from all test components found in the package
+    %   'mytool.tests'. (Note that the "+" character at the beginning of the package
+    %   folder name on disk is not part of the package name.)
+    %
+    %       suite = TestSuite.fromPackageName('mytool.tests');
+    %
+    %   Run all the test cases in the SampleTests class.  Display no output to the
+    %   Command Window.  Upon completion, query the number of test failures and test
+    %   errors.
+    %
+    %       logger = TestRunLogger();
+    %       TestSuite('SampleTests1').run(logger);
+    %       numFailures = logger.NumFailures
+    %       numErrors = logger.NumErrors
+    %
+    %   See also CommandWindowTestRunDisplay, TestCase, TestComponent, TestRunLogger
+    
+    %   Steven L. Eddins
+    %   Copyright 2008-2010 The MathWorks, Inc.
     
     properties (SetAccess = protected)
         TestComponents = {};
     end
     
     methods
-        
         function self = TestSuite(name)
             %TestSuite Constructor
-            %   suite = TestSuite constructs an empty test suite. suite =
-            %   TestSuite(name) constructs a test suite by searching for test
-            %   cases defined in an M-file with the specified name.
+            %   suite = TestSuite() constructs an empty test suite.
+            %
+            %   TestSuite(name) is the same as TestSuite.fromName(name).
+            %
+            %   See also TestSuite.fromName, TestSuite.fromPwd.
             
             if nargin >= 1
                 self = TestSuite.fromName(name);
@@ -143,12 +150,11 @@ classdef TestSuite < TestComponent
                 self.TestComponents = self.TestComponents(idx);
             end
         end
-        
     end
     
     methods (Static)
         function suite = fromTestCaseClassName(class_name)
-            %fromTestCaseClassName Construct test suite from TestCase class name
+            %fromTestCaseClassName Construct test suite from TestCase class name.
             %   suite = TestSuite.fromTestCaseClassName(name) constructs a
             %   TestSuite object from the name of a TestCase subclass.
             
@@ -158,7 +164,7 @@ classdef TestSuite < TestComponent
                     class_name);
             end
             
-            suite = TestSuite;
+            suite = TestSuite();
             suite.Name = class_name;
             suite.Location = which(class_name);
             
@@ -173,7 +179,6 @@ classdef TestSuite < TestComponent
                     suite.add(feval(class_name, method_name));
                 end
             end
-            
         end
         
         function suite = fromName(name)
@@ -190,9 +195,30 @@ classdef TestSuite < TestComponent
             %   named 'testA' found in the TestCase subclass MyTests.
             
             if isdir(name)
-                suite = TestSuiteInDir(name);
-                suite.gatherTestCases();
-                return;
+                % The provided name could be a path. However due to the way
+                % MATLAB works it could also be a partial path somewhere on the
+                % MATLAB path. To make sure we only operate on actual folders
+                % some additional logic is necessary
+                folderContents = what(name);
+                
+                % Actually existing paths will only return a single element
+                % (cases exist where multiple values are returned, e.g.
+                % what('matlab')). Furthermore the path could be an absolute
+                % path or relative to the current working directory.
+                if numel(folderContents) == 1
+                    if strcmp(name, folderContents.path)
+                        suite = TestSuiteInDir(folderContents.path);
+                        suite.gatherTestCases();
+                        return;
+                    else
+                        relativePath = fullfile(pwd(), name);
+                        if isdir(relativePath)
+                            suite = TestSuiteInDir(relativePath);
+                            suite.gatherTestCases();
+                            return;
+                        end
+                    end
+                end
             end
             
             [name, filter_string] = strtok(name, ':');
@@ -209,27 +235,50 @@ classdef TestSuite < TestComponent
                 suite = TestSuite();
                 suite.Name = name;
                 
-            else
+            elseif isPackage(name)
+                suite = TestSuite.fromPackageName(name);
                 
+            else
                 try
+                    % The following attempts to create a test suite given
+                    % `name` can generate exceptions in the case of it not
+                    % being a valid m-file, it being a script or being a valid
+                    % function requiring input arguments. All these cases are
+                    % converted into a single empty test suite which will be
+                    % ignored when the suite is run
                     if nargout(name) == 0
                         suite = TestSuite();
                         suite.Name = name;
                         suite.add(FunctionHandleTestCase(str2func(name), [], []));
                         suite.Location = which(name);
-                        
                     else
-                        suite = feval(name);
-                        if ~isa(suite, 'TestSuite')
-                            error('Function did not return a TestSuite object.');
+                        try
+                            suite = feval(name);
+                            if ~isa(suite, 'TestSuite')
+                                error('xunit:TestSuite:noTestSuiteReturned', ...
+                                    'Function did not return a TestSuite object.');
+                            end
+                        catch
+                            error('xunit:TestSuite:noTestSuiteReturned', ...
+                                'Function did not return a TestSuite object.');
                         end
                     end
                     
-                catch
-                    % Ordinary function does not appear to contain tests.
-                    % Return an empty test suite.
-                    suite = TestSuite();
-                    suite.Name = name;
+                catch exception
+                    notTestSuiteErrors = {
+                        'xunit:TestSuite:noTestSuiteReturned';
+                        'MATLAB:narginout:notValidMfile';
+                        'MATLAB:nargin:isScript'
+                        };
+                    
+                    if any(strcmp(notTestSuiteErrors, exception.identifier))
+                        % Ordinary function does not appear to contain tests.
+                        % Return an empty test suite.
+                        suite = TestSuite();
+                        suite.Name = name;
+                    else
+                        rethrow(exception);
+                    end
                 end
             end
             
@@ -263,7 +312,58 @@ classdef TestSuite < TestComponent
                 end
             end
         end
+        
+        function test_suite = fromPackageName(name)
+            %fromPackageName Construct test suite from package name
+            %   test_suite = TestSuite.fromPackageName(name) constructs a
+            %   TestSuite object from all the test components found in the
+            %   specified package.
+            
+            package_info = meta.package.fromName(name);
+            if isempty(package_info)
+                error('xunit:fromPackageName:invalidName', ...
+                    'Input string "%s" is not the name of a package.', ...
+                    name);
+            end
+            test_suite = TestSuite();
+            test_suite.Name = name;
+            test_suite.Location = 'Package';
+            
+            for k = 1:numel(package_info.Packages)
+                pkg_name = package_info.Packages{k}.Name;
+                pkg_suite = TestSuite.fromPackageName(pkg_name);
+                if ~isempty(pkg_suite.TestComponents)
+                    test_suite.add(TestSuite.fromPackageName(pkg_name));
+                end
+            end
+            
+            class_names = cell(1, numel(package_info.Classes));
+            for k = 1:numel(package_info.Classes)
+                class_name = package_info.Classes{k}.Name;
+                class_names{k} = class_name;
+                if xunit.utils.isTestCaseSubclass(class_name)
+                    test_suite.add(TestSuite.fromTestCaseClassName(class_name));
+                end
+            end
+            
+            for k = 1:numel(package_info.Functions)
+                function_name = package_info.Functions{k}.Name;
+                if xunit.utils.isTestString(function_name)
+                    full_function_name = [package_info.Name '.' package_info.Functions{k}.Name];
+                    if ~ismember(full_function_name, class_names)
+                        suite_k = TestSuite.fromName(full_function_name);
+                        if ~isempty(suite_k.TestComponents)
+                            test_suite.add(suite_k);
+                        end
+                    end
+                end
+            end
+        end
     end
+end
+
+function tf = isPackage(name)
+tf = ~isempty(meta.package.fromName(name));
 end
 
 function methods = getClassMethods(class_name)
@@ -272,5 +372,10 @@ methods = class_meta.Methods;
 end
 
 function result = methodIsConstructor(method)
-result = strcmp(method.Name, method.DefiningClass.Name);
+method_name = method.Name;
+if ~isempty(method.DefiningClass.ContainingPackage)
+    method_name = [method.DefiningClass.ContainingPackage.Name, '.', ...
+        method_name];
+end
+result = strcmp(method_name, method.DefiningClass.Name);
 end

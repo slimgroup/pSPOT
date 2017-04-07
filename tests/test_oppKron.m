@@ -1,5 +1,5 @@
 function test_suite = test_oppKron
-initTestSuite;
+test_suite=buildFunctionHandleTestSuite(localfunctions);
 end
 function test_oppKron_5D_skipped
 end

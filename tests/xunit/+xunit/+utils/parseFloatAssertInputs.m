@@ -36,7 +36,7 @@ end
 
 if numel(varargin) < 3
     % floor_tol not specified; set default.
-    params.FloorTolerance = epsilon;
+    params.FloorTolerance = sqrt(epsilon);
 else
     params.FloorTolerance = varargin{3};
 end

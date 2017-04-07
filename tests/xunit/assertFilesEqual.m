@@ -7,7 +7,7 @@ function assertFilesEqual(filename1, filename2, user_message)
 %   message string to the assertion message.
 
 %   Steven L. Eddins
-%   Copyright 2009 The MathWorks, Inc.
+%   Copyright 2009-2010 The MathWorks, Inc.
 
 if nargin < 3
     user_message = '';
@@ -17,7 +17,8 @@ fid1 = fopen(filename1, 'r');
 if (fid1 < 0)
     message = sprintf('%s\nCould not open file for reading: %s', ...
         user_message, filename1);
-    throwAsCaller(MException('assertFilesEqual:readFailure', message));
+    throwAsCaller(MException('assertFilesEqual:readFailure', ...
+        '%s', message));
 else
     c1 = onCleanup(@() fclose(fid1));
 end
@@ -26,7 +27,7 @@ fid2 = fopen(filename2, 'r');
 if (fid2 < 0)
     message = sprintf('%s\nCould not open file for reading: %s', ...
         user_message, filename2);
-    throwAsCaller(MException('assertFilesEqual:readFailure', message));
+    throwAsCaller(MException('assertFilesEqual:readFailure', '%s', message));
 else
     c2 = onCleanup(@() fclose(fid2));
 end
@@ -46,7 +47,7 @@ while ~done
         if ~isempty(user_message)
             message = sprintf('%s\n%s', user_message, message);
         end
-        throwAsCaller(MException('assertFilesEqual:sizeMismatch', message));
+        throwAsCaller(MException('assertFilesEqual:sizeMismatch', '%s', message));
     end
     
     if ~isequal(block_from_file1, block_from_file2)
@@ -59,7 +60,7 @@ while ~done
         if ~isempty(user_message)
             message = sprintf('%s\n%s', user_message, message);
         end
-        throwAsCaller(MException('assertFilesEqual:valuesDiffer', message));
+        throwAsCaller(MException('assertFilesEqual:valuesDiffer', '%s', message));
     end
     
     done = numel(block_from_file1) < block_size;

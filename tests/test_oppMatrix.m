@@ -1,6 +1,6 @@
 function test_suite = test_oppMatrix
 % test_oppMatrix  Unit tests for the oppMatrix operator
-initTestSuite;
+test_suite=buildFunctionHandleTestSuite(localfunctions);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
